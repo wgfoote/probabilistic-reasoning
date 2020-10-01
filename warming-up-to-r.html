@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 3 Warming up to R | Probabilistic Reasoning</title>
+  <meta name="description" content="We explore practical implementations of probabilistic reasoning applied to several domains, especially those in human organizations." />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 3 Warming up to R | Probabilistic Reasoning" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="We explore practical implementations of probabilistic reasoning applied to several domains, especially those in human organizations." />
+  <meta name="github-repo" content="wgfoote/book-probabilistic-reasoning" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 3 Warming up to R | Probabilistic Reasoning" />
+  <meta name="twitter:site" content="@wgfoote" />
+  <meta name="twitter:description" content="We explore practical implementations of probabilistic reasoning applied to several domains, especially those in human organizations." />
+  
+
+<meta name="author" content="William G. Foote" />
+
+
+<meta name="date" content="2020-09-30" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="part-ii-using-r.html"/>
+<link rel="next" href="tickling-the-ivories.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+
+<style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Probabilistic Reasoning: A Primer</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Preamble</a><ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#this-book"><i class="fa fa-check"></i>This book</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#premises"><i class="fa fa-check"></i>Premises</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#dont-we-know-everything-we-need-to-know"><i class="fa fa-check"></i>Don’t we know everything we need to know?</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#what-we-desire"><i class="fa fa-check"></i>What we desire</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#a-work-in-progress"><i class="fa fa-check"></i>A work in progress</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="part-i-background.html"><a href="part-i-background.html"><i class="fa fa-check"></i>Part I. Background</a></li>
+<li class="chapter" data-level="1" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html"><i class="fa fa-check"></i><b>1</b> Plausibility, Probability and Information</a><ul>
+<li class="chapter" data-level="1.1" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#some-surprise"><i class="fa fa-check"></i><b>1.1</b> Some Surprise</a></li>
+<li class="chapter" data-level="1.2" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#informative"><i class="fa fa-check"></i><b>1.2</b> Informative?</a></li>
+<li class="chapter" data-level="1.3" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#we-have-a-proposition-for-you"><i class="fa fa-check"></i><b>1.3</b> We have a proposition for you</a></li>
+<li class="chapter" data-level="1.4" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#the-power-of-plausible-thinking"><i class="fa fa-check"></i><b>1.4</b> The power of plausible thinking</a></li>
+<li class="chapter" data-level="1.5" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#how-many-ways"><i class="fa fa-check"></i><b>1.5</b> How many ways?</a></li>
+<li class="chapter" data-level="1.6" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#how-informative"><i class="fa fa-check"></i><b>1.6</b> How informative?</a></li>
+<li class="chapter" data-level="1.7" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#nota-bene"><i class="fa fa-check"></i><b>1.7</b> Nota Bene</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html"><i class="fa fa-check"></i><b>2</b> Probability for Real People</a><ul>
+<li class="chapter" data-level="2.1" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#can-we-rationally-reason"><i class="fa fa-check"></i><b>2.1</b> Can we rationally reason?</a><ul>
+<li class="chapter" data-level="2.1.1" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#priors-what-we-think-can-happen"><i class="fa fa-check"></i><b>2.1.1</b> Priors: what we think can happen</a></li>
+<li class="chapter" data-level="2.1.2" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#likelihoods-thinking-about-the-data"><i class="fa fa-check"></i><b>2.1.2</b> Likelihoods: thinking about the data</a></li>
+<li class="chapter" data-level="2.1.3" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#altogether-now"><i class="fa fa-check"></i><b>2.1.3</b> Altogether now</a></li>
+<li class="chapter" data-level="2.1.4" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#updating-beliefs"><i class="fa fa-check"></i><b>2.1.4</b> Updating beliefs</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#whats-next"><i class="fa fa-check"></i><b>2.2</b> What’s next?</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="part-ii-using-r.html"><a href="part-ii-using-r.html"><i class="fa fa-check"></i>Part II. Using R</a></li>
+<li class="chapter" data-level="3" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html"><i class="fa fa-check"></i><b>3</b> Warming up to R</a><ul>
+<li class="chapter" data-level="3.1" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#imagine-this"><i class="fa fa-check"></i><b>3.1</b> Imagine This</a><ul>
+<li class="chapter" data-level="3.1.1" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#modeling-process"><i class="fa fa-check"></i><b>3.1.1</b> Modeling process</a></li>
+</ul></li>
+<li class="chapter" data-level="3.2" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#chapter-overview"><i class="fa fa-check"></i><b>3.2</b> Chapter overview</a></li>
+<li class="chapter" data-level="3.3" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#what-is-r"><i class="fa fa-check"></i><b>3.3</b> What is <code>R</code>?</a></li>
+<li class="chapter" data-level="3.4" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#r-for-analytics"><i class="fa fa-check"></i><b>3.4</b> <code>R</code> for analytics</a></li>
+<li class="chapter" data-level="3.5" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#hot-and-cold-running-resources"><i class="fa fa-check"></i><b>3.5</b> Hot and cold running resources</a></li>
+<li class="chapter" data-level="3.6" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#gettingR"><i class="fa fa-check"></i><b>3.6</b> Installing R</a><ul>
+<li class="chapter" data-level="3.6.1" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#installing-r-on-a-windows-computer"><i class="fa fa-check"></i><b>3.6.1</b> Installing R on a Windows computer</a></li>
+<li class="chapter" data-level="3.6.2" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#installing-r-on-a-mac"><i class="fa fa-check"></i><b>3.6.2</b> Installing R on a Mac</a></li>
+<li class="chapter" data-level="3.6.3" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#installing-r-on-a-linux-computer"><i class="fa fa-check"></i><b>3.6.3</b> Installing R on a Linux computer</a></li>
+<li class="chapter" data-level="3.6.4" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#installingrstudio"><i class="fa fa-check"></i><b>3.6.4</b> Downloading and installing RStudio</a></li>
+</ul></li>
+<li class="chapter" data-level="3.7" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#first-day-at-school"><i class="fa fa-check"></i><b>3.7</b> First day at school</a><ul>
+<li class="chapter" data-level="3.7.1" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#install-r-markdown"><i class="fa fa-check"></i><b>3.7.1</b> Install <code>R Markdown</code></a></li>
+</ul></li>
+<li class="chapter" data-level="3.8" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#install-latex"><i class="fa fa-check"></i><b>3.8</b> Install LaTex</a><ul>
+<li class="chapter" data-level="3.8.1" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#our-first-file"><i class="fa fa-check"></i><b>3.8.1</b> Our first file</a></li>
+</ul></li>
+<li class="chapter" data-level="3.9" data-path="warming-up-to-r.html"><a href="warming-up-to-r.html#jargon"><i class="fa fa-check"></i><b>3.9</b> jaRgon</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html"><i class="fa fa-check"></i><b>4</b> Tickling the Ivories</a><ul>
+<li class="chapter" data-level="4.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#start-to-tickle"><i class="fa fa-check"></i><b>4.1</b> Start to tickle</a></li>
+<li class="chapter" data-level="4.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#try-this-exercise"><i class="fa fa-check"></i><b>4.2</b> Try this exercise</a></li>
+<li class="chapter" data-level="4.3" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#building-some-character"><i class="fa fa-check"></i><b>4.3</b> Building Some Character</a></li>
+<li class="chapter" data-level="4.4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#the-plot-thickens"><i class="fa fa-check"></i><b>4.4</b> The plot thickens</a><ul>
+<li class="chapter" data-level="4.4.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#try-this-example"><i class="fa fa-check"></i><b>4.4.1</b> Try this example</a></li>
+</ul></li>
+<li class="chapter" data-level="4.5" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#arrays-and-you"><i class="fa fa-check"></i><b>4.5</b> Arrays and You</a><ul>
+<li class="chapter" data-level="4.5.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#try-this-exercise-1"><i class="fa fa-check"></i><b>4.5.1</b> Try this exercise</a></li>
+<li class="chapter" data-level="4.5.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#more-about-residuals"><i class="fa fa-check"></i><b>4.5.2</b> More about residuals</a></li>
+</ul></li>
+<li class="chapter" data-level="4.6" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#more-array-work"><i class="fa fa-check"></i><b>4.6</b> More Array Work</a></li>
+<li class="chapter" data-level="4.7" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#summary"><i class="fa fa-check"></i><b>4.7</b> Summary</a></li>
+<li class="chapter" data-level="4.8" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#further-reading"><i class="fa fa-check"></i><b>4.8</b> Further Reading</a></li>
+<li class="chapter" data-level="4.9" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#practice-sets"><i class="fa fa-check"></i><b>4.9</b> Practice Sets</a><ul>
+<li class="chapter" data-level="4.9.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#purpose-process-product"><i class="fa fa-check"></i><b>4.9.1</b> Purpose, Process, Product</a></li>
+<li class="chapter" data-level="4.9.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#r-markdown-set-up"><i class="fa fa-check"></i><b>4.9.2</b> <code>R Markdown</code> set up</a></li>
+<li class="chapter" data-level="4.9.3" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#mutual-fund-simulation"><i class="fa fa-check"></i><b>4.9.3</b> Mutual Fund simulation</a></li>
+<li class="chapter" data-level="4.9.4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#healthcare-provider-admission-rates"><i class="fa fa-check"></i><b>4.9.4</b> Healthcare provider admission rates</a></li>
+<li class="chapter" data-level="4.9.5" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#practice-set-debrief"><i class="fa fa-check"></i><b>4.9.5</b> Practice Set Debrief</a></li>
+</ul></li>
+<li class="chapter" data-level="4.10" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#project-captive-financing"><i class="fa fa-check"></i><b>4.10</b> Project: Captive Financing</a><ul>
+<li class="chapter" data-level="4.10.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#purpose"><i class="fa fa-check"></i><b>4.10.1</b> Purpose</a></li>
+<li class="chapter" data-level="4.10.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#problem-2"><i class="fa fa-check"></i><b>4.10.2</b> Problem</a></li>
+<li class="chapter" data-level="4.10.3" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#data"><i class="fa fa-check"></i><b>4.10.3</b> Data</a></li>
+<li class="chapter" data-level="4.10.4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#work-flow"><i class="fa fa-check"></i><b>4.10.4</b> Work Flow</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="counting-on-tibble.html"><a href="counting-on-tibble.html"><i class="fa fa-check"></i><b>5</b> Counting on tibble</a><ul>
+<li class="chapter" data-level="5.1" data-path="counting-on-tibble.html"><a href="counting-on-tibble.html#counting-the-ways"><i class="fa fa-check"></i><b>5.1</b> Counting the ways</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Probabilistic Reasoning</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="warming-up-to-r" class="section level1">
+<h1><span class="header-section-number">Chapter 3</span> Warming up to R</h1>
+<div id="imagine-this" class="section level2">
+<h2><span class="header-section-number">3.1</span> Imagine This</h2>
+<p>You work for the division president of an aerospace company that makes testing equipment for high-tech manufacturers. Orders arrive “lumpy” at best as some quarters are big producers, others stretch the company’s credit revolver.</p>
+<p>The president, call her Nancy, found a new way to make money: lease equipment. This would help finance operations and smooth cash flow. You had a follow-on idea: build a captive finance company to finance and insure the manufactured product for customers.</p>
+<p>“Nice ideas,” Nancy quips. “Show me how we can make money.”</p>
+<p>For starters we want to borrow low and sell (leases) high! How? We can define three salient factors:</p>
+<ol style="list-style-type: decimal">
+<li>The “money factor”</li>
+</ol>
+<ul>
+<li>Sets the monthly payments</li>
+<li>Depends on the length and frequency of payment of the lease</li>
+<li>Also depends on the value of money at monthly forward borrowing rates</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Residual value of the equipment</li>
+</ol>
+<ul>
+<li>Uncertain based on competitors’ innovations, demand for manufacturers’ products, etc.</li>
+<li>Uncertain based on quality of equipment at end of lease (is there a secondary market?)</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Portfolio of leases</li>
+</ol>
+<ul>
+<li>By maturity</li>
+<li>By equipment class</li>
+<li>By customer segment</li>
+</ul>
+<p>This simple vignette from leasing introduces us to the complexities and challenges of financial analytics. We see that cash flows evolve over time and may depend on various uncertain factors. The time series of cash flows and their underlying factors in turn have distributions of potential outcomes and also may be related to one another. Groups of cashflows may also be related to one another structurally through portfolios. These are simply combinations of sets of cashflows and, of course, their underlying and uncertain factors. Sets of cash flows and their factors may be delineated according to customer segments, classification of equipment, and introducing a timeing element, by their maturity.</p>
+<div id="modeling-process" class="section level3">
+<h3><span class="header-section-number">3.1.1</span> Modeling process</h3>
+<p>Throughout business analytics there is a modeling process we can deploy. Let’s begin the modeling process by identifying leasing cash flow components and financial considerations we might use to begin to build reasonable scenarios. In ourleasing scenario here is a concordance of cash flow elements with models that will be illustrated throughout this book:</p>
+<ol style="list-style-type: decimal">
+<li>Lease payments</li>
+</ol>
+<ul>
+<li>Term structure of interest rates</li>
+<li>Credit risk of customers</li>
+<li>Impact of economy on customers’ market value</li>
+<li>Competitive impacts</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Residual cashflow</li>
+</ol>
+<ul>
+<li>Operational risk</li>
+<li>Aggregating risks</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Borrowing costs</li>
+</ol>
+<ul>
+<li>Term structure of interest rates (again)</li>
+<li>Our own credit risk</li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li>Collateral</li>
+</ol>
+<ul>
+<li>Portfolio optimization</li>
+<li>Market risk</li>
+</ul>
+<ol start="5" style="list-style-type: decimal">
+<li>Regulatory issues</li>
+</ol>
+<ul>
+<li>Operational risk</li>
+<li>Compliance, legal liabilities</li>
+</ul>
+<ol start="6" style="list-style-type: decimal">
+<li>Shareholder tolerance for risk</li>
+</ol>
+<ul>
+<li>Market risk</li>
+<li>Hedging</li>
+<li>Capital requirements</li>
+</ul>
+<p>In this first Chapter we will review some aspects of <code>R</code> programming to whet our appetite for further work in analyzing uncertainty in the business domain. The first steps here will prepare the way for us to tackle the many issues encountered with markets and marketing, customers and vendors, portfolios of products, services, investments, and running the organization strategically and tactically.</p>
+</div>
+</div>
+<div id="chapter-overview" class="section level2">
+<h2><span class="header-section-number">3.2</span> Chapter overview</h2>
+<p>In this first chapter we will</p>
+<ol style="list-style-type: decimal">
+<li>Introduce <code>R</code> and calculations, arrays, text handling, graphics</li>
+<li>Review basic business and statistics content</li>
+<li>Use introductory <code>R</code> calculations in business and statistical examples</li>
+<li>Extend introductory calculations with further examples</li>
+</ol>
+</div>
+<div id="what-is-r" class="section level2">
+<h2><span class="header-section-number">3.3</span> What is <code>R</code>?</h2>
+<p><code>R</code> is software for interacting with data along a variety of user generated paths. With <code>R</code> you can create sophisticated (even interactive) graphs, you can carry out statistical and operational research analyses, and you can create and run simulations. <code>R</code> is also a programming language with an extensive set of built-in functions. With increasing experience, you can extend the language and write your own code to build your own financial analytical tools. Advanced users can even incorporate functions written in other languages, such as C, C++, and Fortran.</p>
+<p>The current version of <code>R</code> derives from the <code>S</code> language. <code>S</code> has been around for more than twenty years and has been with extrensive use in statistics and finance, first as <code>S</code> and then as the commercially available <code>S-PLUS</code>. <code>R</code> is an open source implementation of the <code>S</code> language that is now a viable alternative to <code>S-PLUS</code>. A core team of statisticians and many other contributors work to update and improve <code>R</code> and to make versions that run well under all of the most popular operating systems. Importantly, <code>R</code> is a free, high-quality statistical software that will be useful as you learn financial analytics even though it is also a first-rate tool for professional statisticians, operational researchers, and financial analysts and engineers.\footnote(But see this post on a truly big data language APL: <a href="https://scottlocklin.wordpress.com/2013/07/28/ruins-of-forgotten-empires-apl-languages/" class="uri">https://scottlocklin.wordpress.com/2013/07/28/ruins-of-forgotten-empires-apl-languages/</a>)</p>
+</div>
+<div id="r-for-analytics" class="section level2">
+<h2><span class="header-section-number">3.4</span> <code>R</code> for analytics</h2>
+<p>There are several reasons that make <code>R</code> an excellent choice of software for an analytics course. Some benefits of using <code>R</code> include:</p>
+<ul>
+<li><p><code>R</code> is free and available online. <code>R</code> is open-source and runs on <code>UNIX</code>, <code>Windows</code>, and <code>Macintosh</code> operating systems.</p></li>
+<li><p><code>R</code> has a well-documented, context-based, help system enhanced by a wide, and deep, ranging user community globally and across several disciplines.</p></li>
+<li><p><code>R</code> has excellent native static graphing capabilities. Interactive dynamic graphics are evolving along with the ability to embed analytics into online applications. With <code>R</code> you can build dashboards and websites to communicate results dynamically with consumers of the analytics you generate.</p></li>
+<li><p>Practitioners can easily migrate to the commercially supported <code>S-Plus</code> program, if commercial software is required. <code>S</code> and <code>S-Plus</code> are the immediate ancestors of the R programming environment. Cloud computing is now available with large data implementations. Microsoft now supports a commercial <code>R</code> version.</p></li>
+<li><p><code>R</code>’s language has a powerful, easy-to-learn syntax with many built-in statistical and operational research functions. Just as important are the extensive web-scraping, text structuring, object class construction, and the extensible functional programming aspects of the language. A formal language definition is being developed. This will yield more standardization and better control of the language in future versions.</p></li>
+<li><p><code>R</code> is a computer programming language. For programmers it will feel more familiar than for others, for example Excel users. <code>R</code> requires array thinking and object relationships that are not necessarily native, but indeed are possible, in an Excel spreadsheet environment. In many ways, the Excel style and <code>R</code> style of environments complement one another.</p></li>
+<li><p>Even though it is not necessarily the simplest software to use, the basics are easy enough to master, so that learning to use <code>R</code> need not interfere with learning the statistical, operational research, data, and domain-specific concepts encountered in an analytics-focused course.<a href="#fn13" class="footnote-ref" id="fnref13"><sup>13</sup></a></p></li>
+</ul>
+<ul>
+<li><p>Doing statistics in a spreadsheet (e.g., Microsoft Excel) is generally a bad idea. While hundreds of millions of Excel users might disagree with this proposition learn the lesson of the 415 Report spreadsheet model to manage risks at JP Morgan Chase. Although many people are likely feel more familiar with them, spreadsheets are very limited in terms of what analyses they allow you do. If you get into the habit of trying to do your real life data analysis using spreadsheets, then you’ve dug yourself into a very deep hole.</p></li>
+<li><p>Proprietary software is expensive, not very extensible, and has many routines that are often opaque to users. When you have a chance look up the cost of a Matlab or SAS single user license. The tools you will need will be provided a la carte at a price for licensing fees.</p></li>
+<li><p><code>R</code> is highly extensible. When you download and install R, you get all the basic “packages”, and those are very powerful on their own. However, because R is so open and so widely used, it’s become something of a standard tool in statistics, and so lots of people write their own packages that extend the system – all freely available.</p></li>
+<li><p>R is a real programming language. As you get better at using R for data analysis, you’re also learning to program. When you program you must think through the question you are posing, the data you are collecting, the analytical techniques you will deploy, the visualization of your results. This workflow is commonly called the <em><strong>software development lifecycle</strong></em>. If you don’t already know how to program, then learning how to do statistics using <code>R</code> is a good way to begin.</p></li>
+</ul>
+<p>There is at least one drawback.</p>
+<ul>
+<li>The primary hurdle to using <code>R</code> is that most existing documentation and plethora of packages are written for an audience that is knowledgable about statistics and operational research and has experience with other statistical computing programs. In contrast, this course intends to make <code>R</code> accessible to you, especially those who are new to both statistical concepts and statistical computing.</li>
+</ul>
+</div>
+<div id="hot-and-cold-running-resources" class="section level2">
+<h2><span class="header-section-number">3.5</span> Hot and cold running resources</h2>
+<p>Much is available in books, e-books, and online for free. This is an extensive online community that links expert and novice modelers globally.</p>
+<p>The standard start-up is at CRAN <a href="http://cran.r-project.org/manuals.html" class="uri">http://cran.r-project.org/manuals.html</a>. A script in the appendix can be dropped into a workspace and played with easily. You can easily skip the rest of this expose on isntalling R, the integrated development environment RStudio, and some generous quips about computing, by simply goingn to the excellent on-line (and free) resource by James D. Long and Paul Teetor. 2019. <em>R Cookbook 2nd Edition</em>. O’Reilley: Sebastopol, CA. A version of this resource is <a href="https://rc2e.com/"></a> with extensive R and RStudio installation instructions.</p>
+<p>Other resources include:</p>
+<ul>
+<li>Julian Faraway’s <a href="https://cran.r-project.org/doc/contrib/Faraway-PRA.pdf" class="uri">https://cran.r-project.org/doc/contrib/Faraway-PRA.pdf</a> complete course on regression where you can imbibe deeply of the many ways to use <code>R</code> in statistics.</li>
+<li>Along econometrics lines is Grant Farnsworth’s <a href="https://cran.r-project.org/doc/contrib/Farnsworth-EconometricsInR.pdf" class="uri">https://cran.r-project.org/doc/contrib/Farnsworth-EconometricsInR.pdf</a>.</li>
+<li>Winston Chang’s <a href="http://www.cookbook-r.com/" class="uri">http://www.cookbook-r.com/</a> and Hadley Wickham’s example at <a href="http://ggplot2.org/" class="uri">http://ggplot2.org/</a> are terrific online graphics resources.</li>
+<li>Psychologist Danielle Navarro’s Libretext <a href="https://learningstatisticswithr.com" class="uri">https://learningstatisticswithr.com</a> is a great companion to any statistical reasoning we might perform.</li>
+</ul>
+</div>
+<div id="gettingR" class="section level2">
+<h2><span class="header-section-number">3.6</span> Installing R</h2>
+<p>R needs to be installed on your computer. Anyway, R is freely distributed online, and you can download it from the R homepage, which is:</p>
+<blockquote>
+<p><a href="http://cran.r-project.org/" class="uri">http://cran.r-project.org/</a></p>
+</blockquote>
+<p>At the top of the page – under the heading “Download and Install R” – you’ll see separate links for Windows users, Mac users, and Linux users. If you follow the relevant link, you’ll see that the online instructions are pretty self-explanatory.</p>
+<p>As of this writing, the current version of R is 4.0.2 “Taking Off Again” – and each new version will have even more creative names. Here is what you would see at the console.</p>
+<pre><code>R version 4.0.2 (2020-06-22) -- &quot;Taking Off Again&quot;
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type &#39;license()&#39; or &#39;licence()&#39; for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type &#39;contributors()&#39; for more information and
+&#39;citation()&#39; on how to cite R or R packages in publications.
+
+Type &#39;demo()&#39; for some demos, &#39;help()&#39; for on-line help, or
+&#39;help.start()&#39; for an HTML browser interface to help.
+Type &#39;q()&#39; to quit R.</code></pre>
+<p>R updates every six months or so, but don’t worry, the now current version will suffice.</p>
+<div id="installing-r-on-a-windows-computer" class="section level3">
+<h3><span class="header-section-number">3.6.1</span> Installing R on a Windows computer</h3>
+<p>The CRAN homepage changes from time to time, and it’s very old-school web design, but you can usually find what you are look for. In general you’ll find a link at the top of the page with the text “Download R for Windows”. If you click on that, it will take you to a page that offers you a few options. Again, at the very top of the page you’ll be told to click on a link that says to click here if you’re installing R for the first time. That’s probably what you want. This will take you to a page that has a prominent link at the top called “Download R 4.0.2 for Windows”. That’s the one you want. Click on that and your browser should start downloading a file called <code>R-4.0.2-win.exe</code>, or whatever the equivalent version number is by the time you read this.</p>
+<p>The file for version 4.0.2 is about 84MB in size, so it may take some time depending on how fast your connection is. Once you’ve downloaded the file, double click to install it. As with any software you download online, Windows will ask you some questions about whether you trust the file and if it can alter your system. Say yes.</p>
+<p>After you click through those, it’ll ask you where you want to install it, and what components you want to install. Your PC should be a 64 bit machine to run the routines for the rest of this book. The default values should be fine for most people, so again, just click through. Once all that is done, you should have R installed on your system. You can access it from the Start menu, or from the desktop if you asked it to add a shortcut there.</p>
+<p>While it may be some fun to open up R through the desktop shortcut, I suggest is that instead of doing that you should now install RStudio (see Section <a href="warming-up-to-r.html#installingrstudio">3.6.4</a> for instructions).</p>
+<p>One other thing (always one more thing!): to run the tools in this book, you must install <code>RTools40</code> for Windows based systems. This will allow you to use the <code>Rcpp</code> C++ compiler that is under the hood of the <code>rstan</code>, <code>rethinking</code>, <code>brms</code>, and <code>tidybayes</code> packages. For more details visit <a href="https://rstan.org" class="uri">https://rstan.org</a>.</p>
+</div>
+<div id="installing-r-on-a-mac" class="section level3">
+<h3><span class="header-section-number">3.6.2</span> Installing R on a Mac</h3>
+<p>When you click on the Mac OS X link, you should find yourself on a page with the title “R for Mac OS X”. The vast majority of Mac users will have a fairly recent version of the operating system: as long as you run macOS 10.13 (High Sierra), then you’ll be fine.[^old]</p>
+<p>[^old]; If you’re running an older version of the Mac OS, then you need to follow the link to the “old” page (<a href="http://cran.r-project.org/bin/macosx/old/" class="uri">http://cran.r-project.org/bin/macosx/old/</a>). You should be able to find the installer file that you need at the bottom of the page.] There’s a fairly prominent link on the page called “R-4.0.2.pkg”, which is the one you want. Click on that link and you’ll start downloading the installer file, which is <code>R-4.0.2.pkg</code>. It’s about 84MB in size.</p>
+<p>Once you’ve downloaded <code>R-3.0.2.pkg</code>, all you need to do is open it by double clicking on the package file. The installation should go smoothly from there: just follow all the instructions just like you usually do when you install something. Once it’s finished, you’ll find a file called <code>R.app</code> in the Applications folder. You can now open up R in the usual way<a href="#fn14" class="footnote-ref" id="fnref14"><sup>14</sup></a> if you want to, but what I’m going to suggest is that instead of doing that you should now install RStudio (see Section <a href="warming-up-to-r.html#installingrstudio">3.6.4</a> for instructions).</p>
+</div>
+<div id="installing-r-on-a-linux-computer" class="section level3">
+<h3><span class="header-section-number">3.6.3</span> Installing R on a Linux computer</h3>
+<p>If you run a Linux box, regardless of what distribution, then you should find the instructions on the website easy enough. You can compile R from source yourself if you want, or install it through your package management system, which will probably have R in it.</p>
+<p>Alternatively, the CRAN site has precompiled binaries for Debian, Red Hat, Suse and Ubuntu and has separate instructions for each. Once you’ve got R installed, you can run it from the command line just by typing <code>R</code>. However, if you’re feeling envious of Windows and Mac users for their fancy GUIs, you can download RStudio too (see Section <a href="warming-up-to-r.html#installingrstudio">3.6.4</a> for instructions).</p>
+</div>
+<div id="installingrstudio" class="section level3">
+<h3><span class="header-section-number">3.6.4</span> Downloading and installing RStudio</h3>
+<p>When you install R initially, it comes with one application that lets you do run R natively in an R GUI: it’s the R.exe application on a Windows machine, and the R.app application on a Mac. There are many integrated development environments (IDE) that will look for R and display the R console, while also allowing you to manage files, projects, look at your coding history, and review a variety of other objects. <code>Jupyter</code> is one such system that runs Julia, Python, and R interoperatively. The one I use exclusively, mainly for its one-stop-shop philosophy of data management, analysis cycles, and production of results in reports, books (like this one), and presentations, is <code>RStudio</code>. You can download the free personal version of <code>RStudio</code> here:</p>
+<blockquote>
+<p><a href="http://www.RStudio.org/" class="uri">http://www.RStudio.org/</a></p>
+</blockquote>
+<p>When you visit the RStudio website, you’ll see a new school user interface, much easier to navigate and simpler than the CRAN website,<a href="#fn15" class="footnote-ref" id="fnref15"><sup>15</sup></a></p>
+<p>Just click the <code>Download</code> button and follow the directions to the desktop version for your system.</p>
+<p>After it’s finished installing, you start R by opening RStudio. You don’t need to open R.app or R.exe in order to access R. RStudio will take care of that for you. In this screenshot you can see four panels. One of them is the R console.</p>
+<div class="figure">
+<img src="img/rstudio-shot.jpg" alt="Rstudio Screen Shot" />
+<p class="caption">Rstudio Screen Shot</p>
+</div>
+<p>The midnight blue background helps my eyesight. Your very first Rstudio job is to set up a new Project. This will create a <code>*.Rproj</code> file in a working directory. It is in that working directory that you will perform all of your computing. I use one for each week of instruction, for each paper or presentation I am writing, for this book too. Your programming life will thank you for this habit.</p>
+<p>RStudio has extensive guidance on everything from <a href="https://support.rstudio.com/hc/en-us/articles/200486468-Authoring-R-Presentations">authoring slides</a> to <a href="">numerous cheatsheets</a> that will help us navigate packages.</p>
+<p>The only shortcoming with RStudio is that it’s a perpetual work in progress: they keep improving it! Having said that I have found that updating RStudio is easy, and does not interfere with my workflows, file directories, R installation, packages, and so forth.</p>
+</div>
+</div>
+<div id="first-day-at-school" class="section level2">
+<h2><span class="header-section-number">3.7</span> First day at school</h2>
+<p>Always with some fear and trepidation we enter a new phase of learning. Let’s dive right into the deep end of this pool.</p>
+<div id="install-r-markdown" class="section level3">
+<h3><span class="header-section-number">3.7.1</span> Install <code>R Markdown</code></h3>
+<p>Click on <code>RStudio</code> in your tray or start up menu. Be sure you are connected to the Internet. A console panel will appear. At the console prompt <code>&gt;</code> type</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">install.packages</span>(<span class="st">&quot;rmarkdown&quot;</span>)</a></code></pre></div>
+<ul>
+<li><p>This action will install the <code>rmarkdown</code> package.</p></li>
+<li><p>This package will enable you to construct documentation for your work as well as actually run the code you build.</p></li>
+</ul>
+<p>If you have several packages to attach to your workspace you can use this function to check if the packages are installed, attach installed packages, and install packages not yet installed. You can copy and paste the <code>is_installed()</code> function (yes, your first function) and the <code>pkg</code> vector into the console. Then we call the function with the <code>pkg</code> argument.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">is_installed &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</a>
+<a class="sourceLine" id="cb3-2" title="2">    <span class="cf">for</span> (i <span class="cf">in</span> x) {</a>
+<a class="sourceLine" id="cb3-3" title="3">        <span class="co"># require will return TRUE (1)</span></a>
+<a class="sourceLine" id="cb3-4" title="4">        <span class="co"># &#39;invisibly&#39; if it was able to load</span></a>
+<a class="sourceLine" id="cb3-5" title="5">        <span class="co"># package</span></a>
+<a class="sourceLine" id="cb3-6" title="6">        <span class="cf">if</span> (<span class="op">!</span><span class="kw">require</span>(i, <span class="dt">character.only =</span> <span class="ot">TRUE</span>)) {</a>
+<a class="sourceLine" id="cb3-7" title="7">            <span class="co"># If, for any reason, the package was</span></a>
+<a class="sourceLine" id="cb3-8" title="8">            <span class="co"># not able to be loaded then</span></a>
+<a class="sourceLine" id="cb3-9" title="9">            <span class="co"># re-install and expect a RStudio</span></a>
+<a class="sourceLine" id="cb3-10" title="10">            <span class="co"># message</span></a>
+<a class="sourceLine" id="cb3-11" title="11">            <span class="kw">install.packages</span>(i, <span class="dt">dependencies =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb3-12" title="12">            <span class="co"># Attach the package after installing</span></a>
+<a class="sourceLine" id="cb3-13" title="13">            <span class="kw">require</span>(i, <span class="dt">character.only =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb3-14" title="14">        }</a>
+<a class="sourceLine" id="cb3-15" title="15">    }</a>
+<a class="sourceLine" id="cb3-16" title="16">}</a>
+<a class="sourceLine" id="cb3-17" title="17"><span class="co"># for example here is a vector of</span></a>
+<a class="sourceLine" id="cb3-18" title="18"><span class="co"># concatenated character strings</span></a>
+<a class="sourceLine" id="cb3-19" title="19"><span class="co"># assigned to the obj `pkg`</span></a>
+<a class="sourceLine" id="cb3-20" title="20">pkg &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;rmarkdown&quot;</span>, <span class="st">&quot;shiny&quot;</span>, <span class="st">&quot;psych&quot;</span>, </a>
+<a class="sourceLine" id="cb3-21" title="21">    <span class="st">&quot;knitr&quot;</span>, <span class="st">&quot;tidyverse&quot;</span>, <span class="st">&quot;ggthemes&quot;</span>, </a>
+<a class="sourceLine" id="cb3-22" title="22">    <span class="st">&quot;plotly&quot;</span>, <span class="st">&quot;moments&quot;</span>, <span class="st">&quot;flexdashboard&quot;</span>, </a>
+<a class="sourceLine" id="cb3-23" title="23">    <span class="st">&quot;GGally&quot;</span>)</a>
+<a class="sourceLine" id="cb3-24" title="24"><span class="co"># use `pkg` as the &#39;argument&#39; of the</span></a>
+<a class="sourceLine" id="cb3-25" title="25"><span class="co"># function `is_installed()`</span></a>
+<a class="sourceLine" id="cb3-26" title="26"><span class="kw">is_installed</span>(pkg)</a></code></pre></div>
+<p>Voila and we have packages in our library. We will add more packages as we go along. But these will suffice for now.</p>
+<ul>
+<li>This extremely helpful web page, <a href="http://rmarkdown.rstudio.com/gallery.html" class="uri">http://rmarkdown.rstudio.com/gallery.html</a>, is a portal to several examples of <code>R Markdown</code> source files that can be loaded into <code>RStudio</code>, modified, and used with other content for your own work.</li>
+</ul>
+</div>
+</div>
+<div id="install-latex" class="section level2">
+<h2><span class="header-section-number">3.8</span> Install LaTex</h2>
+<p>Even though matheatics is kept to a low roar in this book, we can profitably use a comprehensive text rendering system for our documents. <code>R Markdown</code> uses a text rendering system called <code>LaTeX</code> to render text, including mathematical and graphical content. We can install the<code>tinytex</code>, or <code>MikTeX</code> document rendering system for <code>Windows</code> or <code>MacTeX</code> document rendering system for <code>Mac OS X</code>. This book is rendered with <code>tinytex</code>.</p>
+<ul>
+<li>For <code>tinytex</code>just follow Yihui’s instructions:</li>
+</ul>
+<pre><code>Installing and maintaining TinyTeX is easy for R users, since the R package tinytex has provided wrapper functions (N.B. the lowercase and bold tinytex means the R package, and the camel-case TinyTeX means the LaTeX distribution). You can use tinytex to install TinyTeX:
+
+install.packages(&#39;tinytex&#39;)
+tinytex::install_tinytex()
+# to uninstall TinyTeX, run tinytex::uninstall_tinytex() </code></pre>
+<p>Yes, that simple.</p>
+<ul>
+<li><p>For <code>Windows</code>, navigate to the <a href="https://miktex.org/download" class="uri">https://miktex.org/download</a> page and go to the <strong>64- or 32- bit</strong> installer. Click on the appropriate <code>Download</code> button and follow the directions. <strong>Be very sure you select the <em>COMPLETE</em> installation</strong>. Frequently Asked Questions (FAQ) can be found at <a href="https://docs.miktex.org/faq/" class="uri">https://docs.miktex.org/faq/</a>. If you have <code>RStudio</code> already running, you will have to restart your session.</p></li>
+<li><p>For <code>MAC OS X</code>, navigate to the <a href="http://www.tug.org/mactex/" class="uri">http://www.tug.org/mactex/</a> page and download the <code>MacTeX</code> system and follow the directions. This distribution requires Mac OS 10.5 Leopard or higher and runs on Intel or PowerPC processors. <strong>Be very sure you select the <em>FULL</em> installation</strong>. Frequently Asked Questions (FAQ) can be found at <a href="https://docs.miktex.org/faq/" class="uri">https://docs.miktex.org/faq/</a>. If you have <code>RStudio</code> already running, you will have to restart your session. FAQ can be found at <a href="http://www.tug.org/mactex/faq/index.html" class="uri">http://www.tug.org/mactex/faq/index.html</a>.</p></li>
+</ul>
+<div id="our-first-file" class="section level3">
+<h3><span class="header-section-number">3.8.1</span> Our first file</h3>
+<p>Open <code>RStudio</code> and see something like this screenshot…</p>
+<div class="figure">
+<img src="img/rstudio-shot.jpg" alt="Rstudio screenshot" />
+<p class="caption">Rstudio screenshot</p>
+</div>
+<ul>
+<li><p>You can modify the position and content of the four panes by selecting <code>View &gt; Panes &gt; Pane Options</code>.</p></li>
+<li><p>If you haven’t already, definitely <code>install.packages("rmarkdown")</code>. Then in the console again enter <code>library(rmarkdown)</code>. Under <code>File &gt; New File &gt; Rmarkdown</code> a dialog box invites you to open document, presentation, Shiny, and other files. Upon choosing <code>documents</code> you may open up a new file. Under <code>File &gt; Save As</code> save the untitle file in an appropriate directory. The <code>R Markdown</code> file extension <code>Rmd</code> will appear in the file name in your directory.</p></li>
+<li><p>When creating a new <code>Rmarkdown</code> file, <code>RStudio</code> deposits a template that shows you how to use the markdown approach. You can generate a document by clicking on <code>knit</code> in the icon ribbon attached to the file name tab in the script pane. If you do not see <code>knit</code>, then you might need to install and load the <code>knitr</code> package with the following statements in the <code>R</code> console. You might need also to restart your RStudio session.</p></li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">install.packages</span>(<span class="st">&quot;knitr&quot;</span>)</a>
+<a class="sourceLine" id="cb5-2" title="2"><span class="kw">library</span>(knitr)  <span class="co"># also can use `library()`</span></a></code></pre></div>
+<p>The <code>Rmd</code> file contains three types of content:</p>
+<ol style="list-style-type: decimal">
+<li>An (optional) <strong>YAML header</strong> surrounded by <code>---</code> on the top and the bottom of <code>YAML</code> statements. <code>YAML</code> is “Yet Another Markdown (or up) Language”. Here is an example from this document:</li>
+</ol>
+<div class="sourceCode" id="cb6"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb6-1" title="1"><span class="ot">---</span></a>
+<a class="sourceLine" id="cb6-2" title="2"><span class="fu">title:</span><span class="at"> </span><span class="st">&quot;Setting Up R for Analytics&quot;</span></a>
+<a class="sourceLine" id="cb6-3" title="3"><span class="fu">author:</span><span class="at"> </span><span class="st">&quot;Bill Foote&quot;</span></a>
+<a class="sourceLine" id="cb6-4" title="4"><span class="fu">date:</span><span class="at"> </span><span class="st">&quot;November 11, 2016&quot;</span></a>
+<a class="sourceLine" id="cb6-5" title="5"><span class="fu">output:</span><span class="at"> pdf_document</span></a>
+<a class="sourceLine" id="cb6-6" title="6"><span class="ot">---</span></a></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li><strong>Chunks</strong> of R code surrounded by ``` (find this key usually as the lowercase of the <code>~</code> symbol).</li>
+<li>Text mixed with text formatting like <code># heading</code> and <code>_italics_</code> and mathematical formulae like <code>$z = \frac{(\bar x-\mu_0)}{s/\sqrt{n}}$</code> which will render</li>
+</ol>
+<p><span class="math display">\[z = \frac{(\bar x-\mu_0)}{s/\sqrt{n}}\]</span>.</p>
+<p>When you open an <code>.Rmd</code> file, <code>RStudio</code> provides an interface where code, code output, and text documentation are interleaved. You can run each code chunk by clicking the <code>Run</code> icon (it looks like a play button at the top of the chunk), or by pressing <code>Cmd/Ctrl + Shift + Enter</code>. <code>RStudio</code> executes the code and displays the results in the console with the code.</p>
+<p>You can write mathematical formulae in an <code>R Markdown</code> document as well. For example, here is a formula for net present value.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode latex"><code class="sourceCode latex"><a class="sourceLine" id="cb7-1" title="1"><span class="ss">$$</span></a>
+<a class="sourceLine" id="cb7-2" title="2"><span class="ss">NPV = </span><span class="sc">\sum</span><span class="ss">_{t=0}^{T} </span><span class="sc">\frac</span><span class="ss">{NCF_t}{(1+WACC)^t}</span></a>
+<a class="sourceLine" id="cb7-3" title="3"><span class="ss">$$</span></a></code></pre></div>
+<p>This script will render</p>
+<p><span class="math display">\[
+NPV = \sum_{t=0}^{T} \frac{NCF_t}{(1+WACC)^t}
+\]</span></p>
+<ul>
+<li>Here are examples of common in file text formatting in <code>R Markdown</code>.</li>
+</ul>
+<pre><code>Text formatting 
+------------------------------------------------------------
+
+*italic*  or _italic_
+**bold**   __bold__
+_**bold and italic**_
+`code`
+superscript^2 and subscript_2
+
+Headings
+------------------------------------------------------------
+
+# 1st Level Header
+
+## 2nd Level Header
+
+### 3rd Level Header
+
+Lists
+------------------------------------------------------------
+
+*   Bulleted list item 1
+
+*   Item 2
+
+    * Item 2a
+
+    * Item 2b
+
+1.  Numbered list item 1
+
+1.  Item 2. The numbers are incremented automatically in the output.
+
+Links and images
+------------------------------------------------------------
+
+&lt;http://example.com&gt;
+
+[linked phrase](http://example.com)
+
+![optional caption text](path/to/img.jpg)
+
+Tables 
+------------------------------------------------------------
+
+First Header  | Second Header
+------------- | -------------
+Content Cell  | Content Cell
+Content Cell  | Content Cell
+
+Math
+------------------------------------------------------------
+
+$\frac{\mu}{\sigma^2}$
+
+\[\frac{\mu}{\sigma^2}]
+
+$$
+\frac{\mu}{\sigma^2}
+$$</code></pre>
+<p>More information will be provided on <code>rmarkdown</code> documentation throughout the course and can be found <a href="https://cran.r-project.org/web/packages/rmarkdown/rmarkdown.pdf">here with CRAN documentation</a> and <a href="https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf">here at RStudio</a> as well.</p>
+</div>
+</div>
+<div id="jargon" class="section level2">
+<h2><span class="header-section-number">3.9</span> jaRgon</h2>
+<p>(Mostly directly copied from <a href="http://www.burns-stat.com/documents/tutorials/impatient-r/jargon/">Patrick Burns</a>, and annotated a bit, for educational use only.)</p>
+<blockquote>
+<p>atomic vector</p>
+</blockquote>
+<p>An object that contains only one form of data. The atomic modes are: <em>logical</em>, <em>numeric</em>, <em>complex</em> and <em>character</em>.</p>
+<blockquote>
+<p>attach</p>
+</blockquote>
+<p>The act of adding an item to the search list. You usually attach a package with the <code>require</code> function, you attach saved files and objects with the <code>attach</code> function.</p>
+<blockquote>
+<p>data frame</p>
+</blockquote>
+<p>A rectangular data object where each column may be a different type of data. Conceptually a generalization of a matrix, but implemented entirely differently. This is a <code>tibble()</code> in the <code>tidyverse</code>.</p>
+<blockquote>
+<p>factor</p>
+</blockquote>
+<p>A data object that represents categorical data. It is possible (and often unfortunate) to confuse a factor with a character vector.</p>
+<blockquote>
+<p>global environment</p>
+</blockquote>
+<p>The first location on the search list, and the place where objects that you create reside. See <strong>search list</strong>.</p>
+<blockquote>
+<p>list</p>
+</blockquote>
+<p>A type of object with possibly multiple components where each component may be an arbitrary object, including a list. Each object can can different dimensions and data types.</p>
+<blockquote>
+<p>matrix</p>
+</blockquote>
+<p>A rectangular data object where all cells have the same data type. Conceptually a specialization of a data frame, but implemented entirely differently. This object has rows and columns.</p>
+<blockquote>
+<p>package</p>
+</blockquote>
+<p>A collection of <code>R</code> objects in a special format that includes help files, functions, examples, data, and source code. Most packages primarily or exclusively contain functions, but some packages exclusively contain datasets. <strong>Packages</strong> are attached to workspaces using the <code>library()</code> function. We use the <code>require()</code> function only to test if we have a package since this function returns a logical value (<code>TRUE</code> or <code>FALSE</code>).</p>
+<blockquote>
+<p>search list</p>
+</blockquote>
+<p>The collection of locations that <code>R</code> searches for objects when it is evaluating a command.</p>
+
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="13">
+<li id="fn13"><p>The attribute <em>simple</em> is relative. For example, this Excel formula with nested if statements is far from <em>simple</em> to understand, document, and implement: `=if(x3 = 1, 2, if(y2=0, “42”&amp;cell(3, 2), if(left(a<span class="math inline">\(4\)</span>, find(b<span class="math inline">\(4\)</span>, “=42”))))).<a href="warming-up-to-r.html#fnref13" class="footnote-back">↩</a></p></li>
+<li id="fn14"><p>Tip for advanced Mac users. You can run R from the terminal if you want to. The command is just “R”. It behaves like the normal desktop version, except that help documentation behaves like a “man” page instead of opening in a new window.<a href="warming-up-to-r.html#fnref14" class="footnote-back">↩</a></p></li>
+<li id="fn15"><p>This is probably no coincidence: the people who design and distribute the core R language itself are focused on technical stuff. And sometimes they almost seem to forget that there’s an actual human user at the end. The people who design and distribute RStudio are focused on the user. Their goal is to make R as available, usable, auditable as possible.<a href="warming-up-to-r.html#fnref15" class="footnote-back">↩</a></p></li>
+</ol>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="part-ii-using-r.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="tickling-the-ivories.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["book-probabilistic-reasoning.pdf", "book-probabilistic-reasoning.epub"],
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 4 Tickling the Ivories | Probabilistic Reasoning</title>
+  <meta name="description" content="We explore practical implementations of probabilistic reasoning applied to several domains, especially those in human organizations." />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 4 Tickling the Ivories | Probabilistic Reasoning" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="We explore practical implementations of probabilistic reasoning applied to several domains, especially those in human organizations." />
+  <meta name="github-repo" content="wgfoote/book-probabilistic-reasoning" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 4 Tickling the Ivories | Probabilistic Reasoning" />
+  <meta name="twitter:site" content="@wgfoote" />
+  <meta name="twitter:description" content="We explore practical implementations of probabilistic reasoning applied to several domains, especially those in human organizations." />
+  
+
+<meta name="author" content="William G. Foote" />
+
+
+<meta name="date" content="2020-09-30" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="warming-up-to-r-and-more.html"/>
+<link rel="next" href="counting-on-tibble.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+
+<style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Probabilistic Reasoning: A Primer</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Preamble</a><ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#this-book"><i class="fa fa-check"></i>This book</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#premises"><i class="fa fa-check"></i>Premises</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#dont-we-know-everything-we-need-to-know"><i class="fa fa-check"></i>Don’t we know everything we need to know?</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#what-we-desire"><i class="fa fa-check"></i>What we desire</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#a-work-in-progress"><i class="fa fa-check"></i>A work in progress</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="part-i-background.html"><a href="part-i-background.html"><i class="fa fa-check"></i>Part I. Background</a></li>
+<li class="chapter" data-level="1" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html"><i class="fa fa-check"></i><b>1</b> Plausibility, Probability and Information</a><ul>
+<li class="chapter" data-level="1.1" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#some-surprise"><i class="fa fa-check"></i><b>1.1</b> Some Surprise</a></li>
+<li class="chapter" data-level="1.2" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#informative"><i class="fa fa-check"></i><b>1.2</b> Informative?</a></li>
+<li class="chapter" data-level="1.3" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#we-have-a-proposition-for-you"><i class="fa fa-check"></i><b>1.3</b> We have a proposition for you</a></li>
+<li class="chapter" data-level="1.4" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#the-power-of-plausible-thinking"><i class="fa fa-check"></i><b>1.4</b> The power of plausible thinking</a></li>
+<li class="chapter" data-level="1.5" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#how-many-ways"><i class="fa fa-check"></i><b>1.5</b> How many ways?</a></li>
+<li class="chapter" data-level="1.6" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#how-informative"><i class="fa fa-check"></i><b>1.6</b> How informative?</a></li>
+<li class="chapter" data-level="1.7" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#nota-bene"><i class="fa fa-check"></i><b>1.7</b> Nota Bene</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html"><i class="fa fa-check"></i><b>2</b> Probability for Real People</a><ul>
+<li class="chapter" data-level="2.1" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#can-we-rationally-reason"><i class="fa fa-check"></i><b>2.1</b> Can we rationally reason?</a><ul>
+<li class="chapter" data-level="2.1.1" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#priors-what-we-think-can-happen"><i class="fa fa-check"></i><b>2.1.1</b> Priors: what we think can happen</a></li>
+<li class="chapter" data-level="2.1.2" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#likelihoods-thinking-about-the-data"><i class="fa fa-check"></i><b>2.1.2</b> Likelihoods: thinking about the data</a></li>
+<li class="chapter" data-level="2.1.3" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#altogether-now"><i class="fa fa-check"></i><b>2.1.3</b> Altogether now</a></li>
+<li class="chapter" data-level="2.1.4" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#updating-beliefs"><i class="fa fa-check"></i><b>2.1.4</b> Updating beliefs</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#whats-next"><i class="fa fa-check"></i><b>2.2</b> What’s next?</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="part-ii-using-r.html"><a href="part-ii-using-r.html"><i class="fa fa-check"></i>Part II. Using R</a></li>
+<li class="chapter" data-level="3" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html"><i class="fa fa-check"></i><b>3</b> Warming up to R and more</a><ul>
+<li class="chapter" data-level="3.1" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#overview"><i class="fa fa-check"></i><b>3.1</b> Overview</a></li>
+<li class="chapter" data-level="3.2" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#what-is-r"><i class="fa fa-check"></i><b>3.2</b> What is <code>R</code>?</a></li>
+<li class="chapter" data-level="3.3" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#r-for-analytics"><i class="fa fa-check"></i><b>3.3</b> <code>R</code> for analytics</a></li>
+<li class="chapter" data-level="3.4" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#hot-and-cold-running-resources"><i class="fa fa-check"></i><b>3.4</b> Hot and cold running resources</a></li>
+<li class="chapter" data-level="3.5" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#gettingR"><i class="fa fa-check"></i><b>3.5</b> Installing R</a><ul>
+<li class="chapter" data-level="3.5.1" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#installing-r-on-a-windows-computer"><i class="fa fa-check"></i><b>3.5.1</b> Installing R on a Windows computer</a></li>
+<li class="chapter" data-level="3.5.2" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#installing-r-on-a-mac"><i class="fa fa-check"></i><b>3.5.2</b> Installing R on a Mac</a></li>
+<li class="chapter" data-level="3.5.3" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#installing-r-on-a-linux-computer"><i class="fa fa-check"></i><b>3.5.3</b> Installing R on a Linux computer</a></li>
+<li class="chapter" data-level="3.5.4" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#installingrstudio"><i class="fa fa-check"></i><b>3.5.4</b> Downloading and installing RStudio</a></li>
+</ul></li>
+<li class="chapter" data-level="3.6" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#first-day-at-school"><i class="fa fa-check"></i><b>3.6</b> First day at school</a><ul>
+<li class="chapter" data-level="3.6.1" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#install-r-markdown"><i class="fa fa-check"></i><b>3.6.1</b> Install <code>R Markdown</code></a></li>
+</ul></li>
+<li class="chapter" data-level="3.7" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#install-latex"><i class="fa fa-check"></i><b>3.7</b> Install LaTex</a><ul>
+<li class="chapter" data-level="3.7.1" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#our-first-file"><i class="fa fa-check"></i><b>3.7.1</b> Our first file</a></li>
+</ul></li>
+<li class="chapter" data-level="3.8" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#some-fun-with-stan"><i class="fa fa-check"></i><b>3.8</b> Some fun with Stan</a></li>
+<li class="chapter" data-level="3.9" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#github"><i class="fa fa-check"></i><b>3.9</b> Github</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html"><i class="fa fa-check"></i><b>4</b> Tickling the Ivories</a><ul>
+<li class="chapter" data-level="4.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#start-to-tickle"><i class="fa fa-check"></i><b>4.1</b> Start to tickle</a></li>
+<li class="chapter" data-level="4.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#try-this-exercise"><i class="fa fa-check"></i><b>4.2</b> Try this exercise</a></li>
+<li class="chapter" data-level="4.3" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#building-some-character"><i class="fa fa-check"></i><b>4.3</b> Building Some Character</a></li>
+<li class="chapter" data-level="4.4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#the-plot-thickens"><i class="fa fa-check"></i><b>4.4</b> The plot thickens</a><ul>
+<li class="chapter" data-level="4.4.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#try-this-example"><i class="fa fa-check"></i><b>4.4.1</b> Try this example</a></li>
+</ul></li>
+<li class="chapter" data-level="4.5" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#arrays-and-you"><i class="fa fa-check"></i><b>4.5</b> Arrays and You</a><ul>
+<li class="chapter" data-level="4.5.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#try-this-exercise-1"><i class="fa fa-check"></i><b>4.5.1</b> Try this exercise</a></li>
+<li class="chapter" data-level="4.5.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#more-about-residuals"><i class="fa fa-check"></i><b>4.5.2</b> More about residuals</a></li>
+</ul></li>
+<li class="chapter" data-level="4.6" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#more-array-work"><i class="fa fa-check"></i><b>4.6</b> More Array Work</a></li>
+<li class="chapter" data-level="4.7" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#summary"><i class="fa fa-check"></i><b>4.7</b> Summary</a></li>
+<li class="chapter" data-level="4.8" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#further-reading"><i class="fa fa-check"></i><b>4.8</b> Further Reading</a></li>
+<li class="chapter" data-level="4.9" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#practice-sets"><i class="fa fa-check"></i><b>4.9</b> Practice Sets</a><ul>
+<li class="chapter" data-level="4.9.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#purpose-process-product"><i class="fa fa-check"></i><b>4.9.1</b> Purpose, Process, Product</a></li>
+<li class="chapter" data-level="4.9.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#r-markdown-set-up"><i class="fa fa-check"></i><b>4.9.2</b> <code>R Markdown</code> set up</a></li>
+<li class="chapter" data-level="4.9.3" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#mutual-fund-simulation"><i class="fa fa-check"></i><b>4.9.3</b> Mutual Fund simulation</a></li>
+<li class="chapter" data-level="4.9.4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#healthcare-provider-admission-rates"><i class="fa fa-check"></i><b>4.9.4</b> Healthcare provider admission rates</a></li>
+<li class="chapter" data-level="4.9.5" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#practice-set-debrief"><i class="fa fa-check"></i><b>4.9.5</b> Practice Set Debrief</a></li>
+</ul></li>
+<li class="chapter" data-level="4.10" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#project-captive-financing"><i class="fa fa-check"></i><b>4.10</b> Project: Captive Financing</a><ul>
+<li class="chapter" data-level="4.10.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#purpose"><i class="fa fa-check"></i><b>4.10.1</b> Purpose</a></li>
+<li class="chapter" data-level="4.10.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#problem-2"><i class="fa fa-check"></i><b>4.10.2</b> Problem</a></li>
+<li class="chapter" data-level="4.10.3" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#data"><i class="fa fa-check"></i><b>4.10.3</b> Data</a></li>
+<li class="chapter" data-level="4.10.4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#work-flow"><i class="fa fa-check"></i><b>4.10.4</b> Work Flow</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="counting-on-tibble.html"><a href="counting-on-tibble.html"><i class="fa fa-check"></i><b>5</b> Counting on tibble</a><ul>
+<li class="chapter" data-level="5.1" data-path="counting-on-tibble.html"><a href="counting-on-tibble.html#counting-the-ways"><i class="fa fa-check"></i><b>5.1</b> Counting the ways</a></li>
+<li class="chapter" data-level="5.2" data-path="counting-on-tibble.html"><a href="counting-on-tibble.html#having-all-of-our-marbles"><i class="fa fa-check"></i><b>5.2</b> Having all of our marbles</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Probabilistic Reasoning</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="tickling-the-ivories" class="section level1">
+<h1><span class="header-section-number">Chapter 4</span> Tickling the Ivories</h1>
+<p>In this chapter we will use the R console in RStudio to run through the basic syntax of R. But that’s not all: we will also use R’s innate ability to implement linear algebra to build the basic statistics of ordinary least squares (OLS) regression.</p>
+<div id="start-to-tickle" class="section level2">
+<h2><span class="header-section-number">4.1</span> Start to tickle</h2>
+<p>Or if you paint and draw, the 2-minute pose will warm you up. In the <code>RStudio</code> console panel (in the NW pane of my IDE) play with these by typing these statements at the <code>&gt;</code> symbol:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>)</a></code></pre></div>
+<pre><code>## [1] 2 3 4 5 6</code></pre>
+<p>This will produce a vector from 2 to 6.</p>
+<p>We can use <code>alt-</code> (hold alt and hyphen keys down simultaneously) to produce <code>&lt;-</code>, and assign data to an new object. This is a from <code>R</code>’s predecessor James Chamber’s <code>S</code> (ATT Bell Labs) that was ported from the single keystroke <span class="math inline">\(\leftarrow\)</span> in Ken Iverson’s <code>APL</code> (IBM), where it is reserved as a binary logical operator. We can now also use <code>=</code> to assign variables in <code>R</code>. But, also a holdover from <code>APL</code>, we will continue to use <code>=</code> only for assignments within functions. [Glad we got that over!]</p>
+<p>Now let’s try these expressions.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1">x &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>)</a>
+<a class="sourceLine" id="cb17-2" title="2"><span class="kw">sum</span>(x)</a></code></pre></div>
+<pre><code>## [1] 20</code></pre>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1"><span class="kw">prod</span>(x)</a></code></pre></div>
+<pre><code>## [1] 720</code></pre>
+<p>These actions assign the results of a calculation to a variable <code>x</code> and then sum and multiply the elements. <code>x</code> is stored in the active workspace. You can verify that by typing <code>ls()</code> in the console to list the objects in the workspace. Type in these statements as well.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" title="1"><span class="kw">ls</span>()</a></code></pre></div>
+<pre><code>##  [1] &quot;A.error&quot;               &quot;A_col&quot;                 &quot;A_inner&quot;              
+##  [4] &quot;A_inner_invert&quot;        &quot;A_max&quot;                 &quot;A_min&quot;                
+##  [7] &quot;A_result&quot;              &quot;A_row&quot;                 &quot;A_sym&quot;                
+## [10] &quot;all&quot;                   &quot;argument&quot;              &quot;beta_hat&quot;             
+## [13] &quot;C&quot;                     &quot;caption&quot;               &quot;cashflow&quot;             
+## [16] &quot;check&quot;                 &quot;conclusion&quot;            &quot;conjectures&quot;          
+## [19] &quot;d&quot;                     &quot;data_xy&quot;               &quot;draw&quot;                 
+## [22] &quot;e&quot;                     &quot;e_se&quot;                  &quot;e_sse&quot;                
+## [25] &quot;f&quot;                     &quot;fill&quot;                  &quot;fit&quot;                  
+## [28] &quot;fit_0&quot;                 &quot;fit_1&quot;                 &quot;grid&quot;                 
+## [31] &quot;hands&quot;                 &quot;hypotheses&quot;            &quot;indicator&quot;            
+## [34] &quot;k&quot;                     &quot;labels&quot;                &quot;lik&quot;                  
+## [37] &quot;lines_1&quot;               &quot;lines_2&quot;               &quot;logic_df&quot;             
+## [40] &quot;major&quot;                 &quot;minor&quot;                 &quot;move_over&quot;            
+## [43] &quot;n&quot;                     &quot;n.sim&quot;                 &quot;n_blue&quot;               
+## [46] &quot;n_sim&quot;                 &quot;n_white&quot;               &quot;position&quot;             
+## [49] &quot;posterior_hands&quot;       &quot;posterior_hands_raw&quot;   &quot;posterior_shovels&quot;    
+## [52] &quot;posterior_shovels_raw&quot; &quot;postSample&quot;            &quot;priors&quot;               
+## [55] &quot;prob&quot;                  &quot;prod&quot;                  &quot;pv.1&quot;                 
+## [58] &quot;pv.machine&quot;            &quot;pv.salvage&quot;            &quot;r&quot;                    
+## [61] &quot;R&quot;                     &quot;randomSample&quot;          &quot;rates&quot;                
+## [64] &quot;salvage&quot;               &quot;schools_dat&quot;           &quot;shovels&quot;              
+## [67] &quot;sum_column&quot;            &quot;sum_row&quot;               &quot;t&quot;                    
+## [70] &quot;table_posteriors&quot;      &quot;table_priors&quot;          &quot;trueMu&quot;               
+## [73] &quot;trueSig&quot;               &quot;truth&quot;                 &quot;x&quot;                    
+## [76] &quot;X&quot;                     &quot;x.char&quot;                &quot;x_1&quot;                  
+## [79] &quot;x_2&quot;                   &quot;x1&quot;                    &quot;XTX_inverse&quot;          
+## [82] &quot;xy_df&quot;                 &quot;xy_summary&quot;            &quot;xy_tbl&quot;               
+## [85] &quot;y&quot;                     &quot;z&quot;</code></pre>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" title="1"><span class="kw">length</span>(x)</a></code></pre></div>
+<pre><code>## [1] 5</code></pre>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" title="1">x[<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(x)]</a></code></pre></div>
+<pre><code>## [1] 2 3 4 5 6</code></pre>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" title="1">x[<span class="dv">6</span><span class="op">:</span><span class="dv">8</span>]</a></code></pre></div>
+<pre><code>## [1] NA NA NA</code></pre>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" title="1">x[<span class="dv">6</span><span class="op">:</span><span class="dv">8</span>] &lt;-<span class="st"> </span><span class="dv">7</span><span class="op">:</span><span class="dv">9</span></a>
+<a class="sourceLine" id="cb29-2" title="2">x<span class="op">/</span><span class="dv">0</span></a></code></pre></div>
+<pre><code>## [1] Inf Inf Inf Inf Inf Inf Inf Inf</code></pre>
+<p><code>x</code> has length of 5 and we use that to index all of the current elements of <code>x</code>. Trying to access elements 6 to 8 produces <code>na</code> because they do not exist yet. Appending 7 to 9 will fill the spaces. Dividing by 0 produces <code>inf</code>.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" title="1">(x1 &lt;-<span class="st"> </span>x <span class="op">-</span><span class="st"> </span><span class="dv">2</span>)</a></code></pre></div>
+<pre><code>## [1] 0 1 2 3 4 5 6 7</code></pre>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" title="1">x1</a></code></pre></div>
+<pre><code>## [1] 0 1 2 3 4 5 6 7</code></pre>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" title="1">x<span class="op">/</span>x1</a></code></pre></div>
+<pre><code>## [1] Inf 3.0 2.0 1.7 1.5 1.4 1.3 1.3</code></pre>
+<p>Putting parentheses around an expression is the same as printing out the result of the expression. Element-wise division (multiplication, addition, subtraction) produces <code>inf</code> as the first element.</p>
+</div>
+<div id="try-this-exercise" class="section level2">
+<h2><span class="header-section-number">4.2</span> Try this exercise</h2>
+<p>Suppose we have a gargleblaster machine that produces free cash flows of $10 million each year for 8 years. The machine will be scrapped and currently you believe you can get $5 million at the end of year 8 as salvage value. The forward curve of interest rates for the next 1 to 8 years is 0.06, 0.07, 0.05, 0.09, 0.09, 0.08, 0.08, 0.08.</p>
+<ol style="list-style-type: decimal">
+<li>What is the value of $1 received at the end of each of the next 8 years? Use this script to begin the modeling process. Describe each calculation.</li>
+</ol>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb37-1" title="1">rates &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.06</span>, <span class="fl">0.07</span>, <span class="fl">0.05</span>, <span class="fl">0.09</span>, <span class="fl">0.09</span>, </a>
+<a class="sourceLine" id="cb37-2" title="2">    <span class="fl">0.08</span>, <span class="fl">0.08</span>, <span class="fl">0.08</span>)</a>
+<a class="sourceLine" id="cb37-3" title="3">t &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="dv">8</span>)</a>
+<a class="sourceLine" id="cb37-4" title="4">(pv<span class="fl">.1</span> &lt;-<span class="st"> </span><span class="kw">sum</span>(<span class="dv">1</span><span class="op">/</span>(<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>rates)<span class="op">^</span>t))</a></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li><p>What is the present value of salvage? Salvage would be at element 8 of an 8-element cash flow vector, and thus would use the eighth forward rate, <code>rate[8]</code>, and <code>t</code> would be 8 as well. Eliminate the sum in the above script. Make a variable called <code>salvage</code> and assign salvage value to this variable. Use this variable in place of the <code>1</code> in the above script for <code>pv.1</code>. Call the new present value <code>pv.salvage</code>.</p></li>
+<li><p>What is the present value of the gargleblaster machine? Type in these statements. The <code>rep</code> function makes an <code>8</code> element cash flow vector. We change the value of the 8th element of the cash flow vector to include salvage. Now use the <code>pv.1</code> statement above and substitute <code>cashflow</code> for <code>1</code>. You will have your result.</p></li>
+</ol>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb38-1" title="1">cashflow &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">10</span>, <span class="dv">8</span>)</a>
+<a class="sourceLine" id="cb38-2" title="2">cashflow[<span class="dv">8</span>] &lt;-<span class="st"> </span>cashflow[<span class="dv">8</span>] <span class="op">+</span><span class="st"> </span>salvage</a></code></pre></div>
+<p>Some results follow. The present value of $1 is
+The present value of a $1 is this mathemetical formula.
+<span class="math display">\[
+PV = \sum_{t=1}^{8}\frac{1}{(1+r)^t}
+\]</span>
+This mathematical expression can be translated into <code>R</code> this way</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" title="1">rates &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.06</span>, <span class="fl">0.07</span>, <span class="fl">0.05</span>, <span class="fl">0.09</span>, <span class="fl">0.09</span>, </a>
+<a class="sourceLine" id="cb39-2" title="2">    <span class="fl">0.08</span>, <span class="fl">0.08</span>, <span class="fl">0.08</span>)</a>
+<a class="sourceLine" id="cb39-3" title="3">t &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="dv">8</span>)</a>
+<a class="sourceLine" id="cb39-4" title="4">(<span class="dv">1</span><span class="op">/</span>(<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>rates)<span class="op">^</span>t)</a></code></pre></div>
+<pre><code>## [1] 0.94 0.87 0.86 0.71 0.65 0.63 0.58 0.54</code></pre>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" title="1">(pv<span class="fl">.1</span> &lt;-<span class="st"> </span><span class="kw">sum</span>(<span class="dv">1</span><span class="op">/</span>(<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>rates)<span class="op">^</span>t))</a></code></pre></div>
+<pre><code>## [1] 5.8</code></pre>
+<p>We define <code>rates</code> as a vector using the <code>c()</code> concatenation function. We then define a sequence of 8 time indices <code>t</code> starting with 1. The present value of a $1 is sum of the vector element-by-element calculation of the date by date discounts <span class="math inline">\(1/(1+r)^t\)</span>.</p>
+<p>The present value of salvage is the discounted salvage that is expected to occur at, and in this illustration only at, year 8.
+<span class="math display">\[
+PV_{salvage} = \frac{salvage}{(1+r)^8}
+\]</span>
+Translated into <code>R</code> we have</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" title="1">salvage &lt;-<span class="st"> </span><span class="dv">5</span></a>
+<a class="sourceLine" id="cb43-2" title="2">(pv.salvage &lt;-<span class="st"> </span>salvage<span class="op">/</span>(<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>rates[<span class="dv">8</span>])<span class="op">^</span><span class="dv">8</span>)</a></code></pre></div>
+<pre><code>## [1] 2.7</code></pre>
+<p>The present value of the gargleblaster machine is the present value of cashflows from operations from year 1 to year 8 plus the present value of salvage received in year 8. Salvage by definition is realized at the of the life of the operational cashflows upon disposition of the asset, here at year 8.
+<span class="math display">\[
+PV_{total} = \sum_{t=1}^{8}\frac{cashflow_t}{(1+r)^t} + \frac{salvage}{(1+r)^8}
+\]</span>
+This expression translates into <code>R</code> this way:</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" title="1">cashflow &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">10</span>, <span class="dv">8</span>)</a>
+<a class="sourceLine" id="cb45-2" title="2">cashflow[<span class="dv">8</span>] &lt;-<span class="st"> </span>cashflow[<span class="dv">8</span>] <span class="op">+</span><span class="st"> </span>salvage</a>
+<a class="sourceLine" id="cb45-3" title="3">(pv.machine &lt;-<span class="st"> </span><span class="kw">sum</span>(cashflow<span class="op">/</span>(<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>rates)<span class="op">^</span>t))</a></code></pre></div>
+<pre><code>## [1] 61</code></pre>
+<p>The <code>rep</code> or “repeat” function creates cash flows of $10 for each of 8 years. We adjust the year 8 cash flow to reflect salvage so that <span class="math inline">\(cashflow_8 = 10 + salvage\)</span>. The <code>[8]</code> indexes the eighth element of the <code>cashflow</code> vector.</p>
+</div>
+<div id="building-some-character" class="section level2">
+<h2><span class="header-section-number">4.3</span> Building Some Character</h2>
+<p>Let’s type these expressions into the console at the <code>&gt;</code> prompt:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb47-1" title="1">x[<span class="kw">length</span>(x) <span class="op">+</span><span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> &quot;end&quot;</span></a>
+<a class="sourceLine" id="cb47-2" title="2">x[<span class="kw">length</span>(x) <span class="op">+</span><span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> &quot;end&quot;</span></a>
+<a class="sourceLine" id="cb47-3" title="3">x.char &lt;-<span class="st"> </span>x[<span class="op">-</span><span class="kw">length</span>(x)]</a>
+<a class="sourceLine" id="cb47-4" title="4">x &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(x.char[<span class="op">-</span><span class="kw">length</span>(x.char)])</a>
+<a class="sourceLine" id="cb47-5" title="5"><span class="kw">str</span>(x)</a></code></pre></div>
+<pre><code>##  num [1:8] 2 3 4 5 6 7 8 9</code></pre>
+<p>We have appended the string “end” to the end of x, twice.</p>
+<ul>
+<li>We use the <code>-</code> negative operator to eliminate it.</li>
+<li>By inserting a string of characters into a numeric vector we have forced <code>R</code> to transform all numerical values to characters.</li>
+<li>To keep things straight we called the character version <code>x.char</code>.</li>
+<li>In the end we convert <code>x.char</code> back to numbers that we check with the <code>str</code>(ucture) function.</li>
+</ul>
+<p>We will use this procedure to build data tables (we will call these “data frames”) when comparing distributions of variables such as stock returns.</p>
+<p>Here’s a useful set of statements for coding and classifying variables. Type these statements into the console.</p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb49-1" title="1"><span class="kw">set.seed</span>(<span class="dv">1016</span>)</a>
+<a class="sourceLine" id="cb49-2" title="2">n.sim &lt;-<span class="st"> </span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb49-3" title="3">x &lt;-<span class="st"> </span><span class="kw">rnorm</span>(n.sim)</a>
+<a class="sourceLine" id="cb49-4" title="4">y &lt;-<span class="st"> </span>x<span class="op">/</span>(<span class="kw">rchisq</span>(x<span class="op">^</span><span class="dv">2</span>, <span class="dt">df =</span> <span class="dv">3</span>))<span class="op">^</span><span class="fl">0.5</span></a></code></pre></div>
+<p>We did a lot of <code>R</code> here. First, we set a random seed to reproduce the same results every time we run this simulaton. Then, we store the number of simulations in <code>n.sim</code> and produced two new variables with normal and a weirder looking distribution (a Student’s t distribution?). Invoking <code>help</code> will display help with distributions in the console pane of the <code>RStudio</code> IDE.</p>
+<p>Now let’s try to display some of this interesting, and if surprising, information. The next code block will set up some presentation layer data for a plot.</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb50-1" title="1">z &lt;-<span class="st"> </span><span class="kw">c</span>(x, y)</a>
+<a class="sourceLine" id="cb50-2" title="2">indicator &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">c</span>(<span class="st">&quot;normal&quot;</span>, <span class="st">&quot;abnormal&quot;</span>), </a>
+<a class="sourceLine" id="cb50-3" title="3">    <span class="dt">each =</span> <span class="kw">length</span>(x))</a>
+<a class="sourceLine" id="cb50-4" title="4">xy_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Variates =</span> z, <span class="dt">Distributions =</span> indicator)</a></code></pre></div>
+<p>We concatenate the two variables into a new variable <code>z</code>. We built into the variable <code>indicator</code> the classifier to indicate which is <code>x</code> and which is <code>y</code>. But let’s visualize what we want. (Paint in words here.) We want a column the first <code>n.sim</code> elements of which are <code>x</code> and the second are <code>y</code>. We then want a column the first <code>n.sim</code> elements of which are indicated by the character string “normal”, and the second <code>n.sim</code> elements by “abnormal”.</p>
+<p>The <code>rep</code> function replicates the concatenation of “normal” and “abnormal” 10 times (the <code>length(x)</code>). The <code>each</code> feature concatenates 10 replications of “normal” to 10 replications of “abnormal”. We concatenate the variates into <code>xy</code> with the <code>c()</code> function.</p>
+<p>Data frames are just column and row tables. Enter <code>str(xy_df)</code> to see what the structure of the <code>xy_df</code> data frame contains. In later work we will use a streamlined version of the data frame called a <code>tibble</code> in the <code>tidyverse</code> ecosystem.</p>
+<p>We can see the first 5 components of the data frame components using the <code>$</code> subsetting notation as below.</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb51-1" title="1"><span class="kw">str</span>(xy_df)</a></code></pre></div>
+<pre><code>## &#39;data.frame&#39;:	20 obs. of  2 variables:
+##  $ Variates     : num  0.777 1.373 1.303 0.148 -1.825 ...
+##  $ Distributions: chr  &quot;normal&quot; &quot;normal&quot; &quot;normal&quot; &quot;normal&quot; ...</code></pre>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb53-1" title="1"><span class="kw">head</span>(xy_df<span class="op">$</span>Variates, <span class="dt">n =</span> <span class="dv">5</span>)</a></code></pre></div>
+<pre><code>## [1]  0.78  1.37  1.30  0.15 -1.83</code></pre>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb55-1" title="1"><span class="kw">head</span>(xy_df<span class="op">$</span>Distributions, <span class="dt">n =</span> <span class="dv">5</span>)</a></code></pre></div>
+<pre><code>## [1] &quot;normal&quot; &quot;normal&quot; &quot;normal&quot; &quot;normal&quot; &quot;normal&quot;</code></pre>
+<p>The <code>str</code> call returns the two vectors inside of <code>xy</code>. One is numeric and the other is a “factor” with two levels. <code>R</code> and many of the routines in <code>R</code> will interpret these as zeros and ones in developing indicator and dummy variables for regressions and filtering. The <code>head()</code> (and there is a <code>tail()</code> too) function displays as many components as you wish to see starting with row 1.</p>
+</div>
+<div id="the-plot-thickens" class="section level2">
+<h2><span class="header-section-number">4.4</span> The plot thickens</h2>
+<p>We will want to see our handiwork, so load the <code>ggplot2</code> library using <code>install.packages("ggplot2")</code>.<a href="#fn16" class="footnote-ref" id="fnref16"><sup>16</sup></a></p>
+<p>This plotting package requires data frames. A “data frame” simply put is a list of vectors and arrays with names. An example of a data frame in Excel is just the worksheet. There are columns with names in the first row, followed by several rows of data in each column. If you were to install the <code>tidyverse</code> package and load the package with <code>library(tidyverse)</code> you could use <code>tibble()</code> instead of the bas R <code>data.frame()</code>.</p>
+<p>Here we have defined a data frame <code>xy_df</code>. All of the <code>x</code> and <code>y</code> variates are put into one part of the frame, and the distribution indicator into another. For all of this to work in a plot the two arrays must be of the same length. Thus we use the common <code>n.sim</code> and <code>length(x)</code> to insure this when we computed the series. We always examine the data, here using the <code>head</code> and <code>tail</code> functions.</p>
+<p>Type <code>help(ggplot)</code> into the console for details. The <code>ggplot2</code> graphics package embodies Hadley Wickham’s “grammar of graphics” we can review at <a href="http://ggplot2.org" class="uri">http://ggplot2.org</a>. Hadley Wickham has a very useful presentation with numerous examples at <a href="http://ggplot2.org/resources/2007-past-present-future.pdf" class="uri">http://ggplot2.org/resources/2007-past-present-future.pdf</a>.</p>
+<p>As mentioned above, the package uses data frames to process graphics. A lot of packages other than <code>ggplot2</code>, including the base <code>stats</code> package, require data
+frames.</p>
+<p>We load the library first. The next statement sets up the blank but all too ready canvas (it will be empty!) on which a density plot can be rendered.</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb57-1" title="1"><span class="kw">library</span>(ggplot2)</a>
+<a class="sourceLine" id="cb57-2" title="2"><span class="kw">ggplot</span>(xy_df, <span class="kw">aes</span>(<span class="dt">x =</span> Variates, <span class="dt">fill =</span> Distributions))</a></code></pre></div>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-66-1.png" width="672" /></p>
+<p>The data frame name <code>xy_df</code> is first followed by the aesthetics mapping of data. The next statement inserts a geometrical element, here a density curve, which has a transparency parameter aesthetic <code>alpha</code>.</p>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-67-1.png" width="672" /></p>
+<div id="try-this-example" class="section level3">
+<h3><span class="header-section-number">4.4.1</span> Try this example</h3>
+<p>Zoom in with <code>xlim</code> and lower x-axis and upper x-axis limits using the following statement:</p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb58-1" title="1"><span class="kw">ggplot</span>(xy_df, <span class="kw">aes</span>(<span class="dt">x =</span> Variates, <span class="dt">fill =</span> Distributions)) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb58-2" title="2"><span class="st">    </span><span class="kw">geom_density</span>(<span class="dt">alpha =</span> <span class="fl">0.3</span>) <span class="op">+</span><span class="st"> </span><span class="kw">xlim</span>(<span class="op">-</span><span class="dv">1</span>, </a>
+<a class="sourceLine" id="cb58-3" title="3">    <span class="dv">6</span>)</a></code></pre></div>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-68-1.png" width="672" /></p>
+<p>Now we are getting to extreme value statistics by visualizing the tail of this distribution.</p>
+</div>
+</div>
+<div id="arrays-and-you" class="section level2">
+<h2><span class="header-section-number">4.5</span> Arrays and You</h2>
+<p>Arrays have rows and columns and are akin to tables. All of Excel’s worksheets are organized into cells that are tables with columns and rows. Data frames are more akin to tables in data bases. Here are some simple matrix arrays and functions. We start by making a mistake:</p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb59-1" title="1">(A.error &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">11</span>, <span class="dt">ncol =</span> <span class="dv">4</span>))</a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,]    1    4    7   10
+## [2,]    2    5    8   11
+## [3,]    3    6    9    1</code></pre>
+<p>The <code>matrix()</code> function takes as input here the sequence of numbers from 1 to 11. It then tries to put these 11 elements into a 4 column array with 3 rows. It is missing a number as the error points out. To make a 4 column array out of 11 numbers it needs a twelth number to complete the third row. We then type in these statements</p>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb61-1" title="1">(A_row &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">12</span>, <span class="dt">ncol =</span> <span class="dv">4</span>))</a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,]    1    4    7   10
+## [2,]    2    5    8   11
+## [3,]    3    6    9   12</code></pre>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb63-1" title="1">(A_col &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">12</span>, <span class="dt">ncol =</span> <span class="dv">4</span>, <span class="dt">byrow =</span> <span class="ot">FALSE</span>))</a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,]    1    4    7   10
+## [2,]    2    5    8   11
+## [3,]    3    6    9   12</code></pre>
+<p>In <code>A</code> we take 12 integers in a row and specify they be organized into 4 columns, and in <code>R</code> this is by row. In the next statement we see that <code>A_col</code> and column binding <code>cbind()</code> are equivalent.</p>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb65-1" title="1">(R &lt;-<span class="st"> </span><span class="kw">rbind</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">4</span>, <span class="dv">5</span><span class="op">:</span><span class="dv">8</span>, <span class="dv">9</span><span class="op">:</span><span class="dv">12</span>))  <span class="co"># Concatenate rows</span></a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,]    1    2    3    4
+## [2,]    5    6    7    8
+## [3,]    9   10   11   12</code></pre>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb67-1" title="1">(C &lt;-<span class="st"> </span><span class="kw">cbind</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>, <span class="dv">4</span><span class="op">:</span><span class="dv">6</span>, <span class="dv">7</span><span class="op">:</span><span class="dv">9</span>, <span class="dv">10</span><span class="op">:</span><span class="dv">12</span>))  <span class="co"># concatenate columns</span></a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,]    1    4    7   10
+## [2,]    2    5    8   11
+## [3,]    3    6    9   12</code></pre>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb69-1" title="1">A_col <span class="op">==</span><span class="st"> </span>C</a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,] TRUE TRUE TRUE TRUE
+## [2,] TRUE TRUE TRUE TRUE
+## [3,] TRUE TRUE TRUE TRUE</code></pre>
+<p>Using the <code>outer</code> product allows us to operate on matrix elements, first picking the minimum, then the maximum of each row. The <code>pmin</code> and <code>pmax</code> compare rows element by element. If you used <code>min</code> and <code>max</code> you would get the minimum and maximum of the whole matrix.</p>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb71-1" title="1">(A_min &lt;-<span class="st"> </span><span class="kw">outer</span>(<span class="dv">3</span><span class="op">:</span><span class="dv">6</span><span class="op">/</span><span class="dv">4</span>, <span class="dv">3</span><span class="op">:</span><span class="dv">6</span><span class="op">/</span><span class="dv">4</span>, <span class="dt">FUN =</span> pmin))  <span class="co">#</span></a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,] 0.75 0.75 0.75 0.75
+## [2,] 0.75 1.00 1.00 1.00
+## [3,] 0.75 1.00 1.25 1.25
+## [4,] 0.75 1.00 1.25 1.50</code></pre>
+<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb73-1" title="1">(A_max &lt;-<span class="st"> </span><span class="kw">outer</span>(<span class="dv">3</span><span class="op">:</span><span class="dv">6</span><span class="op">/</span><span class="dv">4</span>, <span class="dv">3</span><span class="op">:</span><span class="dv">6</span><span class="op">/</span><span class="dv">4</span>, <span class="dt">FUN =</span> pmax))  <span class="co">#</span></a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,] 0.75  1.0  1.2  1.5
+## [2,] 1.00  1.0  1.2  1.5
+## [3,] 1.25  1.2  1.2  1.5
+## [4,] 1.50  1.5  1.5  1.5</code></pre>
+<p>We build a symmetrical matrix and replace the diagonal with 1. <code>A_sym</code> looks like a correlation matrix. Here all we were doing is playing with shaping data.</p>
+<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb75-1" title="1">(A_sym &lt;-<span class="st"> </span>A_max <span class="op">-</span><span class="st"> </span>A_min <span class="op">-</span><span class="st"> </span><span class="fl">0.5</span>)</a></code></pre></div>
+<pre><code>##       [,1]  [,2]  [,3]  [,4]
+## [1,] -0.50 -0.25  0.00  0.25
+## [2,] -0.25 -0.50 -0.25  0.00
+## [3,]  0.00 -0.25 -0.50 -0.25
+## [4,]  0.25  0.00 -0.25 -0.50</code></pre>
+<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb77-1" title="1"><span class="kw">diag</span>(A_sym) &lt;-<span class="st"> </span><span class="dv">1</span></a>
+<a class="sourceLine" id="cb77-2" title="2">A_sym</a></code></pre></div>
+<pre><code>##       [,1]  [,2]  [,3]  [,4]
+## [1,]  1.00 -0.25  0.00  0.25
+## [2,] -0.25  1.00 -0.25  0.00
+## [3,]  0.00 -0.25  1.00 -0.25
+## [4,]  0.25  0.00 -0.25  1.00</code></pre>
+<div id="try-this-exercise-1" class="section level3">
+<h3><span class="header-section-number">4.5.1</span> Try this exercise</h3>
+<p>The <code>inner</code> product <code>%*%</code> cross-multiplies successive elements of a row with the successive elements of a column. If there are two rows with 5 columns, there must be a matrix at least with 1 column that has 5 rows in it.</p>
+<p>Let’s run these statements.</p>
+<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb79-1" title="1">n_sim &lt;-<span class="st"> </span><span class="dv">100</span></a>
+<a class="sourceLine" id="cb79-2" title="2">x_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">rgamma</span>(n_sim, <span class="fl">0.5</span>, <span class="fl">0.2</span>)</a>
+<a class="sourceLine" id="cb79-3" title="3">x_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">rlnorm</span>(n_sim, <span class="fl">0.15</span>, <span class="fl">0.25</span>)</a>
+<a class="sourceLine" id="cb79-4" title="4"><span class="kw">hist</span>(x_<span class="dv">1</span>)</a></code></pre></div>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-74-1.png" width="672" /></p>
+<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb80-1" title="1"><span class="kw">hist</span>(x_<span class="dv">2</span>)</a></code></pre></div>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-74-2.png" width="672" /></p>
+<div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb81-1" title="1">X &lt;-<span class="st"> </span><span class="kw">cbind</span>(x_<span class="dv">1</span>, x_<span class="dv">2</span>)</a></code></pre></div>
+<p><code>rgamma</code> allows us to generate <code>n_sim</code> versions of the gamma distribution with scale parameter <code>0.5</code> and shape parameter <code>0.2</code>. <code>rlnorm</code> is a popular financial return distribution with mean <code>0.15</code> and standard deviation <code>0.25</code>. We can call up <code>??distributions</code> to get detailed information. Let’s plot the histograms of each simulated random variate using <code>hist()</code>.</p>
+<p>The <code>cbind</code> function binds into matrix columns the row arrays <code>x_1</code> and <code>x_2</code>. These might be simulations of operational and financial losses. The <code>X</code> matrix could look like the <em><em>design matrix</em></em> for a regression.</p>
+<p>Let’s simulate a response vector, say equity, and call it <code>y</code> and look at its histogram.</p>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb82-1" title="1">y &lt;-<span class="st"> </span><span class="fl">1.5</span> <span class="op">*</span><span class="st"> </span>x_<span class="dv">1</span> <span class="op">+</span><span class="st"> </span><span class="fl">0.8</span> <span class="op">*</span><span class="st"> </span>x_<span class="dv">2</span> <span class="op">+</span><span class="st"> </span><span class="kw">rnorm</span>(n_sim, </a>
+<a class="sourceLine" id="cb82-2" title="2">    <span class="fl">4.2</span>, <span class="fl">5.03</span>)</a></code></pre></div>
+<p>Now we have a frequentist statistical model for <span class="math inline">\(y\)</span>:</p>
+<p><span class="math display">\[
+y = X \beta + \varepsilon
+\]</span></p>
+<p>where <span class="math inline">\(y\)</span> is a 100 <span class="math inline">\(\times\)</span> 1 (rows <span class="math inline">\(\times\)</span> columns) vector, <span class="math inline">\(X\)</span> is a 100 <span class="math inline">\(\times\)</span> 2 matrix, <span class="math inline">\(\beta\)</span> is a 2 <span class="math inline">\(\times\)</span> 1 vector, and <span class="math inline">\(\epsilon\)</span> is a 100 <span class="math inline">\(\times\)</span> 1 vector of disturbances (a.k.a., “errors”).</p>
+<p>Multiplying out the matrix term <span class="math inline">\(X \beta\)</span> we have</p>
+<p><span class="math display">\[
+y = \beta_1 x_1 + \beta_2 x_2 + \varepsilon
+\]</span></p>
+<p>where <span class="math inline">\(y\)</span>, <span class="math inline">\(x_1\)</span>, <span class="math inline">\(x_2\)</span>, and <span class="math inline">\(\varepsilon\)</span> are all vectors with 100 rows for simulated observations.</p>
+<p>If we look for <span class="math inline">\(\beta\)</span> to minimize the sum of squared <span class="math inline">\(\varepsilon\)</span> we would find that the solution is</p>
+<p><span class="math display">\[
+\hat{\beta} = (X^T X)^{-1} X^{T} y.
+\]</span></p>
+<p>Where <span class="math inline">\(\hat{\beta}\)</span> is read as “beta hat”.</p>
+<p>The result <span class="math inline">\(y\)</span> with its <code>hist()</code> is</p>
+<div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb83-1" title="1"><span class="kw">hist</span>(y)</a></code></pre></div>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-76-1.png" width="672" /></p>
+<p>The rubber meets the road here as we compute <span class="math inline">\(\hat{\beta}\)</span>.</p>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb84-1" title="1">X &lt;-<span class="st"> </span><span class="kw">cbind</span>(x_<span class="dv">1</span>, x_<span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb84-2" title="2">XTX_inverse &lt;-<span class="st"> </span><span class="kw">solve</span>(<span class="kw">t</span>(X) <span class="op">%*%</span><span class="st"> </span>X)</a>
+<a class="sourceLine" id="cb84-3" title="3">(beta_hat &lt;-<span class="st"> </span>XTX_inverse <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(X) <span class="op">%*%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb84-4" title="4"><span class="st">    </span>y)</a></code></pre></div>
+<pre><code>##     [,1]
+## x_1  1.6
+## x_2  4.0</code></pre>
+<p>The <code>beta_hat</code> coefficients are much different than our model for <code>y</code>. Why? Because of the innovation, error, disturbance term <code>rnorm(n_sim, 1, 2)</code> we added to the <code>1.5*x_1  + 0.8 * x_2</code> terms.</p>
+<p>Now for the estimated <span class="math inline">\(\varepsilon\)</span> where we use the matrix inner product <code>%*%</code>. We need to be sure to <em>pre</em>-multiply <code>beta_hat</code> with <code>X</code>!</p>
+<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb86-1" title="1">e &lt;-<span class="st"> </span>y <span class="op">-</span><span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>beta_hat</a></code></pre></div>
+<div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb87-1" title="1"><span class="kw">hist</span>(e)</a></code></pre></div>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-79-1.png" width="672" /></p>
+<p>We see that the “residuals” are almost centered at <code>0</code>.</p>
+</div>
+<div id="more-about-residuals" class="section level3">
+<h3><span class="header-section-number">4.5.2</span> More about residuals</h3>
+<p>For no charge at all let’s calculate the sum of squared errors in matrix talk, along with the number of obervations <code>n</code> and degrees of freedom <code>n - k</code>, all to get the standard error of the regression <code>e_se</code>. Mathematically we are computing</p>
+<p><span class="math display">\[
+\sigma_{\varepsilon} = \sqrt{\sum_{i=1}^N \frac{\varepsilon_i^2}{n-k}}
+\]</span></p>
+<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb88-1" title="1">(e_sse &lt;-<span class="st"> </span><span class="kw">t</span>(e) <span class="op">%*%</span><span class="st"> </span>e)</a></code></pre></div>
+<pre><code>##      [,1]
+## [1,] 3021</code></pre>
+<div class="sourceCode" id="cb90"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb90-1" title="1">(n &lt;-<span class="st"> </span><span class="kw">dim</span>(X)[<span class="dv">1</span>])</a></code></pre></div>
+<pre><code>## [1] 100</code></pre>
+<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb92-1" title="1">(k &lt;-<span class="st"> </span><span class="kw">nrow</span>(beta_hat))</a></code></pre></div>
+<pre><code>## [1] 2</code></pre>
+<div class="sourceCode" id="cb94"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb94-1" title="1">(e_se &lt;-<span class="st"> </span>(e_sse<span class="op">/</span>(n <span class="op">-</span><span class="st"> </span>k))<span class="op">^</span><span class="fl">0.5</span>)</a></code></pre></div>
+<pre><code>##      [,1]
+## [1,]  5.6</code></pre>
+<p>The statement <code>dim(X)[1]</code> returns the first of two dimensions of the matrix <code>X</code>. The R system has a built in OLS model called <code>lm()</code> (for linear model). Here is that model and a <code>summary()</code> of results.</p>
+<div class="sourceCode" id="cb96"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb96-1" title="1"><span class="kw">library</span>(tidyverse)</a>
+<a class="sourceLine" id="cb96-2" title="2">data_xy &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">x_1 =</span> x_<span class="dv">1</span>, <span class="dt">x_2 =</span> x_<span class="dv">2</span>, </a>
+<a class="sourceLine" id="cb96-3" title="3">    <span class="dt">y =</span> y)</a>
+<a class="sourceLine" id="cb96-4" title="4">fit_<span class="dv">0</span> &lt;-<span class="st"> </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x_<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>x_<span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> data_xy)</a>
+<a class="sourceLine" id="cb96-5" title="5"><span class="kw">summary</span>(fit_<span class="dv">0</span>)</a></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = y ~ x_1 + x_2 - 1, data = data_xy)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -12.015  -3.200   0.366   4.333  14.347 
+## 
+## Coefficients:
+##     Estimate Std. Error t value             Pr(&gt;|t|)    
+## x_1    1.607      0.161    9.97 &lt; 0.0000000000000002 ***
+## x_2    4.042      0.616    6.56         0.0000000026 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 5.5 on 98 degrees of freedom
+## Multiple R-squared:  0.799,	Adjusted R-squared:  0.795 
+## F-statistic:  195 on 2 and 98 DF,  p-value: &lt;0.0000000000000002</code></pre>
+<p>First we load the <code>tidyverse</code> package and make a tibble data set. Then we use the statistical model <code>y ~ x_1 + x_2 - 1</code> The <code>lm()</code> function parses this formula into the dependent variable <code>y</code>, the two independent variables <code>x_1</code> and <code>x_2</code>, and <code>-1</code> for a zero intercept all referring to the components of the data set in the <code>lm()</code> function. We then can view the statistics of the regression using the <code>summary()</code> method associated with <code>lm()</code>. All results are in the object <code>fit_0</code>.</p>
+<p>Of course we must try our model with an intercept, the default in <code>lm()</code>. I usually put the <code>1 +</code> into the formula as a reminder.</p>
+<div class="sourceCode" id="cb98"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb98-1" title="1">fit_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>x_<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>x_<span class="dv">2</span>, <span class="dt">data =</span> data_xy)</a>
+<a class="sourceLine" id="cb98-2" title="2"><span class="kw">summary</span>(fit_<span class="dv">1</span>)</a></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = y ~ 1 + x_1 + x_2, data = data_xy)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -12.768  -3.148  -0.674   3.700  13.362 
+## 
+## Coefficients:
+##             Estimate Std. Error t value            Pr(&gt;|t|)    
+## (Intercept)    5.313      2.221    2.39               0.019 *  
+## x_1            1.559      0.159    9.82 0.00000000000000033 ***
+## x_2           -0.200      1.873   -0.11               0.915    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 5.4 on 97 degrees of freedom
+## Multiple R-squared:   0.5,	Adjusted R-squared:  0.489 
+## F-statistic: 48.5 on 2 and 97 DF,  p-value: 0.00000000000000257</code></pre>
+<p>We see a very different story where the coefficient of the <code>x_2</code> variable changes sign. In future sagas we will bury <span class="math inline">\(R^2\)</span>.</p>
+<p>The <code>lm()</code> function is thew orkhorse of R regression in the frequentist statistical tradition of Joseph Venn and R.A. <span class="citation">Fisher (<a href="#ref-Fisher_1925" role="doc-biblioref">1925</a>)</span>.<a href="#fn17" class="footnote-ref" id="fnref17"><sup>17</sup></a></p>
+<p>We also notice the layout of the writing of the function and its arguments. This tremendously aids comprehension as well as shooting trouble when running the functions.</p>
+<p>Finally, again for no charge at all, lets load library <code>psych</code> (use <code>install.packages("psych")</code> as needed). We will use <code>pairs.panels()</code> for a pretty picture of our work in this try out. First column bind <code>cbind()</code> the <code>y</code>, <code>X</code>, and <code>e</code> arrays to create a data frame for <code>pairs.panel()</code>.</p>
+<div class="sourceCode" id="cb100"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb100-1" title="1"><span class="kw">library</span>(psych)</a>
+<a class="sourceLine" id="cb100-2" title="2">all &lt;-<span class="st"> </span><span class="kw">cbind</span>(y, X, e)</a></code></pre></div>
+<p>We then invoke the <code>pairs.panels()</code> function using the <code>all</code> array we just created. The result is a scatterplot matrix with histograms of each variate down the diagonal. The lower triangle of the matrix is populated with scatterplots. The upper triangle of the matrix has correlations depicted with increasing font sizes for higher correlations.</p>
+<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb101-1" title="1"><span class="kw">pairs.panels</span>(all)</a></code></pre></div>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-83-1.png" width="672" />
+We will use this sort of tool again and again to explore the multivariate relationships among our data. Even better displays are available with the</p>
+</div>
+</div>
+<div id="more-array-work" class="section level2">
+<h2><span class="header-section-number">4.6</span> More Array Work</h2>
+<p>We show off some more array operations in the following statements.</p>
+<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb102-1" title="1"><span class="kw">nrow</span>(A_min)</a></code></pre></div>
+<pre><code>## [1] 4</code></pre>
+<div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb104-1" title="1"><span class="kw">ncol</span>(A_min)</a></code></pre></div>
+<pre><code>## [1] 4</code></pre>
+<div class="sourceCode" id="cb106"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb106-1" title="1"><span class="kw">dim</span>(A_min)</a></code></pre></div>
+<pre><code>## [1] 4 4</code></pre>
+<p>We calculate the number of rows and columns first. We then see that these exactly correspond to the two element vector produced by <code>dim</code>. Next we enter these statements into the console.</p>
+<div class="sourceCode" id="cb108"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb108-1" title="1"><span class="kw">rowSums</span>(A_min)</a></code></pre></div>
+<pre><code>## [1] 3.0 3.8 4.2 4.5</code></pre>
+<div class="sourceCode" id="cb110"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb110-1" title="1"><span class="kw">colSums</span>(A_min)</a></code></pre></div>
+<pre><code>## [1] 3.0 3.8 4.2 4.5</code></pre>
+<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb112-1" title="1"><span class="kw">apply</span>(A_min, <span class="dv">1</span>, sum)</a></code></pre></div>
+<pre><code>## [1] 3.0 3.8 4.2 4.5</code></pre>
+<div class="sourceCode" id="cb114"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb114-1" title="1"><span class="kw">apply</span>(A_min, <span class="dv">2</span>, sum)</a></code></pre></div>
+<pre><code>## [1] 3.0 3.8 4.2 4.5</code></pre>
+<p>We also calculate the sums of each row and each column. Alternatively we can use the <code>apply</code> function on the first dimension (rows) and then on the second dimension (columns) of the matrix. Some matrix multiplications follow below.</p>
+<div class="sourceCode" id="cb116"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb116-1" title="1">(A_inner &lt;-<span class="st"> </span>A_sym <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(A_min[, <span class="dv">1</span><span class="op">:</span><span class="kw">dim</span>(A_min)[<span class="dv">2</span>]]))</a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,] 0.75 0.75 0.81 0.88
+## [2,] 0.38 0.56 0.50 0.50
+## [3,] 0.38 0.50 0.69 0.62
+## [4,] 0.75 0.94 1.12 1.38</code></pre>
+<p>Starting from the inner circle of embedded parentheses we pull every row (the <code>[,col]</code> piece) for columns from the first to the second dimension of the <code>dim()</code> of <code>A_min</code>. We then transpose (row for column) the elements of <code>A_min</code> and cross left multiply in an inner product this transposed matrix with <code>A_sym</code>.
+We have already deployed very useful matrix operation, the inverse. The <code>R</code> function <code>solve()</code> provides the answer to the question: what two matrices, when multiplied by one another, produces the identity matrix? The identity matrix is a matrix of all ones down the diagonal and zeros elsewhere.</p>
+<div class="sourceCode" id="cb118"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb118-1" title="1">(A_inner_invert &lt;-<span class="st"> </span><span class="kw">solve</span>(A_inner))</a></code></pre></div>
+<pre><code>##                      [,1] [,2] [,3] [,4]
+## [1,]  4.95238095238095255 -3.0 -1.1 -1.5
+## [2,] -2.28571428571428559  6.9 -2.3  0.0
+## [3,]  0.00000000000000013 -2.3  6.9 -2.3
+## [4,] -1.14285714285714302 -1.1 -3.4  3.4</code></pre>
+<p>Now we use our inverse with the original matrix we inverted.</p>
+<div class="sourceCode" id="cb120"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb120-1" title="1">(A_result &lt;-<span class="st"> </span>A_inner <span class="op">%*%</span><span class="st"> </span>A_inner_invert)</a></code></pre></div>
+<pre><code>##                     [,1]                 [,2]                 [,3]                [,4]
+## [1,] 0.99999999999999978  0.00000000000000000  0.00000000000000000 0.00000000000000000
+## [2,] 0.00000000000000022  1.00000000000000022  0.00000000000000000 0.00000000000000000
+## [3,] 0.00000000000000011  0.00000000000000011  1.00000000000000000 0.00000000000000044
+## [4,] 0.00000000000000022 -0.00000000000000044 -0.00000000000000089 1.00000000000000000</code></pre>
+<p>When we cross multiply <code>A_inner</code> with its inverse, we should, and do, get the identity matrix that is a matrix of ones in the diagonal and zeros in the off-diagonal elements.</p>
+</div>
+<div id="summary" class="section level2">
+<h2><span class="header-section-number">4.7</span> Summary</h2>
+<p>We covered very general data manipulation in <code>R</code> including arithmetical operations, vectors and matrices, their formation and operations, and data frames. We used data frames as inputs to plotting functions. We also built a matrix-based linear regression model and a present value calculator. This will be nearly the last time in this book we will employ frequentist statistical calculation. The next chapter will bring us to the brink of the statistical reasoning often called Bayesian. It is also nearly the last time we will seriously use the nouns and verbs of base R data wrangling. We will start next chapter to use modern data management nouns and verbs with the <code>tidyverse</code> package and ecosystem.</p>
+</div>
+<div id="further-reading" class="section level2">
+<h2><span class="header-section-number">4.8</span> Further Reading</h2>
+<p>This introductory chapter covers material from Teetor, chapters 1, 2, 5, 6. Present value, salvage, and other valuation topics can be found in Brealey et al. under <code>present value</code> in the index of any of several editions.</p>
+</div>
+<div id="practice-sets" class="section level2">
+<h2><span class="header-section-number">4.9</span> Practice Sets</h2>
+<div id="purpose-process-product" class="section level3">
+<h3><span class="header-section-number">4.9.1</span> Purpose, Process, Product</h3>
+<p>These practice sets will repeat various <code>R</code> features in this chapter. Specifically we will practice defining vectors, matrices (arrays), and data frames and their use in present value, growth, future value calculations, We will build on this basic practice with the computation of ordinary lease squares coefficients and plots using <code>ggplot2</code>. We will summarize our findings in debrief documented with an <code>R markdown</code> file and output.</p>
+</div>
+<div id="r-markdown-set-up" class="section level3">
+<h3><span class="header-section-number">4.9.2</span> <code>R Markdown</code> set up</h3>
+<ol style="list-style-type: decimal">
+<li><p>Open a new <code>R Markdown</code> html document file and save it with file name <code>MYName-FIN654-PS01</code> to your working directory. The <code>Rmd</code> file extension will automatically be appended to the file name. Create a new folder called <code>data</code> in this working directory and deposit the <code>.csv</code> file for practice set #2 to this directory.</p></li>
+<li><p>Modify the <code>YAML</code> header in the <code>Rmd</code> file to reflect the name of this practice set, your name, and date.</p></li>
+<li><p>Replace the <code>R Markdown</code> example in the new file with the following script.</p></li>
+</ol>
+<pre class="rmd"><code>## Practice set 1: present value
+(INSERT results here)
+## Practice set 2: regression
+(Insert results here)</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Click <code>knit</code> in the <code>Rstudio</code> command bar to produce the <code>html</code> document.</li>
+</ol>
+</div>
+<div id="mutual-fund-simulation" class="section level3">
+<h3><span class="header-section-number">4.9.3</span> Mutual Fund simulation</h3>
+<div id="problem" class="section level4">
+<h4><span class="header-section-number">4.9.3.1</span> Problem</h4>
+<p>We work for a mutual fund that is legally required to fair value the stock of unlisted companies it owns. Your fund is about to purchase shares of InUrCorner, a U.S. based company, that provides internet-of-things legal services.</p>
+<ul>
+<li><p>We sampled several companies with business plans similar to InUrCorner and find that the average weighted average cost of capital is 18%.</p></li>
+<li><p>InUrCorner sales is $80 million and projected to growth at 50% per year for the next 3 years and 15% per year thereafter.</p></li>
+<li><p>Cost of services provided as a percent of sales is currently 75% and projected to be flat for the foreseeable future.</p></li>
+<li><p>Depreciation is also constant at 5% of net fixed assets (gross fixed asset minus accumulated depreciation), as are taxes (all-in) at 35% of taxable profits.</p></li>
+<li><p>Discussions with InUrCorner management indicate that the company will need an increase in working capital at the rate of 15% each year and an increase in fixed assets at the rate of 10% of sales each year. Currently working capital is $10, net fixed assets is $90, and accumulated depreciation is $15.</p></li>
+</ul>
+</div>
+<div id="questions" class="section level4">
+<h4><span class="header-section-number">4.9.3.2</span> Questions</h4>
+<ol style="list-style-type: decimal">
+<li>Let’s project <code>sales</code>, <code>cost</code>, increments to net fixed assets <code>NFA</code>, increments to working capital <code>WC</code>, <code>depreciation</code>, <code>tax</code>, and free cash flow <code>FCF</code> for the next 4 years. We will use a table to report the projection.</li>
+</ol>
+<p>Let’s use this code to build and display a table.</p>
+<div class="sourceCode" id="cb123"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb123-1" title="1"><span class="co"># Form table of results</span></a>
+<a class="sourceLine" id="cb123-2" title="2">table.names &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Sales&quot;</span>, <span class="st">&quot;Cost&quot;</span>, <span class="st">&quot;Working Capital (incr.)&quot;</span>, </a>
+<a class="sourceLine" id="cb123-3" title="3">    <span class="st">&quot;Net Fixed Assets (incr.)&quot;</span>, <span class="st">&quot;Free                             Cash Flow&quot;</span>)</a>
+<a class="sourceLine" id="cb123-4" title="4"><span class="co"># Assign projection labels</span></a>
+<a class="sourceLine" id="cb123-5" title="5">table.year &lt;-<span class="st"> </span>year  <span class="co"># Assign projection years</span></a>
+<a class="sourceLine" id="cb123-6" title="6">table.data &lt;-<span class="st"> </span><span class="kw">rbind</span>(sales, cost, WC.incr, </a>
+<a class="sourceLine" id="cb123-7" title="7">    NFA.incr, FCF)  <span class="co"># Layer projections</span></a>
+<a class="sourceLine" id="cb123-8" title="8"><span class="kw">rownames</span>(table.data) &lt;-<span class="st"> </span>table.names  <span class="co"># Replace rows with projection labels</span></a>
+<a class="sourceLine" id="cb123-9" title="9"><span class="kw">colnames</span>(table.data) &lt;-<span class="st"> </span>table.year  <span class="co"># Replace columns with projection years</span></a>
+<a class="sourceLine" id="cb123-10" title="10">knitr<span class="op">::</span><span class="kw">kable</span>(table.data)  <span class="co"># Display a readable table</span></a></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>Modify the assumptions by +/- 10% and report the results.</li>
+</ol>
+</div>
+</div>
+<div id="healthcare-provider-admission-rates" class="section level3">
+<h3><span class="header-section-number">4.9.4</span> Healthcare provider admission rates</h3>
+<div id="problem-1" class="section level4">
+<h4><span class="header-section-number">4.9.4.1</span> Problem</h4>
+<p>We work for a healthcare insurer and our management is interested in understanding the relationship between input admission and outpatient rates as drivers of expenses, payroll, and employment. We gathered a sample of 200 hospitals in a test market in this data set.</p>
+<div class="sourceCode" id="cb124"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb124-1" title="1">x.data &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/hospitals.csv&quot;</span>)</a></code></pre></div>
+</div>
+<div id="questions-1" class="section level4">
+<h4><span class="header-section-number">4.9.4.2</span> Questions</h4>
+<ol style="list-style-type: decimal">
+<li><p>Build a table that explores this data set variable by variable and relationships among variables.</p></li>
+<li><p>Investigate the influence of admission and outpatient rates on expenses and payroll. First, form these arrays.</p></li>
+</ol>
+<p>Next, compute the regression coefficients.</p>
+<p>Finally, compute the regression statistics.</p>
+<ol start="3" style="list-style-type: decimal">
+<li>Use this code to investigate further the relationship among predicted expenses and the drivers, admissions and outpatients.</li>
+</ol>
+<div class="sourceCode" id="cb125"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb125-1" title="1"><span class="kw">require</span>(reshape2)</a>
+<a class="sourceLine" id="cb125-2" title="2"><span class="kw">require</span>(ggplot2)</a>
+<a class="sourceLine" id="cb125-3" title="3">actual &lt;-<span class="st"> </span>y</a>
+<a class="sourceLine" id="cb125-4" title="4">predicted &lt;-<span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>beta.hat</a>
+<a class="sourceLine" id="cb125-5" title="5">residual &lt;-<span class="st"> </span>actual <span class="op">-</span><span class="st"> </span>predicted</a>
+<a class="sourceLine" id="cb125-6" title="6">results &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">actual =</span> actual, </a>
+<a class="sourceLine" id="cb125-7" title="7">    <span class="dt">predicted =</span> predicted, <span class="dt">residual =</span> residual)</a>
+<a class="sourceLine" id="cb125-8" title="8"><span class="co"># Insert comment here</span></a>
+<a class="sourceLine" id="cb125-9" title="9">min_xy &lt;-<span class="st"> </span><span class="kw">min</span>(<span class="kw">min</span>(results<span class="op">$</span>actual), <span class="kw">min</span>(results<span class="op">$</span>predicted))</a>
+<a class="sourceLine" id="cb125-10" title="10">max_xy &lt;-<span class="st"> </span><span class="kw">max</span>(<span class="kw">max</span>(results<span class="op">$</span>actual), <span class="kw">max</span>(results<span class="op">$</span>predicted))</a>
+<a class="sourceLine" id="cb125-11" title="11"><span class="co"># Insert comment here</span></a>
+<a class="sourceLine" id="cb125-12" title="12">plot.melt &lt;-<span class="st"> </span><span class="kw">melt</span>(results, <span class="dt">id.vars =</span> <span class="st">&quot;predicted&quot;</span>)</a>
+<a class="sourceLine" id="cb125-13" title="13"><span class="co"># Insert comment here</span></a>
+<a class="sourceLine" id="cb125-14" title="14">plot.data &lt;-<span class="st"> </span><span class="kw">rbind</span>(plot.melt, <span class="kw">data.frame</span>(<span class="dt">predicted =</span> <span class="kw">c</span>(min_xy, </a>
+<a class="sourceLine" id="cb125-15" title="15">    max_xy), <span class="dt">variable =</span> <span class="kw">c</span>(<span class="st">&quot;actual&quot;</span>, <span class="st">&quot;actual&quot;</span>), </a>
+<a class="sourceLine" id="cb125-16" title="16">    <span class="dt">value =</span> <span class="kw">c</span>(max_xy, min_xy)))</a>
+<a class="sourceLine" id="cb125-17" title="17"><span class="co"># Insert comment here</span></a>
+<a class="sourceLine" id="cb125-18" title="18">p &lt;-<span class="st"> </span><span class="kw">ggplot</span>(plot, <span class="kw">aes</span>(<span class="dt">x =</span> predicted, </a>
+<a class="sourceLine" id="cb125-19" title="19">    <span class="dt">y =</span> value)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="fl">2.5</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb125-20" title="20"><span class="st">    </span><span class="kw">theme_bw</span>()</a>
+<a class="sourceLine" id="cb125-21" title="21">p &lt;-<span class="st"> </span>p <span class="op">+</span><span class="st"> </span><span class="kw">facet_wrap</span>(<span class="op">~</span>variable, <span class="dt">scales =</span> <span class="st">&quot;free&quot;</span>)</a>
+<a class="sourceLine" id="cb125-22" title="22">p</a></code></pre></div>
+</div>
+</div>
+<div id="practice-set-debrief" class="section level3">
+<h3><span class="header-section-number">4.9.5</span> Practice Set Debrief</h3>
+<ol style="list-style-type: decimal">
+<li><p>List the R skills needed to complete these practice labs.</p></li>
+<li><p>What are the packages used to compute and graph results. Explain each of them.</p></li>
+<li><p>How well did the results begin to answer the business questions posed at the beginning of each practice lab?</p></li>
+</ol>
+</div>
+</div>
+<div id="project-captive-financing" class="section level2">
+<h2><span class="header-section-number">4.10</span> Project: Captive Financing</h2>
+<div id="purpose" class="section level3">
+<h3><span class="header-section-number">4.10.1</span> Purpose</h3>
+<p>This project will allow us to practice various <code>R</code> features using live data to support a decision regarding the provision of captive financing to customers at the beginning of this chapter. We will focus on translating regression statistics into <code>R</code>, plotting results, and interpreting ordinary least squares regression outcomes.</p>
+</div>
+<div id="problem-2" class="section level3">
+<h3><span class="header-section-number">4.10.2</span> Problem</h3>
+<p>As we researched how to provide captive financing and insurance for our customers we found that we needed to understand the relationships among lending rates and various terms and conditions of typical equipment financing contracts.</p>
+<p>We will focus on one question:</p>
+<blockquote>
+<p><em>What is the influence of terms and conditions on the lending rate of fully committed commercial loans with maturities greater than one year?</em></p>
+</blockquote>
+</div>
+<div id="data" class="section level3">
+<h3><span class="header-section-number">4.10.3</span> Data</h3>
+<p>The data set <code>commloan.csv</code> contains data from the St. Louis Federal Reserve Bank’s <a href="https://fred.stlouisfed.org/categories/32407">FRED</a> website we will use to get some high level insights. The quarterly data extends from the first quarter of 2003 to the second quarter of 2016 and aggregates a survey administered by the St. Louis Fed. There are several time series included. Each is by the time that pricing terms Were set and by commitment, with maturities more than 365 Days from a survey of all commercial banks. Here are the definitions.</p>
+
+</div>
+<div id="work-flow" class="section level3">
+<h3><span class="header-section-number">4.10.4</span> Work Flow</h3>
+<ol style="list-style-type: decimal">
+<li>Prepare the data.</li>
+</ol>
+<ul>
+<li>Visit the <a href="https://fred.stlouisfed.org/categories/32407">FRED</a> website. Include any information on the site to enhance the interpretation of results.</li>
+<li>Use <code>read.csv</code> to read the data into <code>R</code>. Be sure to set the project’s working directory where the data directory resides. Use <code>na.omit()</code> to clean the data.</li>
+</ul>
+<div class="sourceCode" id="cb126"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb126-1" title="1"><span class="co"># setwd(&#39;C:/Users/Bill</span></a>
+<a class="sourceLine" id="cb126-2" title="2"><span class="co"># Foote/bookdown/bookdown-demo-master&#39;)</span></a>
+<a class="sourceLine" id="cb126-3" title="3"><span class="co"># the project directory</span></a>
+<a class="sourceLine" id="cb126-4" title="4">x.data &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/commloans.csv&quot;</span>)</a>
+<a class="sourceLine" id="cb126-5" title="5">x.data &lt;-<span class="st"> </span><span class="kw">na.omit</span>(x.data)</a></code></pre></div>
+<ul>
+<li><p>Assign the data to a variable called <code>x.data</code>. Examine the first and last 5 entries. Run a <code>summary</code> of the data set.</p></li>
+<li><p>What anomalies appear based on these procedures?</p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Explore the data.</li>
+</ol>
+<ul>
+<li>Let’s plot the time series data using this code:</li>
+</ul>
+<div class="sourceCode" id="cb127"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb127-1" title="1"><span class="kw">require</span>(ggplot2)</a>
+<a class="sourceLine" id="cb127-2" title="2"><span class="kw">require</span>(reshape2)</a>
+<a class="sourceLine" id="cb127-3" title="3"><span class="co"># Use melt() from reshape2 to build</span></a>
+<a class="sourceLine" id="cb127-4" title="4"><span class="co"># data frame with data as id and</span></a>
+<a class="sourceLine" id="cb127-5" title="5"><span class="co"># values of variables</span></a>
+<a class="sourceLine" id="cb127-6" title="6">x.melted &lt;-<span class="st"> </span><span class="kw">melt</span>(x.data[, <span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">4</span>)], <span class="dt">id =</span> <span class="st">&quot;date&quot;</span>)</a>
+<a class="sourceLine" id="cb127-7" title="7"><span class="kw">ggplot</span>(<span class="dt">data =</span> x.melted, <span class="kw">aes</span>(<span class="dt">x =</span> date, </a>
+<a class="sourceLine" id="cb127-8" title="8">    <span class="dt">y =</span> value)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span><span class="kw">facet_wrap</span>(<span class="op">~</span>variable, </a>
+<a class="sourceLine" id="cb127-9" title="9">    <span class="dt">scales =</span> <span class="st">&quot;free_x&quot;</span>)</a></code></pre></div>
+<ul>
+<li><p>Describe the data frame that <code>melt()</code> produces.</p></li>
+<li><p>Let’s load the <code>psych</code> library and produce a scatterplot matrix. Interpret this exploration.</p></li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Analyze the data.</li>
+</ol>
+<ul>
+<li>Let’s regress <code>rate</code> on the rest of the variables in <code>x.data</code>. To do this we form a matrix of independent variables (predictor or explanatory variables) in the matrix <code>X</code> and a separate vector <code>y</code> for the dependent (response) variable <code>rate</code>. We recall that the <code>1</code> vector will produce a constant intercept in the regression model.</li>
+</ul>
+<div class="sourceCode" id="cb128"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb128-1" title="1">y &lt;-<span class="st"> </span><span class="kw">as.vector</span>(x.data[, <span class="st">&quot;rate&quot;</span>])</a>
+<a class="sourceLine" id="cb128-2" title="2">X &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(<span class="kw">cbind</span>(<span class="dv">1</span>, x.data[, <span class="kw">c</span>(<span class="st">&quot;prepaypenalty&quot;</span>, </a>
+<a class="sourceLine" id="cb128-3" title="3">    <span class="st">&quot;maturity&quot;</span>, <span class="st">&quot;size&quot;</span>, <span class="st">&quot;volume&quot;</span>)]))</a>
+<a class="sourceLine" id="cb128-4" title="4"><span class="kw">head</span>(y)</a>
+<a class="sourceLine" id="cb128-5" title="5"><span class="kw">head</span>(X)</a></code></pre></div>
+<ul>
+<li><p>Explain the code used to form <code>y</code> and <code>X</code>.</p></li>
+<li><p>Calculate the <span class="math inline">\(\hat{\beta}\)</span> coefficients and interpret their meaning.</p></li>
+<li><p>Calculate actual and predicted <code>rates</code> and plot using this code.</p></li>
+</ul>
+<div class="sourceCode" id="cb129"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb129-1" title="1"><span class="co"># Insert comment here</span></a>
+<a class="sourceLine" id="cb129-2" title="2"><span class="kw">require</span>(reshape2)</a>
+<a class="sourceLine" id="cb129-3" title="3"><span class="kw">require</span>(ggplot2)</a>
+<a class="sourceLine" id="cb129-4" title="4">actual &lt;-<span class="st"> </span>y</a>
+<a class="sourceLine" id="cb129-5" title="5">predicted &lt;-<span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>beta.hat</a>
+<a class="sourceLine" id="cb129-6" title="6">residual &lt;-<span class="st"> </span>actual <span class="op">-</span><span class="st"> </span>predicted</a>
+<a class="sourceLine" id="cb129-7" title="7">results &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">actual =</span> actual, </a>
+<a class="sourceLine" id="cb129-8" title="8">    <span class="dt">predicted =</span> predicted, <span class="dt">residual =</span> residual)</a>
+<a class="sourceLine" id="cb129-9" title="9"><span class="co"># Insert comment here</span></a>
+<a class="sourceLine" id="cb129-10" title="10">min_xy &lt;-<span class="st"> </span><span class="kw">min</span>(<span class="kw">min</span>(results<span class="op">$</span>actual), <span class="kw">min</span>(results<span class="op">$</span>predicted))</a>
+<a class="sourceLine" id="cb129-11" title="11">max_xy &lt;-<span class="st"> </span><span class="kw">max</span>(<span class="kw">max</span>(results<span class="op">$</span>actual), <span class="kw">max</span>(results<span class="op">$</span>predicted))</a>
+<a class="sourceLine" id="cb129-12" title="12"><span class="co"># Insert comment here</span></a>
+<a class="sourceLine" id="cb129-13" title="13">plot.melt &lt;-<span class="st"> </span><span class="kw">melt</span>(results, <span class="dt">id.vars =</span> <span class="st">&quot;predicted&quot;</span>)</a>
+<a class="sourceLine" id="cb129-14" title="14"><span class="co"># Insert comment here</span></a>
+<a class="sourceLine" id="cb129-15" title="15">plot.data &lt;-<span class="st"> </span><span class="kw">rbind</span>(plot.melt, <span class="kw">data.frame</span>(<span class="dt">predicted =</span> <span class="kw">c</span>(min_xy, </a>
+<a class="sourceLine" id="cb129-16" title="16">    max_xy), <span class="dt">variable =</span> <span class="kw">c</span>(<span class="st">&quot;actual&quot;</span>, <span class="st">&quot;actual&quot;</span>), </a>
+<a class="sourceLine" id="cb129-17" title="17">    <span class="dt">value =</span> <span class="kw">c</span>(max_xy, min_xy)))</a>
+<a class="sourceLine" id="cb129-18" title="18"><span class="co"># Insert comment here</span></a>
+<a class="sourceLine" id="cb129-19" title="19">p &lt;-<span class="st"> </span><span class="kw">ggplot</span>(plot, <span class="kw">aes</span>(<span class="dt">x =</span> predicted, </a>
+<a class="sourceLine" id="cb129-20" title="20">    <span class="dt">y =</span> value)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="fl">2.5</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb129-21" title="21"><span class="st">    </span><span class="kw">theme_bw</span>()</a>
+<a class="sourceLine" id="cb129-22" title="22">p &lt;-<span class="st"> </span>p <span class="op">+</span><span class="st"> </span><span class="kw">facet_wrap</span>(<span class="op">~</span>variable, <span class="dt">scales =</span> <span class="st">&quot;free&quot;</span>)</a>
+<a class="sourceLine" id="cb129-23" title="23">p</a></code></pre></div>
+<ul>
+<li><p>Insert explanatory comments into the code chunk to document the work flow for this plot.</p></li>
+<li><p>Interpret the graphs of actual and residual versus predicted values of <code>rate</code>.</p></li>
+<li><p>Calculate the standard error of the residuals, Interpret its meaning.</p></li>
+</ul>
+
+</div>
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-Fisher_1925">
+<p>Fisher, Ronald A. 1925. <em>A Manual for Statistical Researchers</em>.</p>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="16">
+<li id="fn16"><p>Visit Hadley Wickham’s examples at <a href="http://ggplot2.org/" class="uri">http://ggplot2.org/</a>.)<a href="tickling-the-ivories.html#fnref16" class="footnote-back">↩</a></p></li>
+<li id="fn17"><p>Fisher was a geneticist who espoused this approach which really did apply quite well to his field. Our field is that of human behavior in the business domain. Fisher’s approach might not always work for us there. He assumes effectively that the prior belief is uniformly distributed. More than that, his approach is to calculate averages, aggregations, of series of data, deviations (squared), of data, and so one. Then given the aggregation, simulate the aggregator. Our probabistic approach does not assume a prior belief. It goes on to simulate the range of possible, and logical, ways (hypotheses) that data can condition hypotheses about a parameter, and elicit a posterior response given a belief about the hypothesis. This approach solves for the parameter across a range of hypotheses conditional on beliefs and data. If our questions do not require this extent of analysis, then, so be it, we use Fisher’s ellipsis of an approach.<a href="tickling-the-ivories.html#fnref17" class="footnote-back">↩</a></p></li>
+</ol>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="warming-up-to-r-and-more.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="counting-on-tibble.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["book-probabilistic-reasoning.pdf", "book-probabilistic-reasoning.epub"],
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

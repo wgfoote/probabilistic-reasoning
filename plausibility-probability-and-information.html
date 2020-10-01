@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 1 Plausibility, Probability and Information | Probabilistic Reasoning</title>
+  <meta name="description" content="We explore practical implementations of probabilistic reasoning applied to several domains, especially those in human organizations." />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 1 Plausibility, Probability and Information | Probabilistic Reasoning" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="We explore practical implementations of probabilistic reasoning applied to several domains, especially those in human organizations." />
+  <meta name="github-repo" content="wgfoote/book-probabilistic-reasoning" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 1 Plausibility, Probability and Information | Probabilistic Reasoning" />
+  <meta name="twitter:site" content="@wgfoote" />
+  <meta name="twitter:description" content="We explore practical implementations of probabilistic reasoning applied to several domains, especially those in human organizations." />
+  
+
+<meta name="author" content="William G. Foote" />
+
+
+<meta name="date" content="2020-09-30" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="part-i-background.html"/>
+<link rel="next" href="probability-for-real-people.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+
+<style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Probabilistic Reasoning: A Primer</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Preamble</a><ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#this-book"><i class="fa fa-check"></i>This book</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#premises"><i class="fa fa-check"></i>Premises</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#dont-we-know-everything-we-need-to-know"><i class="fa fa-check"></i>Don’t we know everything we need to know?</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#what-we-desire"><i class="fa fa-check"></i>What we desire</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#a-work-in-progress"><i class="fa fa-check"></i>A work in progress</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="part-i-background.html"><a href="part-i-background.html"><i class="fa fa-check"></i>Part I. Background</a></li>
+<li class="chapter" data-level="1" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html"><i class="fa fa-check"></i><b>1</b> Plausibility, Probability and Information</a><ul>
+<li class="chapter" data-level="1.1" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#some-surprise"><i class="fa fa-check"></i><b>1.1</b> Some Surprise</a></li>
+<li class="chapter" data-level="1.2" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#informative"><i class="fa fa-check"></i><b>1.2</b> Informative?</a></li>
+<li class="chapter" data-level="1.3" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#we-have-a-proposition-for-you"><i class="fa fa-check"></i><b>1.3</b> We have a proposition for you</a></li>
+<li class="chapter" data-level="1.4" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#the-power-of-plausible-thinking"><i class="fa fa-check"></i><b>1.4</b> The power of plausible thinking</a></li>
+<li class="chapter" data-level="1.5" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#how-many-ways"><i class="fa fa-check"></i><b>1.5</b> How many ways?</a></li>
+<li class="chapter" data-level="1.6" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#how-informative"><i class="fa fa-check"></i><b>1.6</b> How informative?</a></li>
+<li class="chapter" data-level="1.7" data-path="plausibility-probability-and-information.html"><a href="plausibility-probability-and-information.html#nota-bene"><i class="fa fa-check"></i><b>1.7</b> Nota Bene</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html"><i class="fa fa-check"></i><b>2</b> Probability for Real People</a><ul>
+<li class="chapter" data-level="2.1" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#can-we-rationally-reason"><i class="fa fa-check"></i><b>2.1</b> Can we rationally reason?</a><ul>
+<li class="chapter" data-level="2.1.1" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#priors-what-we-think-can-happen"><i class="fa fa-check"></i><b>2.1.1</b> Priors: what we think can happen</a></li>
+<li class="chapter" data-level="2.1.2" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#likelihoods-thinking-about-the-data"><i class="fa fa-check"></i><b>2.1.2</b> Likelihoods: thinking about the data</a></li>
+<li class="chapter" data-level="2.1.3" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#altogether-now"><i class="fa fa-check"></i><b>2.1.3</b> Altogether now</a></li>
+<li class="chapter" data-level="2.1.4" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#updating-beliefs"><i class="fa fa-check"></i><b>2.1.4</b> Updating beliefs</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="probability-for-real-people.html"><a href="probability-for-real-people.html#whats-next"><i class="fa fa-check"></i><b>2.2</b> What’s next?</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="part-ii-using-r.html"><a href="part-ii-using-r.html"><i class="fa fa-check"></i>Part II. Using R</a></li>
+<li class="chapter" data-level="3" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html"><i class="fa fa-check"></i><b>3</b> Warming up to R and more</a><ul>
+<li class="chapter" data-level="3.1" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#overview"><i class="fa fa-check"></i><b>3.1</b> Overview</a></li>
+<li class="chapter" data-level="3.2" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#what-is-r"><i class="fa fa-check"></i><b>3.2</b> What is <code>R</code>?</a></li>
+<li class="chapter" data-level="3.3" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#r-for-analytics"><i class="fa fa-check"></i><b>3.3</b> <code>R</code> for analytics</a></li>
+<li class="chapter" data-level="3.4" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#hot-and-cold-running-resources"><i class="fa fa-check"></i><b>3.4</b> Hot and cold running resources</a></li>
+<li class="chapter" data-level="3.5" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#gettingR"><i class="fa fa-check"></i><b>3.5</b> Installing R</a><ul>
+<li class="chapter" data-level="3.5.1" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#installing-r-on-a-windows-computer"><i class="fa fa-check"></i><b>3.5.1</b> Installing R on a Windows computer</a></li>
+<li class="chapter" data-level="3.5.2" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#installing-r-on-a-mac"><i class="fa fa-check"></i><b>3.5.2</b> Installing R on a Mac</a></li>
+<li class="chapter" data-level="3.5.3" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#installing-r-on-a-linux-computer"><i class="fa fa-check"></i><b>3.5.3</b> Installing R on a Linux computer</a></li>
+<li class="chapter" data-level="3.5.4" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#installingrstudio"><i class="fa fa-check"></i><b>3.5.4</b> Downloading and installing RStudio</a></li>
+</ul></li>
+<li class="chapter" data-level="3.6" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#first-day-at-school"><i class="fa fa-check"></i><b>3.6</b> First day at school</a><ul>
+<li class="chapter" data-level="3.6.1" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#install-r-markdown"><i class="fa fa-check"></i><b>3.6.1</b> Install <code>R Markdown</code></a></li>
+</ul></li>
+<li class="chapter" data-level="3.7" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#install-latex"><i class="fa fa-check"></i><b>3.7</b> Install LaTex</a><ul>
+<li class="chapter" data-level="3.7.1" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#our-first-file"><i class="fa fa-check"></i><b>3.7.1</b> Our first file</a></li>
+</ul></li>
+<li class="chapter" data-level="3.8" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#some-fun-with-stan"><i class="fa fa-check"></i><b>3.8</b> Some fun with Stan</a></li>
+<li class="chapter" data-level="3.9" data-path="warming-up-to-r-and-more.html"><a href="warming-up-to-r-and-more.html#github"><i class="fa fa-check"></i><b>3.9</b> Github</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html"><i class="fa fa-check"></i><b>4</b> Tickling the Ivories</a><ul>
+<li class="chapter" data-level="4.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#start-to-tickle"><i class="fa fa-check"></i><b>4.1</b> Start to tickle</a></li>
+<li class="chapter" data-level="4.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#try-this-exercise"><i class="fa fa-check"></i><b>4.2</b> Try this exercise</a></li>
+<li class="chapter" data-level="4.3" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#building-some-character"><i class="fa fa-check"></i><b>4.3</b> Building Some Character</a></li>
+<li class="chapter" data-level="4.4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#the-plot-thickens"><i class="fa fa-check"></i><b>4.4</b> The plot thickens</a><ul>
+<li class="chapter" data-level="4.4.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#try-this-example"><i class="fa fa-check"></i><b>4.4.1</b> Try this example</a></li>
+</ul></li>
+<li class="chapter" data-level="4.5" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#arrays-and-you"><i class="fa fa-check"></i><b>4.5</b> Arrays and You</a><ul>
+<li class="chapter" data-level="4.5.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#try-this-exercise-1"><i class="fa fa-check"></i><b>4.5.1</b> Try this exercise</a></li>
+<li class="chapter" data-level="4.5.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#more-about-residuals"><i class="fa fa-check"></i><b>4.5.2</b> More about residuals</a></li>
+</ul></li>
+<li class="chapter" data-level="4.6" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#more-array-work"><i class="fa fa-check"></i><b>4.6</b> More Array Work</a></li>
+<li class="chapter" data-level="4.7" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#summary"><i class="fa fa-check"></i><b>4.7</b> Summary</a></li>
+<li class="chapter" data-level="4.8" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#further-reading"><i class="fa fa-check"></i><b>4.8</b> Further Reading</a></li>
+<li class="chapter" data-level="4.9" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#practice-sets"><i class="fa fa-check"></i><b>4.9</b> Practice Sets</a><ul>
+<li class="chapter" data-level="4.9.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#purpose-process-product"><i class="fa fa-check"></i><b>4.9.1</b> Purpose, Process, Product</a></li>
+<li class="chapter" data-level="4.9.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#r-markdown-set-up"><i class="fa fa-check"></i><b>4.9.2</b> <code>R Markdown</code> set up</a></li>
+<li class="chapter" data-level="4.9.3" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#mutual-fund-simulation"><i class="fa fa-check"></i><b>4.9.3</b> Mutual Fund simulation</a></li>
+<li class="chapter" data-level="4.9.4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#healthcare-provider-admission-rates"><i class="fa fa-check"></i><b>4.9.4</b> Healthcare provider admission rates</a></li>
+<li class="chapter" data-level="4.9.5" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#practice-set-debrief"><i class="fa fa-check"></i><b>4.9.5</b> Practice Set Debrief</a></li>
+</ul></li>
+<li class="chapter" data-level="4.10" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#project-captive-financing"><i class="fa fa-check"></i><b>4.10</b> Project: Captive Financing</a><ul>
+<li class="chapter" data-level="4.10.1" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#purpose"><i class="fa fa-check"></i><b>4.10.1</b> Purpose</a></li>
+<li class="chapter" data-level="4.10.2" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#problem-2"><i class="fa fa-check"></i><b>4.10.2</b> Problem</a></li>
+<li class="chapter" data-level="4.10.3" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#data"><i class="fa fa-check"></i><b>4.10.3</b> Data</a></li>
+<li class="chapter" data-level="4.10.4" data-path="tickling-the-ivories.html"><a href="tickling-the-ivories.html#work-flow"><i class="fa fa-check"></i><b>4.10.4</b> Work Flow</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="counting-on-tibble.html"><a href="counting-on-tibble.html"><i class="fa fa-check"></i><b>5</b> Counting on tibble</a><ul>
+<li class="chapter" data-level="5.1" data-path="counting-on-tibble.html"><a href="counting-on-tibble.html#counting-the-ways"><i class="fa fa-check"></i><b>5.1</b> Counting the ways</a></li>
+<li class="chapter" data-level="5.2" data-path="counting-on-tibble.html"><a href="counting-on-tibble.html#having-all-of-our-marbles"><i class="fa fa-check"></i><b>5.2</b> Having all of our marbles</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Probabilistic Reasoning</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="plausibility-probability-and-information" class="section level1">
+<h1><span class="header-section-number">Chapter 1</span> Plausibility, Probability and Information</h1>
+<p>According to Aristotle, if two claims are well-founded, their truth values can be ascertained. A plate is either green, or it is not. When thrown, the plate will land without a chip or it will break. If I claim that when I throw the plate, it will land with out a chip and you disagree, I can simply throw the plate to find out who was correct. One part of this is a mind game, a thought experiment a potential outcome. The other is a reality of actually throwing the plate and observing its status on landing. We will eventually call the mind-game a hypothesis and the reality a datum.</p>
+<p>It is in disagreement that logical deduction might (plausibly) break down. There is no guarantee that the plate will break, or, for that matter, that it will chip. We must simply experiment with plate(s), green, blue or otherwise, to support the claim (or not). These claims arise in everyday life. For example, despite my poor performance in plate throwing in the past, there is no cogent reason to believe that it is absolutely, positively false that the plate I throw would land without a chip. There is a degree of acceeptance, of plausibility, in one side of the claim, and on the other as well. Certainly it is not as false as the claim that <span class="math inline">\(2+2=5\)</span> in base 10 arithmetic, or the patently spurious claim that true is false or my cat is a dog.</p>
+<p>Claims about things that are neither definitely true nor definitely false arise in matters both mundane and consequential: producing weather reports, catching the bus, predicting the outcomes of elections, interpreting experimental vaccine results, and betting on sports games, throwing the plate, to name just a few.</p>
+<p>So we would benefit from a method of comparing claims in these situations – which atmospheric model produces better predictions? What is the best source for predicting elections? Should I blow three times on my lucky dice, or is this all just a figment of my denial based imagination?</p>
+<div id="some-surprise" class="section level2">
+<h2><span class="header-section-number">1.1</span> Some Surprise</h2>
+<p>The goal, in all the cases above, is to guess about something that we don’t or can’t know directly, like the future, or the fundamental structure of the economy, or reasons why customer preferences change, on the basis of things we do know, like the present and the past, or the results of an existing or past experiment.</p>
+<p>Mostly we guess. Some us try to systematically consider and attempt to support with evidence the guess. Lacking precision, and sometimes even accuracy, we try to avoid bad surprises. Goods ones are often welcome. If I use the NOAA weather application on my smart phone it might not surprise me to see rain pelting down at 1630 this afternoon. After all the app indicated as much. In advance of the rain I brought in chair pads and anything else that might get ruined with rain. An airline pilot knows all the defects of her aircraft. That knowledge saves lives.</p>
+<p>Our mortal inferences, clever or dumb as they are, must have a surprise somewhere between <em>totally expected</em>, or zero surprises and thus certain 100% of the ways to make the statement, and <em>totally surprising</em> and 0% chance of anticipation. We will generally be making statements like: <em>it will probably rain tomorrow</em>, or <em>nine times out of ten, the team with a better defense wins</em>. This motivates us to express our surprise in terms of plausibility and we hanker for more precision with probability.</p>
+</div>
+<div id="informative" class="section level2">
+<h2><span class="header-section-number">1.2</span> Informative?</h2>
+<p>When we producing clarity in the various interrleted concepts of any discourse, argument, report, or presentation of results in the process of analysis. The process begins with clearly definitions of data, methodology, assumptions, conclusions, and interpretations.</p>
+<p>Statements encapsulate the products of analysis. We define a statement, a <em>literal</em>, as a linguistic construct at a minimum consisting of a noun and verb, that is, a subject and a predicate. We might add an object, also a noun, too. If we agree that analysis produces knowledge, and knowledge is justified true belief,<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> we will argue only when we dispute the (plausible / probable) true or false judgment. The dispute itself derives ultimately from what is valuable to discuss (<span class="citation">Lepore and Stone (<a href="#ref-Lepore_2006" role="doc-biblioref">2006</a>)</span>). The practice of analysis is then the raising and answering of questions for reflection about the meaning of statements of results emanating from the analysis.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
+<p>We could use possible, probable, reasonable, and more generally if possible, <a href="https://www.merriam-webster.com/dictionary/plausible">plausible</a> as in <em>appearing worthy of belief</em>. Let’s start with Aristotle’s <em>apodeixis</em> (Gr., showing forth; a proof as demonstrative argument) found in <span class="citation">Aristotle (<a href="#ref-Aristotle_Organon" role="doc-biblioref">n.d.</a>)</span>, especially the books on prior and posterior analytics.</p>
+<p>Ultimately we ask: do we have enough of the right information to make a credible judgment? If so, are we also willing to implement the implications of a decision based on justified true belief itself? Here we must define <em>information</em>.</p>
+<p>The word <em>information</em> itself derives from what is inside ( <em>in-</em> ) a shape ( <em>form</em> ) and more broadly an <em>idea</em>.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a> The air molecules inside a blown up balloon is analogous to data, facts as we might see, hear, smell, and store. The balloon (please prescind, using a willing suspension of disbelief, from the material a balloon is made) shapes the air molecules, taken together in the context of elastic enclosure, into the shape of the expanded balloon. The shape of the balloon expanded such that the volume of air molecules expands the balloon, is analogous to the idea that shapes data.</p>
+<p>We will see that information only occurs when someone has that <em>aha!</em> moment. It occurs when we experience the unanticipated. It happens when we are surprised by an outcome. At its base value, information is then the unfolding of uncertainty.</p>
+<p>The shape of data is often mentioned in statistics where it means producing a frequency distribution of ranges of data from low to high values. What the frequency distribution does to data is order the data, bin and group the data into low to high categories, and count the number of low to high data elements. All of that <em>shaping of the data</em> is the application of ideas (order, groups, frequencies) about data.</p>
+<p>So how much information do we need (plausibly)? We can follow the discussion about the English language in <span class="citation">Feynman and Allen (<a href="#ref-Feynman_1996" role="doc-biblioref">1996</a>)</span> and <span class="citation">Edwin T. Jaynes (<a href="#ref-Jaynes_2004" role="doc-biblioref">2004</a>)</span>. Information, like mass, velocity, volume, can be measured. Its measure is the <em><em>bit</em></em> . Let’s start with the English language. We have 26 letters and punctuation (e.g., <code>. , ? ! : ;</code>)for a total of 32 symbols at our disposal. Of course we do not use all 32, but we do have them available to us.</p>
+<p>For the moment we have <span class="math inline">\(n\)</span> equally plausible messages to send. One message might be a tweet line <em>Got up and has some breakfast</em> and another <em>Didn’t do my chores yesterday</em>. Assign each message a number of bits <span class="math inline">\(I\)</span> needed to send the message. We might recall a bit is a binary set of numbers, 0’s and 1’s. Binary means two. The first part of the encoded message might be a 0, the second might be a 0 or a 1, the third might be a 0 or 1 following the 0 and following the 1, and so on. For example we might code this.</p>
+<p><span class="math inline">\(\text{Got up and has some breakfast} = 0111000100\)</span></p>
+<p>This is now easy enough to send in packets of on or off voltages across wireless networks.</p>
+<p>If we need <span class="math inline">\(I\)</span> bits to send the message, then we need</p>
+<p><span class="math inline">\(2^I = n\)</span></p>
+<p>or, remembering some long-lost algebra about extracting exponents,</p>
+<p><span class="math inline">\(I = log_2n\)</span></p>
+<p>The <code>2</code> is because we have two possibilities for coding at each stage of coding our message. The <code>n</code> are the number of messages to be coded, send, and decoded by our communication system.</p>
+<p>If we have 10 messages to send, then we need <span class="math inline">\(I = 3.32\)</span> bits, really four bits to do the job. That is the way we will characterize information about messages.</p>
+<p>Suppose our language has <span class="math inline">\(xN\)</span> symbols to send and receive. If <span class="math inline">\(N=32\)</span> is the number of symbols for one message segment in English, then for a string of <span class="math inline">\(x=2\)</span> segments, say <span class="math inline">\(us\)</span> for example, or <span class="math inline">\(we\)</span>, or <span class="math inline">\(or\)</span>, we have 64 symbols we can use the convey the message. Hold on for dear life now! there are now <span class="math inline">\(n^2\)</span> messages we can send in a two string message. If there are <span class="math inline">\(x=3\)</span> messages like <span class="math inline">\(are\)</span> or <span class="math inline">\(not\)</span>, there are <span class="math inline">\(xN=3\times 32= 96\)</span> possible symbols in <span class="math inline">\(n^3\)</span> possible messages and so on. We now have the drift. There are <span class="math inline">\(n^x\)</span> possible messages to send, still all equally plausible.</p>
+<p>Exhaustingly, what is the information now in bits if we area sending and receiving 5 messages?<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
+<p><span class="math inline">\(I(xN)=log_2(n^x)=xlog_2(n)= 3 \times log_2(5) = 7 \,\, bits\)</span></p>
+<p>If we think of a bit as space on a card that carries the messages, we get an idea about the amount of information in the message. More information means more bits and takes up more space on the card. Space on the card is real. Bits are a measure we use as a convenience to talk about information on a physical medium like a card.</p>
+<p>Now that we have the beginnings of a notion of information, quasi-quantiatively, we need to tackle plausibility. We said that each message is equally plausible to be on or off, true or false, and yes, this means we have to think about logic, which worries itself over the business of combining the truth values of statements.</p>
+</div>
+<div id="we-have-a-proposition-for-you" class="section level2">
+<h2><span class="header-section-number">1.3</span> We have a proposition for you</h2>
+<p>We move from information now; and just put that on hold for a bit (snarky, yes). Its well nigh time to develop the most basic algebra possible, the logic of George <span class="citation">(<span class="citeproc-not-found" data-reference-id="Boole_1854"><strong>???</strong></span>)</span>. We follow <span class="citation">Polya (<a href="#ref-Polya_1954" role="doc-biblioref">1954</a>)</span> and <span class="citation">Edwin T. Jaynes (<a href="#ref-Jaynes_2004" role="doc-biblioref">2004</a>)</span> in notation.</p>
+<p>The <em>logical product</em> or <em>conjunction</em> is a <em>both-and</em> proposition. If <span class="math inline">\(A=1\)</span>, that is <span class="math inline">\(A\)</span> is true, and <span class="math inline">\(B=1\)</span>, that is <span class="math inline">\(B\)</span> is also then the proposition that <em>both A and B</em> must also be true. This proposition is symbolized with</p>
+<p><span class="math display">\[
+AB
+\]</span></p>
+<p>and substituting the assigned truth values of <span class="math inline">\(1 = true\)</span> and <span class="math inline">\(0 = false\)</span>, we can then in effect calculate that</p>
+<p><span class="math display">\[
+AB=(1) \times (1) = 1 = true
+\]</span>
+Thus if <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are true then taken together as <em>both A and B</em> is also true.</p>
+<p>The <em>logical sum</em> or <em>disjunction</em> is an <em>either-or</em> proposition. If <span class="math inline">\(A=1\)</span>, that is <span class="math inline">\(A\)</span> is true, and <span class="math inline">\(B=0\)</span>, that is <span class="math inline">\(B\)</span> is false then the proposition that <em>either A or B</em> must be true. This proposition is symbolized with</p>
+<p><span class="math display">\[
+A + B
+\]</span></p>
+<p>and substituting the assigned truth values of <span class="math inline">\(1 = true\)</span> and <span class="math inline">\(0 = false\)</span>, we can then in effect calculate that</p>
+<p><span class="math display">\[
+A + B=(1) + (0) = 1 = true
+\]</span>
+And also with these truth values</p>
+<p><span class="math display">\[
+AB=(1) \times (0) = 0 = false
+\]</span>
+We can see then that conjunction and disjunction can yield diametrically opposed conclusions about the truth value of the two compound statements.</p>
+<p>To deny a proposition we use the bar, read <em>not A</em> So if <span class="math inline">\(A=1=true\)</span>, then <span class="math inline">\(not\,\,A = \bar{A} = |1 - 1| = false\)</span>. Also if <span class="math inline">\(A=0=false\)</span>, then <span class="math inline">\(not\,\,A = \bar{A} = |0 - 1| = 1 = true\)</span>, where the vertical bars represent the absolute value operation needed to get the right logical answer from the binary arithmetic.</p>
+<p>Let’s play with this. What is <span class="math inline">\(\bar{AB}\)</span>, again using the binary arithmetic of combining <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span>?</p>
+<p>What about the plausibility of <span class="math inline">\(A|BC\)</span>? This is read the _plausibility of <span class="math inline">\(AB\)</span> given, conditional upon, experienced with <span class="math inline">\(C\)</span>. The experience of <span class="math inline">\(C\)</span> will allow us to include that which is fundamental to all decision making, the fact of a history and knowledge of events and their outcomes, including the experience of beliefs and changes in preferences to go along with anticipating the future of anything.</p>
+<p>It turns out that the basic idea of conditioning, making assumptions, or creating implications of the form <em>If A happens, then B happens</em> is equivalent to the statement that <em>if A does not happen, or B does happen</em>. Here is an implication truth table to whet our burgeoning appetite for analysis.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:modus-imply-truth">Table 1.1: </span>implication truth table
+</caption>
+<thead>
+<tr>
+<th style="text-align:center;">
+P
+</th>
+<th style="text-align:center;">
+Q
+</th>
+<th style="text-align:center;">
+if P then Q
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+</tr>
+</tbody>
+</table>
+<p>We can, sometime in the near future, of course check that the results of this table agree with the statement that <em>not P or Q</em>. Knowing this we can begin to argue – reasonably.</p>
+</div>
+<div id="the-power-of-plausible-thinking" class="section level2">
+<h2><span class="header-section-number">1.4</span> The power of plausible thinking</h2>
+<p>We talked about information, and some logic. Now we have the machinery to discuss plausibility. We recall that all messages were equally likely. We begin relax that assumption her and now.</p>
+<p>Let’s begin with any two propositions or statements or messages <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>. Specifically, let’s talk about the weather. We let</p>
+<p><span class="math display">\[
+\begin{align}
+A &amp;= \text{It will start to rain by noon at the latest right here.} \\
+B &amp;= \text{The sky will get cloudy before noon, also right here.}
+\end{align}
+\]</span></p>
+<p>The implication is the statement <em>If A, then B</em>. This is our starting point with plausibility. But we must first begin even more strongly with a guaranteed statement from the following deduction. If it will rain, then it <em>must</em> happen that the sky will get cloudy some nearly immediate time before it does rain, right here on the sphere of the earth.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-38">Table 1.2: </span>modus ponens deduction
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+major
+</td>
+<td style="text-align:center;">
+if A is true, then B is true
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+minor
+</td>
+<td style="text-align:center;">
+B is true
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+conclusion
+</td>
+<td style="text-align:center;">
+therefore, A is true
+</td>
+</tr>
+</tbody>
+</table>
+<p>Here is a Euler Diagram to help make the point.</p>
+<p><img src="book-probabilistic-reasoning_files/figure-html/euler-diagram-1.png" width="672" /></p>
+<p>The full name of this syllogism is <strong>modus ponendo ponens</strong> which is Latin for <em>the way that, by affirming, affirms</em> , also known as <em>affirming the antecedent</em> . Take the word <em>plausible</em> out of the syllogism and we have a deductive inference guarateed to be consistent with the logic of implication.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
+<p>Here is a truth table for <em>modus ponens</em>. Each column holds the truth values ( <em>TRUE</em> = T and <em>FALSE</em> = F) of each statement in the syllogism.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:modus-ponens-truth">Table 1.3: </span>modus ponens truth table
+</caption>
+<thead>
+<tr>
+<th style="text-align:center;">
+P
+</th>
+<th style="text-align:center;">
+Q
+</th>
+<th style="text-align:center;">
+if P then Q
+</th>
+<th style="text-align:center;">
+P
+</th>
+<th style="text-align:center;">
+Q
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+TRUE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+<td style="text-align:center;">
+FALSE
+</td>
+</tr>
+</tbody>
+</table>
+<p>We can read this table line by line using this statement: <strong>If you get an A, then I’ll give you a lollipop.</strong> The statement will be true if I keep my promise and false if I do not.</p>
+<ol style="list-style-type: decimal">
+<li><p>Suppose it is true that you get an A <em>and</em> it is true that I give you a lollipop. Since I kept my promise, the implication, the statement, is true. This corresponds to the first line in the table. Doesn’t this sound like a logical conjunction? Both A and B are true, that is <span class="math inline">\(AB = (1) \times (1) = 1 = TRUE\)</span>.</p></li>
+<li><p>Suppose it’s true that you get an A but it’s false that I give you a dollar. Since I didn’t keep my promise, the implication is false. This corresponds to the second line in the table. These truth values again act like a logical conjunction. If A is true and B is false, we have <span class="math inline">\(AB = (1) \times (0) = 0 = FALSE\)</span>.</p></li>
+<li><p>and also line 4. What if it is false that you get an A? Whether or not I give you a lollipop (Q is true or Q is false), I have not broken my promise. Thus, the implication cannot be false, so the statement must be true. This case is no longer a simple logical conjuction, but we can use the negation to help us out with the idea that If A is false it is not-A, when A would otherwise be true. The conjunction <span class="math inline">\(\overline{A}B = 0 \times 1 = 0 = FALSE\)</span>.</p></li>
+</ol>
+<p>Now we use <span class="citation">(<span class="citeproc-not-found" data-reference-id="Aristotle"><strong>???</strong></span>)</span> <em>Prior</em> and <em>Posterior Analytics</em> as our starting point. But insteadof the logically guaranteed <em>modus ponens</em> we weaken the guarantee in a syllogism called <em>epagoge</em><a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-39">Table 1.4: </span>modus ponens plausibility
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+major
+</td>
+<td style="text-align:center;">
+if A is true, then B is true
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+minor
+</td>
+<td style="text-align:center;">
+B is true
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+conclusion
+</td>
+<td style="text-align:center;">
+therefore, A becomes more plausible
+</td>
+</tr>
+</tbody>
+</table>
+<p>This is a variation on the classical <em>modus ponens</em> consistent argument from finding positive evidence. Here the evidence is that <span class="math inline">\(B\)</span> is true. This evidence does not guarantee that <span class="math inline">\(A\)</span> is also true, but does lend credence, plausibility, to the existence of <span class="math inline">\(A\)</span>. So this morning it is true that the sky is cloudy. It is also true that when the sky was cloudy we can expect it to rain. It still might not rain if a strong wind dissipates the clouds; but it is plausible.</p>
+<p>Let’s try a variation on the theme of <em>modus ponens</em>, the consistent argument from the absence of evidence aptly named <em>modus tollens</em> .The full name is <strong>modus tollendo tollens</strong> which is Latin for <em>the way that, by denying, denies</em> , also known as <em>denying the consequent</em>.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-40">Table 1.5: </span>modus tollens deduction
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+major
+</td>
+<td style="text-align:center;">
+if A is true, then B is true
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+minor
+</td>
+<td style="text-align:center;">
+A is false
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+conclusion
+</td>
+<td style="text-align:center;">
+therefore, B is false
+</td>
+</tr>
+</tbody>
+</table>
+<p>Insert the word <em>plausibility</em> again. This maneuver will weaken the <em>modus tollens</em> guarantee.<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a></p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-41">Table 1.6: </span>modus tollens plausibility
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+major
+</td>
+<td style="text-align:center;">
+if A is true, then B is true
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+minor
+</td>
+<td style="text-align:center;">
+A is false
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+conclusion
+</td>
+<td style="text-align:center;">
+therefore, B becomes less plausible
+</td>
+</tr>
+</tbody>
+</table>
+<p>The evidence that <span class="math inline">\(A\)</span> is false does not prove that <span class="math inline">\(B\)</span> is also false. In this case we eliminated a piece of evidence and thus are even less confident in our hypothesis that <span class="math inline">\(B\)</span> might be true.</p>
+<p>In our everyday life we confront situations like this. Suppose that I stand on a poorly lit street and observe a masked very fit looking person of combat age is running, almost tripping, down the steps of the 6 train elevated (open-air) subway station at Middletown Road carrying a large tote bag. At the same time I hear the train platform announcement to beware of pickpockets. I conclude that the person is very plausibly a pickpocket. I am about to reach for my phone to call the police. I believed in that moment that my plausible argument had the power of the strongest of deductive reasoning, namely that the conclusion was beyond the shadow of any doubt.<a href="#fn8" class="footnote-ref" id="fnref8"><sup>8</sup></a></p>
+<p>The use of <em>modus tollens</em> will allow us to think through how to find probabilities of conditional events using <em>Bayes Theorem</em> and the ability to update our assessment with the rule for <em>total probability</em> all logically consistent.</p>
+</div>
+<div id="how-many-ways" class="section level2">
+<h2><span class="header-section-number">1.5</span> How many ways?</h2>
+<p>Let’s use a simple example. We have four voters in an upcoming election. They may be red or blue voters. Three of us go out and talk to three voters at random, that is, indiscriminately. One of us happens to come upon a blue voter, another of us, independently, happens to find a red voter, and the other separately finds a blue voter. This is the very definition of a random sample. Each of the finders does not know what the other is doing, all three do know that there are four voters out there and they happened to have independently talked to two blue and one red voter. How many red voters and how many blue voters are there?</p>
+<p>Here are all of the possible conjectures we can make for <span class="math inline">\(blue = {\color{blue}\Box}\)</span> and <span class="math inline">\(red = {\color{red}\Box}\)</span> voters.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:conjectures">Table 1.7: </span>voter conjectures
+</caption>
+<thead>
+<tr>
+<th style="text-align:center;">
+1
+</th>
+<th style="text-align:center;">
+2
+</th>
+<th style="text-align:center;">
+3
+</th>
+<th style="text-align:center;">
+4
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Reading this we see that there are 4 voters and 5 different voter compositions ranging from all red to all blue. Our sample is 2 blue and 1 red voter, so we can very safely eliminate the first and fifth conjectures from our analysis, but for the moment just keep them for completeness sake.</p>
+<p>For each of the three remaining conjectures we may ask how many ways is the conjecture <em>consistent</em> with the collected data. For this task a tree is very helpful. Let’s take the first realistic conjecture the <span class="math inline">\({\color{blue}\Box}\)</span>, <span class="math inline">\({\color{red}\Box}\)</span>, <span class="math inline">\({\color{red}\Box}\)</span>, <span class="math inline">\({\color{red}\Box}\)</span> hypothesis and check if, when we sample all of the four voters, what are all of the ways this conjecture fans out. So here we go.</p>
+<ol style="list-style-type: decimal">
+<li><p>We sampled a <span class="math inline">\({\color{blue}\Box}\)</span> first. How many <span class="math inline">\({\color{blue}\Box}\)</span>’s are in this version of the composition of voters? only 1.</p></li>
+<li><p>We then sampled independently a <span class="math inline">\({\color{red}\Box}\)</span>. How many <span class="math inline">\({\color{red}\Box}\)</span>’s are in this conjecture? Quite a few, 3.</p></li>
+<li><p>Finally we sampled a <span class="math inline">\({\color{blue}\Box}\)</span> at random. We know there is only one <span class="math inline">\({\color{blue}\Box}\)</span> in this version of the truth.</p></li>
+</ol>
+<p>So, it is just counting the ways: 1 <span class="math inline">\({\color{blue}\Box}\)</span> way x 3 <span class="math inline">\({\color{red}\Box}\)</span> ways x 1 <span class="math inline">\({\color{blue}\Box}\)</span> way = <span class="math inline">\(1 \times 3 \times 1 = 3\)</span> ways altogether.</p>
+<p>When asked, many surmise that the 2 blue and 3 red conjecture is the right one. Are they right? Here is a table of the ways each conjecture pans out. We then in a separate column compute the contribution of each conjecture to the total number of ways across the conjectures, which is 3 + 8 + 9 = 20 ways. Also each of the conjecture propose a proportion <span class="math inline">\(p\)</span> of the successes, that is, the blue voters in this context.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:ways-conjecture">Table 1.8: </span>ways voter conjectures turn out
+</caption>
+<thead>
+<tr>
+<th style="text-align:center;">
+1
+</th>
+<th style="text-align:center;">
+2
+</th>
+<th style="text-align:center;">
+3
+</th>
+<th style="text-align:center;">
+4
+</th>
+<th style="text-align:center;">
+proportion
+</th>
+<th style="text-align:center;">
+ways
+</th>
+<th style="text-align:center;">
+plausibility
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+0.00
+</td>
+<td style="text-align:center;">
+0 x 4 x 0 = 0
+</td>
+<td style="text-align:center;">
+0.00
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+0.25
+</td>
+<td style="text-align:center;">
+1 x 3 x 1 = 3
+</td>
+<td style="text-align:center;">
+0.15
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+0.50
+</td>
+<td style="text-align:center;">
+2 x 2 x 2 = 8
+</td>
+<td style="text-align:center;">
+0.40
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{red}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+0.75
+</td>
+<td style="text-align:center;">
+3 x 1 x 3 = 9
+</td>
+<td style="text-align:center;">
+0.45
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+<span class="math inline">\({\color{blue}\Box}\)</span>
+</td>
+<td style="text-align:center;">
+1.00
+</td>
+<td style="text-align:center;">
+4 x 0 x 4 = 0
+</td>
+<td style="text-align:center;">
+0.00
+</td>
+</tr>
+</tbody>
+</table>
+<p>We cannot help but note that the proportion of ways for each conjecture can range from 0, perhaps to 1, since the proportions add up to 1. The number of ways also expresses the number of true consistencies of the data with the conjecture, an enumeration of the quality of the logical compatibility of conjectures with what we observe.</p>
+<p>We might now revise our common sensical surmise that 2 blue and 2 red is the better conjecture. However, if we use the criterion that the conjecture with the most ways consistent with the data is the best choice for a conjecture, then clearly here we would say that there are 3 blues and 1 red. Perhaps we have a better criterion that would choose our equinanimous choice of 2 blues and 2 reds? It does not appear to be so.</p>
+<p>Ways are the count, the frequencies of logical occurrence of a hypothesis <em>given</em> the data. The data includes the knowledge that there are possibly blues and reds, that there are 4 voters, and that we sampled 2 blues and 1 red. The relative frequency of the ways in which our conjectures are consistent with the data is what we will finally call <em>probability</em>.</p>
+<ol style="list-style-type: decimal">
+<li><p>The plausibility is a measure between and including 0 and 1.</p></li>
+<li><p>The sum of all plausibilities is 1.</p></li>
+</ol>
+<p>We have just quantified the <em>plausibility</em> of logical truth values. We have also found a very compelling criterion for the choice of a conjective given the data and circumstances surrounding our inquiry.</p>
+</div>
+<div id="how-informative" class="section level2">
+<h2><span class="header-section-number">1.6</span> How informative?</h2>
+<p>Now the piece de resistance we have been waiting for is at hand. We have the tools: information measurement, logic of plausible inference, probability as plausibility, a criterion for making a decision? If we were to say, pick the most plausible, now also the most probable inference, is this not really to say that it is the most informative and thus the most surprising inference?</p>
+<p>We have <span class="math inline">\(i=5\)</span> conjectures <span class="math inline">\(c_i\)</span>, each with an assignment of the probability of finding the inference in data, thus 5 probabilities <span class="math inline">\(p_i\)</span>. We also agree that each conjecture <span class="math inline">\(c_i\)</span> is independent of the other, that is mutually exclusive, and also mutually exhaustive. In this way the probabilities indeed will add up to 1.</p>
+<p>Each conjecture has <span class="math inline">\(N=4\)</span> symbols in it. There are only 2 symbols to work with, <span class="math inline">\(B=blue\)</span> and <span class="math inline">\(R=red\)</span> in these messages. There are <span class="math inline">\(N!=4 x 3 x 2 x 1 = 24\)</span> ways to arrange symbols. But these are constrained by two symbols in this pile so we have on average this many combinations:</p>
+<p><span class="math inline">\(\frac{(N + s - 1)!}{N!(s-1)!} = \frac{5!}{4!1!} = \frac{120}{24}=5\,\,conjectures\)</span></p>
+<p>In the numerator are the four voters, two kinds of voters, less one. This gives us <span class="math inline">\(5!=120\)</span> total ways to arrange this set of conjectures. But there are <span class="math inline">\(4!(2-1)!=\)</span> ways to pick 2 kinds of voters from a population of 4 voters. That comes from the notion that there are <span class="math inline">\(4!\)</span> ways to choose 4 voters and having chosen the first voter from the voter urn, there are <span class="math inline">\((2-1)!\)</span> more ways to choose voters, either blue or red, each and every time we randomly go out to the voting population, all with replacement. Phew!</p>
+<p>Now that we have our sea legs in combinatorics, each conjecture of length <span class="math inline">\(N=4\)</span> has two symbols <span class="math inline">\(s_1=blue\)</span> and <span class="math inline">\(s_2=red\)</span> with probabilities of occurrence in the message <span class="math inline">\(p_1=p(blue)\)</span> and <span class="math inline">\(p_2=p(red)\)</span> here <span class="math inline">\(0.50\)</span> each. The portion of the messages that are blue are <span class="math inline">\(Np_1=4 \times 0.5=2\)</span> and red are <span class="math inline">\(Np_2=4 \times 0.5=2\)</span> as well. The ratio</p>
+<p><span class="math inline">\(\frac{N!}{(Np_1)!(Np_2)!} = \frac{4!}{2!2!}=\frac{24}{(2)(2)}=6\)</span></p>
+<p>in turn gives us the number of combinations of symbols and messages. This is the average number of ways a message can be formed. The expected amount of information in these messages, as conjectures, is</p>
+<p><span class="math inline">\(&lt;I&gt; = log_2\left(\frac{N!}{(Np_1)!(Np_2)!}right)\)</span></p>
+<p>For large enough <span class="math inline">\(N\)</span> we can use Stirling’s Approximation<a href="#fn9" class="footnote-ref" id="fnref9"><sup>9</sup></a></p>
+<p><span class="math inline">\(&lt;I&gt; = N \sum_{i=1}^2 (-p_i\,log_2 \,p_i)\)</span></p>
+<p>So the amount of informativeness in each voter conjectures is</p>
+<p><span class="math inline">\(&lt;I&gt; = 4 \sum_{i=1}^2 (-0.5 \,log_2 \,0.5) = 4\)</span></p>
+<p>This is intuitively correct: 4 bits of information in a population of 4 with 2 equally likely choices.</p>
+<p>What about the 5 conjecture? Now <span class="math inline">\(N=5\)</span> and we only need <span class="math inline">\(p_2=0.15, p_3=0.40, p_4=0.45\)</span> since the other probabilities are 0.</p>
+<p><span class="math inline">\(&lt;I&gt; = 4 \sum_{i=1}^3 (-p_i \,log_2 \,p_i) = 4(1.5)=5.8\)</span></p>
+<p>This is nearly 2 bits more informative than any single conjecture. The best conjecture contributes 2.1 bits of information on its own or 36% of the informativeness of the total distribution of conjectures we reviewed.</p>
+</div>
+<div id="nota-bene" class="section level2">
+<h2><span class="header-section-number">1.7</span> Nota Bene</h2>
+<ol style="list-style-type: decimal">
+<li><p>The location and scale parameters <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> we often calculate are not the mean and standard deviation of data <span class="math inline">\(x\)</span>. They are not properties of the physical representation of events called data. These parameters do carry information about the probability distribution of the representation of physical reality in data. To say <span class="math inline">\(\mu\)</span> is the mean of the data is to ascribe a mind’s eye idea to the physical reality, to invest in physical, objective reality, a property that only exists in the mind. This is an example of the <em>mind projection</em> or <em>reification</em> fallacy much in vogue in the circles of <em>fake</em>, or better yet, <em>chop logic</em>. In the same way, probabilities only exist in our minds: there is no physical reality that is a probability, just a mental construct that helps us think through potential outcomes.</p></li>
+<li><p>So why is it that we so much so rely on the past to predict the future? Perhaps this is a fool’s errand. I</p></li>
+<li><p>When we say <em>A implies B</em> we mean that <span class="math inline">\(A\)</span> and <span class="math inline">\(AB\)</span> have the same truth value. In logic every true statement <em>implies</em> every other true statement. Just knowing that <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are true does not</p></li>
+</ol>
+
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-Aristotle_Organon">
+<p>Aristotle. n.d. <em>Organon and Other Works</em>. Translated by W. D. Ross. Andronicus of Rhodes. <a href="https://archive.org/details/AristotleOrganon">https://archive.org/details/AristotleOrganon</a>.</p>
+</div>
+<div id="ref-Jaynes_2004">
+<p>Edwin T. Jaynes, ed. G. Larry Bretthorst. 2004. <em>Probability Theory: Logic of Science</em>. Cambridge, U.K.: Cambridge University Press.</p>
+</div>
+<div id="ref-Feynman_1996">
+<p>Feynman, R. P., and R. Allen. 1996. <em>Lectures on Computation</em>. Advanced Book Program. Basic Books. <a href="https://books.google.com/books?id=-olQAAAAMAAJ">https://books.google.com/books?id=-olQAAAAMAAJ</a>.</p>
+</div>
+<div id="ref-Lepore_2006">
+<p>Lepore, Ernest, and Matthew Stone. 2006. “Logic and Semantic Analysis.” In <em>Philosophy of Logic</em>, edited by Dale Jacquette, 173. North Holland.</p>
+</div>
+<div id="ref-Polya_1954">
+<p>Polya, George. 1954. <em>Mathemtics and Plausible Reasoning</em>. Princeton, N.J.: Princeton University Press.</p>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="1">
+<li id="fn1"><p><span class="citation">Plato (<a href="#ref-Plato_Theaetetus" role="doc-biblioref">n.d.</a>)</span> <em>Theaetetus 210a-b</em> for details. Through careful, and relentless, dialectic, Socrates sculpts the features of knowledge as justified true belief as opposed to merely sensation and perception. At the end of this dialogue, Socrates leaves Theaetetus to answer the law suit against him that lead to his condemnation and death.<a href="plausibility-probability-and-information.html#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p><span class="citation">Polya (<a href="#ref-Polya_1954" role="doc-biblioref">1954</a>)</span> will have us use the word credibility.<a href="plausibility-probability-and-information.html#fnref2" class="footnote-back">↩</a></p></li>
+<li id="fn3"><p>The Greek philosophers, including Aristotle, regularly used both shape, <em>Gr.:</em> <span class="math inline">\(morph{\hat{e}}\)</span>, and idea, <em>Gr.:</em> <span class="math inline">\(e\hat{i}dos\)</span>, to represent the notion of form. See <span class="citation">(<em>Title Needed</em>, <a href="#ref-Citation_needed" role="doc-biblioref">n.d.</a>)</span>.<a href="plausibility-probability-and-information.html#fnref3" class="footnote-back">↩</a></p></li>
+<li id="fn4"><p><span class="citation">Edwin T. Jaynes (<a href="#ref-Jaynes_2004" role="doc-biblioref">2004</a>)</span> uses a base 10, in only because the convenience of decimal arithmetic and that many of us have 10 fingers and 10 toes. The resulting information measure is none other than a <em>decibel</em>.<a href="plausibility-probability-and-information.html#fnref4" class="footnote-back">↩</a></p></li>
+<li id="fn5"><p>It is invalid to affirm the consequent, that is say B is true, so A must be true, a frequent and very misleading and logically illegal argument on talk shows, especially when the subject is political.<a href="plausibility-probability-and-information.html#fnref5" class="footnote-back">↩</a></p></li>
+<li id="fn6"><p>This syllogism is a logical induction from the particular to the general. The conclusion may be generally true or not. The modal <em>may</em> embeds a notion of plausibility that itself has degrees of measure. Opposed to <em>epagoge</em> is logical deduction called <em>apodeixis</em>.<a href="https://www.merriam-webster.com/dictionary/epagoge">See this definition for <em>epagoge</em>.</a><a href="plausibility-probability-and-information.html#fnref6" class="footnote-back">↩</a></p></li>
+<li id="fn7"><p>It is invalid to deny the antecedent, that is use not A as a minor premise, another frequent and very misleading argument on talk shows, especially when the subject is political. This happens when we say if A then B, but not A, so not B. Grade promises and lollipops, clouds and rain, notwithstanding.<a href="plausibility-probability-and-information.html#fnref7" class="footnote-back">↩</a></p></li>
+<li id="fn8"><p>As the alleged pickpocket ran by me, she bumped into me and stopped briefly to apologize. She said she was in a hurry to get antibiotics to her son. If this was a deductive argument, did I not affirm the consequent, thus invalidating my claim?<a href="plausibility-probability-and-information.html#fnref8" class="footnote-back">↩</a></p></li>
+<li id="fn9"><p>Named after James Stirling, this was first stated by Abraham de Moivre: <span class="math inline">\(ln(n!) = n\,\,ln (n) - n + error\)</span>, very accurate even for small <span class="math inline">\(n\)</span>.<a href="plausibility-probability-and-information.html#fnref9" class="footnote-back">↩</a></p></li>
+</ol>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="part-i-background.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="probability-for-real-people.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["book-probabilistic-reasoning.pdf", "book-probabilistic-reasoning.epub"],
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
