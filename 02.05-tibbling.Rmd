@@ -1,0 +1,355 @@
+
+# Counting on tibble
+
+## Counting the ways
+
+Instead of the base R wrangling we began to use in the previous chapter, we'll make extensive use of the many packages from the [**tidyverse**](https://www.tidyverse.org) for data wrangling and plotting. Much of the R programming is a direct fork (I guess as in sticking a fork into a plate of food and putting in our mouth) from [Solomon Kurz's](https://github.com/ASKurz/Statistical_Rethinking_with_brms_ggplot2_and_the_tidyverse_2_ed/blob/master/02.Rmd) recasting of @McElreath_2020.
+
+```{r, warning = F, message = F}
+library(tidyverse)
+```
+
+The **tidyverse**-style syntax pipes `%>%` nouns (data) into verbs (functions). In RStudio we can use the `shift-ctrl-m` key combination to make the pipe with space formatting before and after. A good practice is to use piping as if they are analytical layers and thus press enter after each `%>%`to create a new row of row. The beauty of this approach is that we can follow the workflow as each piping literally creates new data from analytical step to analytical step in the workflow. Read chapter 5 of Grolemund and Wickham's *R for Data Science* available online in [Section 5.6.1](https://r4ds.had.co.nz/transform.html#combining-multiple-operations-with-the-pipe). 
+
+
+We will extensively use the `ggplot2` [@R-ggplot2; @wickhamGgplot2ElegantGraphics2016] system in the tidyverse. The `gg` stands for the _**grammar of graphics**_. In this framework, similar to the way Adobe Photoshop and other image processors work, we layer graphical elements onto a blank canvas. These elements start with a data frame, here a `tibble`. From the tibble axes on a canvas along with groupings of data using factors that are categorical variables in the tibble. We then put geometrical objects on top of this growing canvas. Objects include lines, points, text all with size, shape, and color, among other attributes. We can also make graphics interactive using the `plotly` package with tools such as brushing, zooming, and visually driven queries. The [plotly site](https://plotly.com/) has much more information and many gallery examples of which we might avail ourselves. As interesting, and where plotly is going is it calls itself _the front-end of ML [machine learning] and data science._.
+
+[Tibbles](https://tibble.tidyverse.org) [@R-tibble] are the backbone of the management of the data we use in all of the functional workings of our model. First of all, a tibble is a data frame and has the two dimensions of any matrix or table, rows and columns.  So, whenever we talk about data frames, we're usually talking about tibbles. For more on the topic, check out [*R4SD*, Chapter 10](https://r4ds.had.co.nz/tibbles.html). 
+
+It is often best to learn of tibbles by doing. Doing what? Why, it is piping data from a raw tibble to aggregations of the data, transformations of the raw data and aggregations. Here is a very simple example in the tidyverse that makes use of the `dplyr` package.
+
+Let's make some toy data to play with. We generate 100 variates normally distributed with mean 10 and standard deviation 5. We then transform this series into another and display the first 10 rows. To reproduce results we set the random seed.
+
+```{r basic-tibble, echo = T}
+library(tidyverse)
+set.seed(42)
+n_sim <- 100
+x <- abs(rnorm(n_sim, 10, 5))
+y <- 3 + 0.5*x
+xy_tbl <- tibble( y = y, x = x )
+xy_tbl
+```
+
+With this tibble we can transform the variables by adding more through a pipe to the `mutate()` verb and assign the results to another tibble object.
+
+
+```{r mutate-tibble, echo = T}
+xy_tbl <- xy_tbl %>% 
+  mutate( log_y = log(y), log_x = log(x) )
+xy_tbl
+```
+
+Of course, in this code we overwrote the first version of the `xy_tbl` tibble.
+
+Next we aggregate this transformed tibble into a custom summary of the data.
+
+```{r summarize-tibble}
+options(digits = 4, scipen = 99999)
+xy_summary <- xy_tbl %>% 
+  gather(key = "variable", value = "value") %>% 
+  group_by(variable) %>% 
+  summarize(
+    min = min(value),
+    pct_5 = quantile(value, 0.05),
+    pct_50 = quantile(value, 0.50),
+    pct_95 = quantile(value, 0.95),
+    max = max(value)
+  )
+xy_summary
+```
+Lots of things are happing to us here.
+
+- `options` sets the rest of the calculations to 4 decimal places with sufficient penalties to avoid scientific notation.
+
+- `gather()` puts the data into a long format, also known as a flat table.
+
+- This allows us to `group_by` the subsequent aggregations in `summarize()` by `variable`, the data key.
+
+- The transformed tibble has `summarized()`d each variable's vital statistics in new tibble colums.
+
+The inverse of `gather()` is `arrange()` which awaits us in future work.
+
+This is a great start to exploring our data. Gosh, we could even write a helper function to wrap all of this into an easy to use replacement for the base R `summary()` function. Again this lovely activity awaits us in future work.
+
+## Having all of our marbles
+
+Let code the example in chapter 1. This includes red and blue voters. Let's willingly suspend our disbelief and call them marbles in a bag. The bag is not transparent and those who draw a marble-voter from the bag are blind-folded. If they were draw a marble-voter from the bag they must return their find to the bag. 
+
+If we're willing to code the marbles as 0 = _**red**_ 1 = _**blue**_, we can arrange the hypothetical possibilities of combinations of blue and red marble-voters in a tibble _qua_ bag as follows. Again this is data. Attributes like color and shapes will indeed follow, but at the visualization layer of the architecture of this discussion and coding exercise.
+
+```{r, warning = F, message = F}
+d <-
+  tibble(p1 = 0,
+         p2 = rep(1:0, times = c(1, 3)),
+         p3 = rep(1:0, times = c(2, 2)),
+         p4 = rep(1:0, times = c(3, 1)),
+         p5 = 1)
+d
+```
+
+YATBL = _yet another tibble_, and they will not stop coming! In this one we use the `rep()` function to replicate first 1's then down to 0's once and then 3 times in `p2`. This creates a 4 row by 5 column array with upper 1's and lower 0's.
+
+We will visualize this arrange in a transformation of this tibble. First we use `set_names()` to  replace the `p1` to `p5` column names. With `mutate()` we create row names of the 4 conjectures labelled 1 to 4. The `pivot_longer()` creates a flat grid of 
+
+```{r, fig.width = 1.25, fig.height = 1.1}
+d <- d %>% 
+  set_names(1:5) %>% 
+  mutate(x = 1:4) %>% 
+  pivot_longer(-x, names_to = "conjecture") %>% 
+  mutate(value = value %>% as.character())
+d 
+```
+
+we see the flat grid of for 1 there are each 1, then 2, then and so on to 4. Then this is stacked on four 2's, on top of four 3's, and four 4's. This is the same kind of operation the `gather()` function performed in the previous section. We then add one for line to identify that the value column are not only the 1's and 0's from the tibble, but they are to be characters. This allows our plot to identify them as categories and thus fillable with colors.
+
+With all of that we make the plot. The ``ggplot()` statement sets up the canvas with x and y axes and the value fill for each of the x by possibilities in the bag of marbles-voters. Laayered in are points with a particular [shape](http://www.cookbook-r.com/Graphs/Shapes_and_line_types/) and size, fill colors, and scaling details. A `theme()` call removes the unnecessary (for our purpose) legend.
+
+```{r }
+d <-
+  tibble(p1 = 0,
+         p2 = rep(1:0, times = c(1, 3)),
+         p3 = rep(1:0, times = c(2, 2)),
+         p4 = rep(1:0, times = c(3, 1)),
+         p5 = 1)
+#
+d %>% 
+  set_names(1:5) %>% 
+  mutate(x = 1:4) %>% 
+  pivot_longer(-x, names_to = "conjecture") %>% 
+  mutate(value = value %>% as.character()) %>% 
+  ggplot(aes(x = x, y = conjecture, fill = value)) +
+  geom_point(shape = 21, size = 5) +
+  scale_fill_manual(values = c("blue", "red")) +
+  scale_x_discrete(NULL, breaks = NULL) +
+  theme(legend.position = "none")
+```
+
+The `tidyr::pivot_longer()` function is an updated variant of `gather()`. Just like Excel pivot tables, `pivot_longer()` allows for very creative reshaping and aggregation of data. These articles,   [here](https://tidyr.tidyverse.org/reference/pivot_longer.html) and [here](https://tidyr.tidyverse.org/articles/pivot.html) [@PivotDataWide2020; @Pivoting2020], provide more examples.
+
+Here's the basic structure of the conjectures per marble-voter draw.
+
+```{r}
+tibble(draw    = 1:3,
+       marbles = 4) %>% 
+  mutate(possibilities = marbles ^ draw) %>% 
+  knitr::kable()
+```
+
+We have a table and visual of the 5 conjedctures in hand. Now we make another flat (longer format again) tibble that will have 84 rows of all of the combinations of the three draws of blue, red, and blue in the example. At the first draw there are 4 marble-voters. At the second draw there are $4^2 = 16$ potential marble-voter draws. At the third draw each of these 16 has 4 marble-voters in the bag as possibilities or $4^3=64$. These are positions on a tree with 4 nodes blossoming into 16 nodes, further growing into 64 nodes for a total of 84 nodes. We then linearly interpolate equally spaced nodes from node 1 to node 84.
+
+
+
+```{r positions}
+position <-  c((1:4^1) / 4^0, 
+             (1:4^2) / 4^1, 
+             (1:4^3) / 4^2
+            )
+position
+```
+
+Not only that we should label each node level as draw 1, 2, and 3. For 84 nodes we have to match the first draw of 4 marble-voters, each of which again blossoms into 4 for a total of 16 potential marble-voters, and on to the third draw with 64 marble voters for a total of 84 again.
+
+```{r draws}
+draw <- rep(1:3, times = c(4^1, 4^2, 4^3))
+draw
+```
+
+
+In a plot we will fill these categorically with blue and red. First we get the conjecture sequence of blue, followed by 3 red marbles in the bag. We remember that this is one of five conjectures.
+
+```{r fill-four}
+fill <- rep(c("b", "r"), times = c(1, 3))
+fill
+```
+
+Now we mash these four marbles with the 84 draws and positions.
+
+```{r fill-all}
+fill <- rep(c("b", "r"), times = c(1, 3)) %>% 
+  rep(., times = c(4^0 + 4^1 + 4^2))
+fill
+```
+All together we have this tibble. While this is quite a job to think through and carve out this hierarchical data tree we gain insight into how data is shaped and molded to our purposes.
+
+```{r nodes-together}
+d <- tibble(position = c((1:4^1) / 4^0, 
+                      (1:4^2) / 4^1, 
+                      (1:4^3) / 4^2),
+         draw     = rep(1:3, times = c(4^1, 4^2, 4^3)),
+         fill     = rep(c("b", "r"), times = c(1, 3)) %>% 
+           rep(., times = c(4^0 + 4^1 + 4^2)))
+d
+```
+
+We now have Solomon Kurz's initial plot. We notice he put in 3 breaks in the otherwise continuous scale that is `position`.
+
+```{r, fig.width = 8, fig.height = 2}
+d %>% 
+  ggplot(aes(x = position, y = draw, fill = fill)) +
+  geom_point(shape = 21, size = 3) +
+  scale_fill_manual(values  = c("blue", "red")) +
+  scale_y_continuous(breaks = 1:3) +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+```
+
+How do we draw lines from one draw (level in the hierarchy) to another? Again a tibble comes to our aid. Line segments in plots are simply beginning and ending x and y coordinates.The first of two tibbles will connect the positions from the first to the second draw. The second will connect the 16 second draw positions to the 64 third draw positions. The y coordinates are easy. The x coordinates are a little more daunting. But we have already computed these before in making the tibble positions. We are sure to notice the `each = 4` detail for the x coordinates as the nodes fan out from draw to draw.
+
+```{r}
+# these will connect the dots from the first and second draws
+lines_1 <- tibble(x    = rep((1:4), each = 4),
+                  xend = ((1:4^2) / 4),
+                  y    = 1,
+                  yend = 2)
+lines_1
+# these will connect the dots from the second and third draws
+lines_2 <- tibble(x    = rep(((1:4^2) / 4), each = 4),
+                  xend = (1:4^3) / (4^2),
+                  y    = 2, 
+                  yend = 3)
+lines_2
+```
+
+We now use the `lines_1` and `lines_2` data in the plot with two `geom_segment()` functions layered into the initial plot.
+
+```{r, fig.width = 8, fig.height = 2}
+d %>% 
+  ggplot(aes(x = position, y = draw)) +
+  geom_segment(data = lines_1,
+               aes(x = x, xend = xend,
+                   y = y, yend = yend),
+               size  = 1/3) +
+  geom_segment(data = lines_2,
+               aes(x = x, xend = xend,
+                   y = y, yend = yend),
+               size  = 1/3) +
+  geom_point(aes(fill = fill),
+             shape = 21, size = 3) +
+  scale_fill_manual(values  = c("blue", "red")) +
+  scale_y_continuous(breaks = 1:3) +
+  theme(legend.position  = "none",
+        panel.grid.minor = element_blank())
+```
+
+We generated the values for `position` (i.e., the $x$-axis) al right justified to the position number. To center the nodes for the first draw we simply will subtract 0.5 from each node. In a slightly trickier move, noting there are four marble-voter possibilities in this conjecture we will subtract $0.50/4=0.125$ for draw 2, and $(0.05/4)/4=0.125/4=0.03125$ for draw 3. The `ifelse()` function will allow us to control the three conditions across the positions. If anything else, this is great control practice especially with piping. We should notice the use of the $4^0=1,\,4^1=4,\,4^2=16$ sequence.
+
+```{r position-center}
+d <- d %>% 
+  mutate(denominator = ifelse(draw == 1, .5,
+                              ifelse(draw == 2, .5 / 4,
+                                     .5 / 4^2))) %>% 
+  mutate(position    = position - denominator)
+```
+
+The same logic will work for `lines_1` and `lines_2`.
+
+```{r lines-centered}
+lines_1 <-lines_1 %>% 
+  mutate(x    = x - 0.5,
+         xend = xend - 0.5/4^1)
+lines_2 <- lines_2 %>% 
+  mutate(x    = x - 0.5/4^1,
+         xend = xend - 0.5/4^2)
+lines_1
+lines_2
+```
+
+Now the plot looks centered and more like a drafting dream come true.
+
+```{r, fig.width = 8, fig.height = 2}
+d %>% 
+  ggplot(aes(x = position, y = draw)) +
+  geom_segment(data = lines_1,
+               aes(x = x, xend = xend,
+                   y = y, yend = yend),
+               size  = 1/3) +
+  geom_segment(data = lines_2,
+               aes(x = x, xend = xend,
+                   y = y, yend = yend),
+               size  = 1/3) +
+  geom_point(aes(fill = fill),
+             shape = 21, size = 3) +
+  scale_fill_manual(values  = c("blue", "red")) +
+  scale_y_continuous(breaks = 1:3) +
+  theme(legend.position  = "none",
+        panel.grid.minor = element_blank())
+```
+
+Last and not the least visually, let's wrap the x-axis about a circle by transforming from a rectangular to a [polar coordinate system](http://sape.inf.usi.ch/quick-reference/ggplot2/coord) with the `coord_polar()` layer.
+
+```{r, fig.width = 4, fig.height = 4}
+d %>% 
+  ggplot(aes(x = position, y = draw)) +
+  geom_segment(data = lines_1,
+               aes(x = x, xend = xend,
+                   y = y, yend = yend),
+               size = 1/3) +
+  geom_segment(data = lines_2,
+               aes(x = x, xend = xend,
+                   y = y, yend = yend),
+               size = 1/3) +
+  geom_point(aes(fill = fill),
+             shape = 21, size = 4) +
+  scale_fill_manual(values = c("blue", "red")) +
+  scale_x_continuous(NULL, limits = c(0, 4), breaks = NULL) +
+  scale_y_continuous(NULL, limits = c(0.75, 3), breaks = NULL) +
+  coord_polar() +
+  theme(legend.position = "none",
+        panel.grid = element_blank())
+```
+
+We have to recall that the 1 blue and three red in the middle of this mandela is but one conjecture. There are 4 others, only two of which are non-trivial. The whole point of this execise is the identify by brute force enumeration the only three choices that allow the data to be consistent with the conjecture. To illustrate this Kurz adds an index called `remain` to indicate only those logically consistent paths after each choice for nodes and lines (edges) of this graph. The `remain` indicator is 1 if the draw (data) is logically consistent with the conjecture (hypothesis) and 0 if not. We will print out `d` to illustrate.
+
+```{r, fig.width = 4, fig.height = 4}
+lines_1 <-
+  lines_1 %>% 
+  mutate(remain = c(rep(0:1, times = c(1, 3)),
+                    rep(0,   times = 4 * 3)))
+lines_2 <-
+  lines_2 %>% 
+  mutate(remain = c(rep(0,   times = 4),
+                    rep(1:0, times = c(1, 3)) %>% rep(., times = 3),
+                    rep(0,   times = 12 * 4)))
+d <-
+  d %>% 
+  mutate(remain = c(rep(1:0, times = c(1, 3)),
+                    rep(0:1, times = c(1, 3)),
+                    rep(0,   times = 4 * 4),
+                    rep(1:0, times = c(1, 3)) %>% rep(., times = 3),
+                    rep(0,   times = 12 * 4))) 
+d
+```
+
+And now Kurz's piece de resistance.
+
+```{r, fig.width = 4, fig.height = 4}
+d %>% 
+  ggplot(aes(x = position, y = draw)) +
+  geom_segment(data = lines_1,
+               aes(x = x, xend = xend,
+                   y = y, yend = yend,
+                   alpha = remain %>% as.character()),
+               size = 1/3) +
+  geom_segment(data = lines_2,
+               aes(x = x, xend = xend,
+                   y = y, yend = yend,
+                   alpha = remain %>% as.character()),
+               size = 1/3) +
+  geom_point(aes(fill = fill, alpha = remain %>% as.character()),
+             shape = 21, size = 4) +
+  # it's the alpha parameter that makes elements semitransparent
+  scale_fill_manual(values = c("blue", "red")) +
+  scale_alpha_manual(values = c(1/5, 1)) +
+  scale_x_continuous(NULL, limits = c(0, 4), breaks = NULL) +
+  scale_y_continuous(NULL, limits = c(0.75, 3), breaks = NULL) +
+  coord_polar() +
+  theme(legend.position = "none",
+        panel.grid = element_blank())
+```
+
+The `alpha` attribute in the `geom_point()` governs the opacity of each filled circle (`shape = 21`). When `remain` as a categorical variable (` %>% as.character()`) is `1` the default 100\% opacity is rendered. Otherwise a lesser opacity will render and thus we see the lighter elements. 
+
+All in all this exercise allows us to stretch our data creation, reshaping, and transformation muscles. It also shows the effort needed to create compelling visualizations of the data for consumption by decision makers.
+
+A useful practice exercise is to use this model to build the visualizations of the other two conjectures.
+

@@ -1,0 +1,542 @@
+
+```{r , include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Sampling the Hypothetical
+
+## On your marks ...
+
+Richard McElreath starts in earnest with _Sampling the Imaginary_. Insofar as the imaginary, as things, emanate from our imagination, and thus meets reality somewhere, then this makes sense epistemologically. The imaginary is otherwise a very ontological _thing_ in our minds, and we might even share that thing.[^epi-onto] @Taleb_2004 notes that black swans were imaginary, of course until they were discovered in Australia. The imaginary mental being lurks in our consciousness. An example is the exclamation by DiFenetti (@DiFinetti1958) that _PROBABILITY DOES NOT EXIST_. So true! This is a concept that many share but it is a construct in our minds, like every single model in mental existence, even those written on very real paper.
+
+[^epi-onto]: We can consider: 1. Cognitional operations; 2. Epistemology; 3. Metaphysics; 4. Methodology.
+
+## Brute force
+
+A popular, easy both to imagine and construct, approach to mashing data into hypotheses is the _grid approximation_ approach. The grid we imagine here is are the 101 possible and quite hypothetical probabilities of a positive result in, say, testing for a novel virus. In this scenario we are sampling from all 8 zip coded in the Bronx. Suppose we find 2 positive zip codes. Following Kurz's lead we tibble into a solution.
+
+```{r grid-1}
+library(tidyverse)
+library(rethinking)
+n <- 1000
+n_success <- 6
+n_trials  <- 8
+(
+  d <-
+  tibble(p_grid = seq(from = 0, to = 1, length.out = n),
+         # note we're still using a flat uniform prior
+         prior  = 1) %>% 
+  mutate(likelihood = dbinom(n_success, size = n_trials, prob = p_grid)) %>% 
+  mutate(posterior = (likelihood * prior) / sum(likelihood * prior))
+)
+summary( d )
+```
+
+The job is almost done and now for the core reason we are here. We sample these hypothetical values of the probability of a single positive test, and visualize our handiwork.
+
+```{r grid-sample}
+# how many samples would you like?
+n_samples <- 10000
+# make it reproducible
+set.seed(42)
+samples <-
+  d %>% 
+  sample_n( size = n_samples, weight = posterior, replace = T )
+glimpse(samples)
+#
+y_label <- "h = proportion of positive tests"
+x_label <- "sample index"
+samples %>% 
+  mutate(sample_number = 1:n()) %>% 
+# Here's the cloud of unknowning
+  ggplot(aes( x = sample_number, y = p_grid) ) +
+  geom_point( alpha = 1/10 ) +
+  scale_y_continuous( y_label, limits = c(0, 1) ) +
+  xlab( x_label )
+
+```
+
+Let's transform from the cloud of unknowing into the frequency of ways in which 8 zip codes can plausibly have 2 positive results. Let's also add a vertical line to indicate the mode of this posterior distribution. The `tidybayes` package has a slew of useful summarizing statistics, including the `Mode()` which we use below to find the proportion of tests that correspond to the posterior's mode. The _Maximum A Posteriori_ (aka MAP) hypothesis is just the mode, that is, the most frequently occurring value of the parameter $p$, This will be one point estimate we can report.
+
+```{r grid-density}
+library(plotly)
+library(tidybayes)
+p_MAP <- Mode(samples$p_grid)
+title <- "Bronx Zip Code Tests"
+x_label <- "proportion of zip codes testing positive"
+y_label <- "posterior density"
+plt <- samples %>% 
+  ggplot(aes(x = p_grid)) +
+  geom_density(fill = "blue", alpha = 0.3) +
+  scale_x_continuous(x_label, limits = c(0, 1)) +
+  geom_vline(xintercept=p_MAP, color = "orange") +
+  annotate( "text", x = 0.50, y = 2, label = paste0("MAP = ", round(p_MAP, 4)) ) +
+  ylab(y_label) + xlab(x_label) +
+  ggtitle(title)
+ggplotly(plt)
+```
+
+Other measures of tendency include the quantiles. We can summarize our testing results in a number of ways depending on the purpose of the report and the desires of the client. Here is one way using the `summarize` function the tidyverse's `dplyr` package along with a few `tidybayes` functions, of course, for good measure.
+
+### Skin in the game
+
+We have let $h = p$ be our hypothesized proportion of zip codes testing positive. Now we suppose we are at a game of chance (they do exist in the Bronx!) and guess $d = positive$ for the next text. The house will pay us \$1 if we guess exactly right. If we guess wrong we get docked by an amount proportional to the absolute value of the distance $d - p$ we deviate. We now have a loss function. 
+
+We also now call $d$ a decision. But it is a decision based on a set of hypotheses about decisions, our prior beliefs about those decisions, and driven by the likelihood of seeing decision outcomes in data, a posterior implication. The implication is the plausibility of those decisions logically compatible with experience of observing decision outcomes.
+
+Following de Moivre's (@DeMoivre1756) _doctrine of chance_ we compute our expected loss. This approach constructs a criterion, also known as an objective function. The absolute value function is also known as the check function and is used by @Koenker2005 to build a whole family of quantile regression models the parameters of which are solutions to linear programming models. Here is what the loss objective function looks like.
+
+```{r check-function-derivative-0}
+guess_d <- 0.5
+m <- guess_d
+X <- seq(0, 1, length.out = 100)
+Y <- ifelse(X < m, -1, ifelse(X > m, 1, 0))
+XY <- tibble(X = X, Y = Y)
+plt <- ggplot(XY, aes(x = X, y = Y)) +
+  geom_line(color = "blue", size = 2)+
+  geom_vline(xintercept = m, linetype = "dashed") +
+  geom_point(x = m, y = 0, color = "red",  size = 3) +
+  geom_hline(yintercept = 0.0) +
+  geom_point(x = m, y = -1, color = "red", size = 3) +
+  geom_point(x = m, y = +1, color = "red", size = 3) +
+  geom_segment(aes(x = m, y = -1+.03, xend = m, yend = 1-.03 ), color = "white", size = 3, linetype = "dashed") +
+  geom_point(x = m, y = -1, color = "red", size = 3) +
+  geom_point(x = m, y = +1, color = "red", size = 3) +
+  xlab("Y") + ylab("f(Y,m) = |Y-m|") 
+ggplotly(plt)
+```
+
+Here we have deviations of a `p_grid` value $m$ from a range of possible guesses $Y$. From high school algebra we might remember that the rate of change of the absolute value function is this v-shaped beast. It is a beast because the derivative, that is, the slope, is not defined at $m$. Instead we must gingerly approach the value from the left and the right. Here finally is the check function for a guess of 0.75, as in our zip code example.
+
+```{r check-it-out-0}
+m <- 0.75
+X <- seq(0, 1, length.out = 100)
+Y <- abs(X-m)
+XY <- data_frame(X = X, Y = Y)
+plt <- ggplot(XY, aes(x = X, y = Y)) +
+  geom_line(color = "blue", size = 2.0) +
+  geom_vline(xintercept = m, linetype = "dashed") +
+  geom_point(x = m, y = 0, color = "red",  size = 3) +
+  geom_hline(yintercept = 0.0) +
+  xlab("Y") + ylab("f ' (Y,m) = |Y-m|")
+ggplotly(plt)
+```
+
+Let's guess that $d=0.5$ and try this value on our simulated grid by computed the weighted average of losses with weights equal to the posterior distribution. We can use the `summarize()` function from the `dplyr` package in the tidyverse ecosystem.
+appl
+```{r}
+d %>% 
+  summarize(`expected loss` = sum(posterior * abs(0.5 - p_grid)))
+```
+
+McElreath uses the `sapply()` function from base R to vectorize a calculation of losses using a loss function. The `purrr::map()` function essentially does the same job and we can see more applications of the [**purrr** package](https://purrr.tidyverse.org) [@R-purrr], which is itself part of the [**tidyverse**](https://www.tidyverse.org) and of the `map()` family [here](https://purrr.tidyverse.org/reference/map.html) or [here](https://jennybc.github.io/purrr-tutorial/ls01_map-name-position-shortcuts.html) or [here](https://data.library.virginia.edu/getting-started-with-the-purrr-package-in-r/).
+
+The `map()` will take an input and run this input through whatever function we might dream up. So let's make up a `make_loss()` function out of the `summarize()` experiment above. Typically this is how we construct functions. We first run through a set of routimes. Once we are satisfied with the behavior of those routines, we enshrine them in functions for repeated use. First a `mutate()` creates a vector of weighted losses, then the `summarize()` verb finishes the calculate of the sumproducts.
+
+```{r}
+make_loss <- function(guess_d) {
+  d %>% 
+    mutate(loss = posterior * abs(guess_d - p_grid)) %>% 
+    summarise(weighted_average_loss = sum(loss))
+}
+# TEST!
+make_loss(0.75)
+```
+We always test our handiwork, and as we hoped (expected?) we get the same result as before. It seems our function works just fine.
+
+```{r}
+(
+  loss <-
+  d %>% 
+  select(p_grid) %>% 
+  rename(decision = p_grid) %>% 
+  mutate(weighted_average_loss = purrr::map(decision, make_loss)) %>% 
+  unnest(weighted_average_loss) 
+)
+```
+
+Let's identify the optimal, that is, the minimum loss using the `filter()` verb. In this way we can build a vertical line to indicate the optimal loss. A ribbon will fill the area under the loss curve. We can interact with the graph using the `ggploty()` function on the `ggplot()` object `plt`.
+
+```{r, fig.width = 3.5, fig.height = 3}
+# this will help us find the x and y coordinates for the minimum value
+min_loss <-
+  loss %>% 
+  filter(weighted_average_loss == min(weighted_average_loss)) %>% 
+  as.numeric()
+min_label <- list(
+  paste0( "minimum loss = ", round(min_loss[2], 2) ), 
+  paste0( "decision = ", round(min_loss[1], 2) )
+)
+# update the plot
+plt <- loss %>%   
+  ggplot(aes(x = decision)) +
+  geom_ribbon(aes(ymin = 0, ymax = weighted_average_loss),
+              fill = "blue", alpha = 0.30) +
+  geom_vline(xintercept = min_loss[1], color = "red", linetype = 3) +
+  geom_hline(yintercept = min_loss[2], color = "red", linetype = 3) +
+  annotate("text", x = rep(min_loss[1], 2 ), y = c( 0.4, 0.45), label = min_label) +
+  ylab("expected proportional absolute deviation loss") +
+  theme(panel.grid = element_blank())
+ggplotly(plt)
+```
+
+We saved the exact minimum value as `min_loss[1]`, which is `r min_loss[1]`. Within sampling error, this is the posterior 50th quantile, the median, as depicted by our `samples`, except for the sampling error. It is the median as it is the optimal choice of decision based on the absolute deviation function.
+
+```{r}
+samples %>% 
+  summarise(posterior_50 = quantile(p_grid, 0.50))
+```
+We will use the `quantile()` to define boundaries within the posterior distribution. This function also provides thresholds for extreme values in the distribution, a measure call the _Value-at-risk_ in finance.
+
+#### An Aside
+
+Even more interesting is the idea we can find a middling measure that minimizes the sum of absolute deviations of data around an as yet unspecified parameter (too many $m$!).
+
+
+$$
+SAD = \Sigma_{i=1}^5 |Y_i - m|
+$$
+
+Yes, it is SAD, the sum of absolute deviations. This is our foray into rank-oder statistics, quite a bit different in nature than the arithmetic mean of $SSE$ fame, whic we will get to in due time. We get to basic counting when we try to mind the $m$ that minimizes SAD. To illustrate this suppose our data is all positive (ratio data in fact). If $m=0.5$ then the function
+
+$$
+f(Y;m) = |Y-m|
+$$
+has this appearance, the so-called check function.
+
+```{r check-it-out}
+m <- 0.5
+X <- seq(0, 1, length.out = 100)
+Y <- abs(X-m)
+XY <- data_frame(X = X, Y = Y)
+p <- ggplot(XY, aes(x = X, y = Y)) +
+  geom_line(color = "blue", size = 2.0) +
+  geom_vline(xintercept = m, linetype = "dashed") +
+  geom_point(x = m, y = 0, color = "red",  size = 3) +
+  geom_hline(yintercept = 0.0) +
+  xlab("Y") + ylab("f(Y,m) = |Y-m|")
+ggplotly(p)
+```
+
+Intuitively, half the graph seems to be the left of $m=0.5$, the other have is to the right. Let's look at the first derivative of the check function with respect to changes in $m$, just like we did with each term in $SSE$. Notice that the (eyeballed) rise over run, i..e., slope, before $m=5$ is -1, and after it is +1. At $m=0.5$ there is no slope that's immediately meaningful.
+
+We have two cases to consider. First $Y$ can be less than  or equal to $m$ so that $Y-m \leq 0$. In this case
+
+$$
+\frac{d\,\,(Y-m)_{\leq0}}{dY} = -1
+$$
+
+This corresponds exactly to negatively sloped line accumulating like the seive of Erasthenes into our supposed $m=0.5$ in the plot.
+
+Second, $Y$ can be greater than or equal to $m$ so that $Y-m \geq 0$. In this case
+
+$$
+\frac{d\,\,(Y-m)_{\geq0}}{dY} = +1
+$$
+
+also correpsonding to the positively sloped portion of the graph.
+
+Another graph is in order to imagine this derivative.
+
+```{r check-function-derivative}
+m <- 0.5
+X <- seq(0, 1, length.out = 100)
+Y <- ifelse(X < m, -1, ifelse(X > m, 1, 0))
+XY <- data_frame(X = X, Y = Y)
+p <- ggplot(XY, aes(x = X, y = Y)) +
+  geom_line(color = "blue", size = 2)+
+  geom_vline(xintercept = m, linetype = "dashed") +
+  geom_point(x = m, y = 0, color = "red",  size = 3) +
+  geom_hline(yintercept = 0.0) +
+  geom_point(x = m, y = -1, color = "red", size = 3) +
+  geom_point(x = m, y = +1, color = "red", size = 3) +
+  geom_segment(aes(x = m, y = -1+.03, xend = m, yend = 1-.03 ), color = "white", size = 3, linetype = "dashed") +
+  geom_point(x = m, y = -1, color = "red", size = 3) +
+  geom_point(x = m, y = +1, color = "red", size = 3) +
+  xlab("Y") + ylab("f(Y,m) = |Y-m|") 
+ggplotly(p)
+```
+
+It's all or nothing for the derivative, a classic step function. We use this fact in the following (near) finale in our search for $m$. Back to $SAD$.
+
+We are looking for the $m$ that minimizes $SAD$:
+
+$$
+SAD = \Sigma_{i=1}^N |Y_i - m| = |Y_1-m| + \ldots + |Y_N-m|
+$$
+
+If we take the derivative of $SAD$ with respect to $Y$ data points, we get $N$ minus 1s and $N$ plus ones in our sum because each and every $|Y_i-m|$ could either be greater than or equal to $m$ or less than or equal to $m$, we just just don't know which, so we need to consider both cases at once. We also don't know off hand how many data points are to the left or the right of the value of $m$ that minimizes $SAD$!
+
+Let's play a little roulette and let $L$ be the number of (unknown) points to the left of $m$ and $R$ points to the right. Then $SAD$ looks like it is split into two terms, just like the two intervals leading up to and away from the red dot at the bottom of the check function.
+
+$$
+SAD = \Sigma_{i=1}^R |Y_i - m| + \Sigma_{i=1}^R |Y_i - m| = (|Y_1-m| + \ldots + |Y_L-m|) + (|Y_1-m| + \ldots + |Y_R-m|)
+$$
+
+
+$$
+\frac{d\,\,SAD}{dY} = \Sigma_{i=1}^L (-1) + \Sigma_{i=1}^R (+1) = (-1)L+ (+1)R
+$$
+
+When we set this result to zero for the first order condition for an optimum we get a possibly strange, but appropriate result. The tradeoff between left and right must offset one another exactly.
+
+$$
+(-1)L + (+1)R = 0
+$$
+$$
+L = R
+$$
+Whatever number of points are to the left must also be to the right of $m$. If $L$ points also include $m$, then $L/N\geq1/2$ as well as for the $R$ points if they include $m$ so that $R/N\geq1/2$. 
+
+We have arrived at what a median is.
+
+Now we come up with a precise statement of the middle of a data series, the notorious median. We let $P()$ be the proportion of data points at and above (if $Y \geq M$) or at and below ($Y \leq m$).
+
+THe median, $m$, is the first time a data point in a data series reaches _both_ 
+
+- $P(Y \leq m) \geq 1/2$ (from minimum data point) _and_  
+
+- $P(Y \geq m) \geq 1/2$ (from the maximum data point)
+
+It's logic again with these conjunctive statements. That definition will work for us whether each data point is equally likely ($1/N$) as in a so-called uninformative prior or from grouped data with symmetric or skewed relative frequency distributions.
+
+## The least of the squares
+
+What if Kurz and McElreath gang up on us and dock our ante and subsequent winnings with a loss proportional to the square of the deviation of our decision (guess) from the grid or $(d - p)^2$. What does this suggest? We have a new payoff in our `make_loss()` function to deal with.
+
+```{r, fig.width = 3.5, fig.height = 3}
+# ammend our loss function
+make_quad_loss <- function(guess_d) {
+  d %>% 
+    mutate(loss = posterior * (guess_d - p_grid)^2) %>% 
+    summarise(weighted_average_loss = sum(loss))
+}
+make_loss(0.75)
+```
+
+We reuse the code we know works to solve this problem.
+
+```{r}
+# rebuild the loss data
+loss_quad <-
+  d %>% 
+  select(p_grid) %>% 
+  rename(decision = p_grid) %>% 
+  mutate(weighted_average_loss = purrr::map(decision, make_quad_loss)) %>% 
+  unnest(weighted_average_loss)
+# update to the new minimum loss coordinates
+min_loss <-
+  loss_quad %>% 
+  filter(weighted_average_loss == min(weighted_average_loss)) %>% 
+  as.numeric()
+min_label <- list(
+  paste0( "minimum loss = ", round(min_loss[2], 2) ), 
+  paste0( "decision = ", round(min_loss[1], 2) )
+)
+# update the plot
+plt <- loss_quad %>%   
+  ggplot(aes(x = decision)) +
+  geom_ribbon(aes(ymin = 0, ymax = weighted_average_loss),
+              fill = "blue", alpha = 0.30) +
+  geom_vline(xintercept = min_loss[1], color = "red", linetype = 3) +
+  geom_hline(yintercept = min_loss[2], color = "red", linetype = 3) +
+  annotate("text", x = rep(min_loss[1], 2 ), y = c( 0.4, 0.45), label = min_label) +
+  ylab("expected proportional quadratic loss") +
+  theme(panel.grid = element_blank())
+ggplotly(plt)
+```
+
+Based on quadratic loss $(d - p)^2$, the exact minimum value is `r min_loss[1]`. Within sampling error. There might be a bit of a shock that this is just the arithmetic mean of our `samples`. An aside will be in order.
+
+```{r}
+samples %>% 
+  summarise(posterior_mean = mean(p_grid))
+```
+The arithmetic mean takes no notice at all of the possibility that different outcomes have different weights. It is this starting position that often frequentists, including me in some realizations, can fail to notice the shape of data, always as that shape is really formed by the knower-analyst's assumptions.
+
+#### Yet another aside
+
+This plot depicts the sum of squared deviations for a grid of potential values of what the data points deviate from, $m$. Use of such a criterion allows us a clear and in this case unique calculation of the best linear estimator for the mean. We hover over the graph and brush over the area around bottom of the function a little below the median.
+
+```{r optimize-sse}
+price <- rnorm( 300, 0.5, 0.15 )
+m <- seq(0, 1, length.out = 300)
+SSE <- m
+for (i in 1:length(m)) { 
+  SSE[i] <- t(price - m[i]) %*% (price - m[i])
+}
+opt_plot <- tibble(m = m, SSE = SSE)
+SSE_min_index <- SSE == min(SSE) 
+SSE_min <- SSE[SSE_min_index]
+m_min <- m[SSE_min_index]
+
+p <- ggplot(opt_plot, aes(x = m, y = SSE)) +
+  geom_line(color = "blue", size = 1.25) +
+  geom_point(x = m_min, y = SSE_min, color = "red", size = 4.0) +
+  geom_segment(x = 0, y = SSE_min+5, xend = m_min, yend = SSE_min, color = "red", linetype = "dashed") +
+  geom_segment(x = m_min++5, y = 0, xend = m_min, yend = SSE_min, color = "red", linetype = "dashed")
+ggplotly(p)
+```
+
+
+Simply putting the cursor on the red dot indicates a solution: $m=$ `r round(m_min, 0)`.
+
+A bit of calculus confirms the brute force choice of the arithmetic mean that minimizes the sum of squared deivations about the mean.
+
+First, the sum of squared errors (deviations) of the $X_i$ data points about a mean of $m$ is
+
+$$
+SSE = \Sigma_{i=1}^5 (Y_i - m)^2
+$$
+
+Second, we derive the first derivative of $SSE$ with reapect to $m$, holding all else (e.g., sums of $X_i$) and set the derivative equal to zero for the first order condition for an optimum.
+
+$$
+\frac{d\,\,SSE}{dm} = -2\left(\Sigma_{i=1}^5 (Y_i - m)\right) = 0
+$$
+Here we used the chain and power rules of differentiation.
+
+Third, we solve for $m$ to find
+
+$$
+m = \frac{\Sigma_{i=1}^5 Y_i}{N}=`r mean(price)`
+$$
+
+Close enough for us? This is none other than the arithmetic mean. We can perform similar procedure to get the sample means of the y-intercept $b_0$ and slope $b_1$ of the relationship
+
+$$
+Y_i = b_0 + b_1 X_i + e_i
+$$
+
+where $x_i$ data points try tp explain movements in the $Y_i$ data points. This will be the subject of our next chapter, an excursion into McElreath's geocentric models.
+
+
+## Look: up in the sky it's a ...
+
+Let's try Laplace's quadratic approximation technique instead of the brute force grid. This approach takes advantage of the observation that around the mode of the posterior distribution, the distribution is approximately Gaussian-shaped. A Gaussian shape is just a quadratic combination of the hypotheses. 
+
+Here is a version for the simplest model that is not binomial (or poisson for that matter). The Laplace quadratic approximation technique has two steps.
+
+1. Find the optimal values of posterior parameters (MAP).
+
+2. Given the optimal value of posterior parameters and their interactions across the data, simulate posterior values of parameters and data predictions.
+
+We will begin to control under and over-flow issues (really small and really large numbers) by using the following relationship between the product, here, of two likelihoods, $p_1$ and $p_2$, and the exponent of the sum of logarithms of the two likelihoods.
+
+$$
+p_1p_2 = e^{log(p_1)+log(p_2)}
+$$
+We shift gears out of first gear binomial models into the second gear of a simple mean and standard deviation of a set of continuous data like temperature or electrical usage or even square hectares of land versus water. We suppose our data looks like this (simulated to protect the innocent) and pretend we are energy managers who are reviewing a facility's electricity usage per minute. The dimensions of $y$ are kilo-watt hours per minute.
+
+```{r}
+set.seed(4242)
+y <- rnorm(n = 20, mean = 10, sd = 5) # kilo-watt hours per minute
+c(mean = mean(y), sd = sd(y))
+```
+That's the data $y_i$ for $i=1 \cdots 20$ and its specification in R. Running _toy_ simulation models like this help us to be sure our more realistic models are working correctly. 
+
+For the priors we will let the mean be normally distributed (Gaussian) and possibly range from 0 to 100, since we do not know any differently at this stage. Normal distributions are symmetric and are almost triangular looking if we squint at them.
+
+We let the standard deviation take on a log Gaussian shape, bounded at 0, since standard deviations are always greater than or equal to zero. The lognormal distribution will have a shape that feels a bit exponential, almost chi-squared. But that's a consideration for later. There's an assumption we can build in! The full model looks like this:
+
+$$
+\begin{align}
+y_i & \sim \operatorname{Normal}(\mu, \sigma) \\
+\mu & \sim \operatorname{Normal}(0,100) \\
+\sigma & \sim \operatorname{LogNormal}(0,10) \\
+\end{align}
+$$
+
+The likelihood function for data $y_i$ looks like this:
+
+$$
+\operatorname{Pr}(y_i \mid \mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi}}\operatorname{exp}\left[\frac{(y_i - \mu)^2}{2\sigma}\right]
+$$
+Ye gads! But not to worry, this density function is computed in R with `dnorm()`. The beast of a formula has $\pi$ in it so it very likely has something to do with circles and trigonometry, again for later, some day. It is definitely easier to use the `~` language above to specify models.
+
+We set the feature to take logarithms of this computation with a `log=T` argument in `dnorm()`. This function will compute for the two parameterss in `p` and the data in `y`, the log posterior density. It we raise this number to the power of $e$ we get the original product of posterior likelihoods. We note how we incorporate the two assumptions about the parameters as priors in the computation.
+
+```{r}
+model <- function(p, y) {
+    log_lik <- sum(dnorm(y, p["mu"], p["sigma"], log = T))  # the log likelihood
+    log_post <- log_lik + dnorm(p["mu"], 0, 100, log = T) + dlnorm(p["sigma"],
+        0, 10, log = T)
+    return(log_post)
+}
+```
+
+So this works by inserting the data $y_i$ and initial guesses about parameter values into an optimizer that searche across values of `mu` and `sigma` for the maximum log-likelihood of seeing all of the data `y` given a `mu` and `signma`. This is a bit different than calculating the arithmetic mean and standard deviation isn't it?
+
+```{r}
+inits <- c(mu = 0, sigma = 1)
+fit <- optim(inits, model, control = list(fnscale = -1), hessian = TRUE, y = y)
+fit$par
+fit$hessian
+```
+
+What we get from this exercise is a lot more than arithmetic means and standard deviations. We are analyst-skeptics. We need to learn something about how the variations in the data reflect in variations in the mean and standard deviation, as well as how the mean and standard deviation end up interacting as well.
+
+We get the interactions of the mean and standard deviatino from the `hessian` matrix computed during the  computes the variance-covariance of the solution `r fit$par`. We are not done! Next we use the fit parameters that have located the Maximum A Posteriori values of the two parameters $\mu = $ `r fit$par[1]` and $\sigma = $ `r fit$par[2]`  to generate posterior predictive samples, plot them, talk about them, and then we are done (for the moment!).
+
+If we invert the negative of the hessian matrix, we get back the variance-covariance matrix of the two parameters. Frequentist-while, the square root of the diagonal of this inverted hessian matrix can form the basis of t-tests of the null hypothesis that $\mu = 0$ or some other target value $\mu_0$. But we are not frequentists, so simulation-while we return to sampling.
+
+```{r hessians}
+par_mean <- fit$par
+par_varcov <- solve(-fit$hessian)
+round( par_mean, 2 )
+round( par_varcov, 4 )
+```
+In order to sample predictive posterior views, really hypotheses of what might be, of $\mu$ and $\sigma$ as Gaussian variates, we will need to take into account not only the means and variances of the $\mu$ and $\sigma$ parameters, but we will need to include how these parameters would vary with one another with covariances `r round(par_varcov[2,1])`. The `mvtnorm` package will come to our aid. First the samples, then add a simulation of predictions for $y$. We will use the `coda` package to display the distributions this time, since it is a popular way to visualize Monte Carlo simulations of the Markov Chain species.
+Essentially this is the package that McElreath's `rethinking` package employs.
+
+```{r sample-mvtnorm}
+library(mvtnorm)
+samples <- rmvnorm(10000, par_mean, par_varcov)
+samples <- as.tibble(samples) %>% 
+  mutate(prediction = rnorm(n = n(), mu, sigma))
+# simplehist(samples %>% select(prediction))
+# try coda plots too
+library(coda)
+samples_mcmc <- mcmc(samples)
+densplot(samples_mcmc)
+```
+
+Here is a **high density interval** view of the modes of the three samplings. A 95\% interval width allows us to say that the values of posterior parameters and predictions are between lower and upper bounds with 95\% compatibility with the data. These are compatibility, plausibility, posterior probability, credibility intervals. That last adjective is for the insurance analysts in the gang. The `pivot_longer()` is preferred over `gather()`. The `name` is automatically generated from column names in the tibble, while `value` is the new array of sampled parameters and predictions.
+
+```{r}
+samples %>% 
+  pivot_longer(mu:prediction) %>% 
+  group_by(name) %>% 
+  mode_hdi(value)
+```
+
+We can expect 95% of the time to see a wide range of predictions for our data even though the mean and standard deviation are much tighter.
+
+Here is a posterior predictive plot for kilo-watt usage in our example for the energy manager.
+
+```{r, fig.width = 3, fig.height = 2, warning = F, message = F}
+# the simulation
+set.seed(4242)
+# the plot
+samples %>% 
+  ggplot(aes(x = prediction)) +
+  geom_histogram(binwidth = 1, center = 0,
+                 color = "blue", alpha = 0.3, size = 1/10) +
+  scale_x_continuous("usage samples",
+                     breaks = seq(from = 0, to = 50, by = 5)) +
+  scale_y_continuous(NULL, breaks = NULL, limits = c(0, 1200)) +
+  ggtitle("Posterior predictive distribution") +
+  coord_cartesian(xlim = c(0, 50)) +
+  theme(panel.grid = element_blank())
+```
+
+Was that enough? For now at least. We accomplished a lot. But perhaps the biggest takeaway is our new found ability to deploy simulation with probability with compatibility of hypotheses with data to arrive at learning about the data. We learned because we inferred.
+
+Up next, we gather our wits together to rebuild the workhorse model, the linear regression, in the image and likeness of a probabilistic simulator.
+
+## Session Information {-}
+
+```{r}
+sessionInfo()
+```
+

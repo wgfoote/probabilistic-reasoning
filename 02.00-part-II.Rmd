@@ -1,0 +1,10 @@
+# Part II. Using R {-}
+
+- R and RStudio set up
+
+- R markdown and latex for text rendering
+
+- Base R data and calculations
+
+- Tidyverse wrangling and visualization
+

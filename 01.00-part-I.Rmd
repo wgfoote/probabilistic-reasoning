@@ -1,0 +1,13 @@
+# Part I. Background {-}
+
+Getting our arms around
+
+- The logic of probability for inference
+
+- An initial use case with binary data
+
+- Information and its measurement
+
+- Another use case of a Bayes relationship
+
+- The question

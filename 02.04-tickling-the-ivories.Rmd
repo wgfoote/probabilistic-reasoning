@@ -1,0 +1,691 @@
+# Tickling the Ivories
+
+In this chapter we will use the R console in RStudio to run through the basic syntax of R. But that's not all: we will also use R's innate ability to implement linear algebra to build the basic statistics of ordinary least squares (OLS) regression. 
+
+## Start to tickle
+
+Or if you paint and draw, the 2-minute pose will warm you up. In the `RStudio` console panel (in the NW pane of my IDE) play with these by typing these statements at the `>` symbol:
+
+```{r }
+1 + (1:5)
+```
+
+This will produce a vector from 2 to 6. 
+
+We can use `alt-` (hold alt and hyphen keys down simultaneously) to produce `<-`, and assign data to an new object. This is a from `R`'s predecessor James Chamber's `S` (ATT Bell Labs) that was ported from the single keystroke $\leftarrow$ in Ken Iverson's `APL` (IBM), where it is reserved as a binary logical operator. We can now also use `=` to assign variables in `R`. But, also a holdover from `APL`, we will continue to use `=` only for assignments within functions. [Glad we got that over!]
+
+Now let's try these expressions.
+
+```{r }
+x <- 1+ (1:5)
+sum(x)
+prod(x)
+```
+
+These actions assign the results of a calculation to a variable `x` and then sum and multiply the elements. `x` is stored in the active workspace. You can verify that by typing `ls()` in the console to list the objects in the workspace. Type in these statements as well.
+
+```{r }
+ls()
+length(x)
+x[1:length(x)]
+x[6:8]
+x[6:8] <- 7:9
+x/0
+```
+
+`x` has length of 5 and we use that to index all of the current elements of `x`. Trying to access elements 6 to 8 produces `na` because they do not exist yet. Appending 7 to 9 will fill the spaces. Dividing by 0 produces `inf`.
+
+```{r }
+(x1 <- x-2)
+x1
+x/x1
+```
+
+Putting parentheses around an expression is the same as printing out the result of the expression. Element-wise division (multiplication, addition, subtraction) produces `inf` as the first element.
+
+## Try this exercise
+
+Suppose we have a gargleblaster machine that produces free cash flows of \$10 million each year for 8 years. The machine will be scrapped and currently you believe you can get \$5 million at the end of year 8 as salvage value. The forward curve of interest rates for the next 1 to 8 years is 0.06, 0.07, 0.05, 0.09, 0.09, 0.08, 0.08, 0.08.
+
+1. What is the value of \$1 received at the end of each of the next 8 years? Use this script to begin the modeling process. Describe each calculation.
+
+```{r , eval = FALSE}
+rates <- c(0.06, 0.07, 0.05, 0.09, 0.09, 0.08, 0.08, 0.08)
+t <- seq(1, 8)
+(pv.1 <- sum(1/(1+rates)^t))
+```
+
+2. What is the present value of salvage? Salvage would be at element 8 of an 8-element cash flow vector, and thus would use the eighth forward rate, `rate[8]`, and `t` would be 8 as well. Eliminate the sum in the above script. Make a variable called `salvage` and assign salvage value to this variable. Use this variable in place of the `1` in the above script for `pv.1`. Call the new present value `pv.salvage`.
+
+3. What is the present value of the gargleblaster machine? Type in these statements. The `rep` function makes an `8` element cash flow vector. We change the value of the 8th element of the cash flow vector to include salvage. Now use the `pv.1` statement above and substitute `cashflow` for `1`. You will have your result.
+
+```{r , eval = FALSE}
+cashflow <- rep(10, 8)
+cashflow[8] <- cashflow[8] + salvage
+```
+
+Some results follow. The present value of \$1 is
+The present value of a \$1 is this mathemetical formula.
+$$
+PV = \sum_{t=1}^{8}\frac{1}{(1+r)^t}
+$$
+This mathematical expression can be translated into `R` this way
+
+```{r }
+rates <- c(0.06, 0.07, 0.05, 0.09, 0.09, 0.08, 0.08, 0.08)
+t <- seq(1, 8)
+(1/(1+rates)^t)
+(pv.1 <- sum(1/(1+rates)^t))
+```
+
+We define `rates` as a vector using the `c()` concatenation function. We then define a sequence of 8 time indices `t` starting with 1. The present value of a \$1 is sum of the vector element-by-element calculation of the date by date discounts $1/(1+r)^t$.
+
+The present value of salvage is the discounted salvage that is expected to occur at, and in this illustration only at, year 8.
+$$
+PV_{salvage} = \frac{salvage}{(1+r)^8}
+$$
+Translated into `R` we have
+
+```{r }
+salvage <- 5
+(pv.salvage <- salvage/(1 + rates[8])^8)
+```
+
+The present value of the gargleblaster machine is the present value of cashflows from operations from year 1 to year 8 plus the present value of salvage received in year 8. Salvage by definition is realized at the of the life of the operational cashflows upon disposition of the asset, here at year 8.
+$$
+PV_{total} = \sum_{t=1}^{8}\frac{cashflow_t}{(1+r)^t} + \frac{salvage}{(1+r)^8}
+$$
+This expression translates into `R` this way:
+
+```{r }
+cashflow <- rep(10, 8)
+cashflow[8] <- cashflow[8] + salvage
+(pv.machine <- sum(cashflow/(1+rates)^t))
+```
+
+The `rep` or "repeat" function creates cash flows of \$10 for each of 8 years. We adjust the year 8 cash flow to reflect salvage so that $cashflow_8 = 10 + salvage$. The `[8]` indexes the eighth element of the `cashflow` vector.
+
+## Building Some Character
+
+Let's type these expressions into the console at the `>` prompt:
+
+```{r }
+x[length(x)+1] <- "end"
+x[length(x)+1] <- "end"
+x.char <- x[-length(x)]
+x <- as.numeric(x.char[-length(x.char)])
+str(x)
+```
+
+We have appended the string "end" to the end of x, twice. 
+
+- We use the `-` negative operator to eliminate it. 
+- By inserting a string of characters into a numeric vector we have forced `R` to transform all numerical values to characters. 
+- To keep things straight we called the character version `x.char`. 
+- In the end we convert `x.char` back to numbers that we check with the `str`(ucture) function.
+
+We will use this procedure to build data tables (we will call these "data frames") when comparing distributions of variables such as stock returns. 
+
+Here's a useful set of statements for coding and classifying variables. Type these statements into the console.
+
+```{r }
+set.seed(1016)
+n.sim <- 10
+x <- rnorm(n.sim)
+y <- x/(rchisq(x^2, df = 3))^0.5
+```
+
+We did a lot of `R` here. First, we set a random seed to reproduce the same results every time we run this simulaton. Then, we store the number of simulations in `n.sim` and produced two new variables with normal and a weirder looking distribution (a Student's t distribution?). Invoking `help` will display help with distributions in the console pane of the `RStudio` IDE.
+
+Now let's try to display some of this interesting, and if surprising, information. The next code block will set up some presentation layer data for a plot.
+
+```{r }
+z <- c(x,y)
+indicator <- rep(c("normal","abnormal"), each=length(x))
+xy_df <- data.frame(Variates = z, Distributions = indicator)
+```
+
+We concatenate the two variables into a new variable `z`. We built into the variable `indicator` the classifier to indicate which is `x` and which is `y`. But let's visualize what we want. (Paint in words here.) We want a column the first `n.sim` elements of which are `x` and the second are `y`. We then want a column the first `n.sim` elements of which are indicated by the character string "normal", and the second `n.sim` elements by "abnormal". 
+
+The `rep` function replicates the concatenation of "normal" and "abnormal" 10 times (the `length(x)`). The `each` feature concatenates 10 replications of "normal" to 10 replications of "abnormal". We concatenate the variates into `xy` with the `c()` function.
+
+Data frames are just column and row tables. Enter `str(xy_df)` to see what the structure of the `xy_df` data frame contains. In later work we will use a streamlined version of the data frame called a `tibble` in the `tidyverse` ecosystem.
+
+We can see the first 5 components of the data frame components using the `$` subsetting notation as below.
+
+```{r }
+str(xy_df)
+head(xy_df$Variates, n = 5)
+head(xy_df$Distributions, n = 5)
+```
+
+The `str` call returns the two vectors inside of `xy`. One is numeric and the other is a "factor" with two levels. `R` and many of the routines in `R` will interpret these as zeros and ones in developing indicator and dummy variables for regressions and filtering. The `head()` (and there is a `tail()` too) function displays as many components as you wish to see starting with row 1.
+
+## The plot thickens
+
+We will want to see our handiwork, so load the `ggplot2` library using `install.packages("ggplot2")`.[^hadley]  
+
+[^hadley]: Visit Hadley Wickham's examples at <http://ggplot2.org/>.)
+
+This plotting package requires data frames. A "data frame" simply put is a list of vectors and arrays with names. An example of a data frame in Excel is just the worksheet. There are columns with names in the first row, followed by several rows of data in each column. If you were to install the `tidyverse` package and load the package with `library(tidyverse)` you could use `tibble()` instead of the bas R `data.frame()`.
+
+Here we have defined a data frame `xy_df`. All of the `x` and `y` variates are put into one part of the frame, and the distribution indicator into another. For all of this to work in a plot the two arrays must be of the same length. Thus we use the common `n.sim` and `length(x)` to insure this when we computed the series. We always examine the data, here using the `head` and `tail` functions.
+
+Type `help(ggplot)` into the console for details. The `ggplot2` graphics package embodies Hadley Wickham's "grammar of graphics" we can review at <http://ggplot2.org>. Hadley Wickham has a very useful presentation with numerous examples at <http://ggplot2.org/resources/2007-past-present-future.pdf>.
+
+As mentioned above, the package uses data frames to process graphics. A lot of packages other than `ggplot2`, including the base `stats` package, require data 
+frames.
+
+We load the library first. The next statement sets up the blank but all too ready canvas (it will be empty!) on which a density plot can be rendered.
+
+```{r }
+library(ggplot2)
+ggplot(xy_df, aes(x = Variates, fill = Distributions))
+```
+
+The data frame name `xy_df` is first followed by the aesthetics mapping of data. The next statement inserts a geometrical element, here a density curve, which has a transparency parameter aesthetic `alpha`.
+
+```{r , echo = FALSE}
+ggplot(xy_df, aes(x = Variates, fill = Distributions)) + geom_density(alpha = .3)
+```
+
+### Try this example
+
+Zoom in with `xlim` and lower x-axis and upper x-axis limits using the following statement:
+
+```{r }
+ggplot(xy_df, aes(x = Variates, fill = Distributions)) + 
+  geom_density(alpha = .3) + xlim(-1,6)
+```
+
+Now we are getting to extreme value statistics by visualizing the tail of this distribution.
+
+## Arrays and You
+
+Arrays have rows and columns and are akin to tables. All of Excel's worksheets are organized into cells that are tables with columns and rows. Data frames are more akin to tables in data bases. Here are some simple matrix arrays and functions. We start by making a mistake:
+
+```{r }
+(A.error  <- matrix(1:11, ncol=4))
+```
+
+The `matrix()` function takes as input here the sequence of numbers from 1 to 11. It then tries to put these 11 elements into a 4 column array with 3 rows. It is missing a number as the error points out. To make a 4 column array out of 11 numbers it needs a twelth number to complete the third row. We then type in these statements
+
+```{r }
+(A_row <- matrix(1:12, ncol=4))
+(A_col <- matrix(1:12, ncol=4, byrow=FALSE))
+```
+
+In `A` we take 12 integers in a row and specify they be organized into 4 columns, and in `R` this is by row.  In the next statement we see that `A_col` and column binding `cbind()` are equivalent.
+
+```{r }
+(R <- rbind(1:4, 5:8, 9:12)) # Concatenate rows
+(C <- cbind(1:3, 4:6, 7:9, 10:12)) # concatenate columns
+A_col == C
+```
+
+Using the `outer` product allows us to operate on matrix elements, first picking the minimum, then the maximum of each row. The `pmin` and `pmax` compare rows element by element. If you used `min` and `max` you would get the minimum and maximum of the whole matrix.
+
+```{r }
+(A_min <- outer(3:6/4, 3:6/4, FUN=pmin)) #
+(A_max <- outer(3:6/4, 3:6/4, FUN=pmax)) #
+```
+
+We build a symmetrical matrix and replace the diagonal with 1. `A_sym` looks like a correlation matrix. Here all we were doing is playing with shaping data.
+
+```{r }
+(A_sym <- A_max - A_min - 0.5)
+diag(A_sym) <- 1
+A_sym
+```
+
+### Try this exercise
+
+The `inner` product `%*%` cross-multiplies successive elements of a row with the successive elements of a column. If there are two rows with 5 columns, there must be a matrix at least with 1 column that has 5 rows in it. 
+
+Let's run these statements.
+
+```{r }
+n_sim <- 100
+x_1 <- rgamma(n_sim, 0.5, 0.2)
+x_2 <- rlnorm(n_sim, 0.15, 0.25)
+hist(x_1) ; hist(x_2)
+X <- cbind(x_1, x_2)
+```
+
+`rgamma` allows us to generate `n_sim` versions of the gamma distribution with scale parameter `0.5` and shape parameter `0.2`. `rlnorm` is a popular financial return distribution with mean `0.15` and standard deviation `0.25`. We can call up `??distributions` to get detailed information. Let's plot the histograms of each simulated random variate using `hist()`.
+
+The `cbind` function binds into matrix columns the row arrays `x_1` and `x_2`. These might be simulations of operational and financial losses. The `X` matrix could look like the _*design matrix*_ for a regression. 
+
+Let's simulate a response vector, say equity, and call it `y` and look at its histogram.
+
+```{r }
+y <- 1.5*x_1  + 0.8 * x_2 + rnorm(n_sim, 4.2, 5.03)
+```
+
+Now we have a frequentist statistical model for $y$:
+
+$$
+y = X \beta + \varepsilon
+$$
+
+where $y$ is a 100 $\times$ 1 (rows $\times$ columns) vector, $X$ is a 100 $\times$ 2 matrix, $\beta$ is a 2 $\times$ 1 vector, and $\epsilon$ is a 100 $\times$ 1 vector of disturbances (a.k.a., "errors").
+
+Multiplying out the matrix term $X \beta$ we have
+
+$$
+y = \beta_1 x_1 + \beta_2 x_2 + \varepsilon
+$$
+
+where $y$, $x_1$, $x_2$, and $\varepsilon$ are all vectors with 100 rows for simulated observations.
+
+If we look for $\beta$ to minimize the sum of squared $\varepsilon$ we would find that the solution is
+
+$$
+\hat{\beta} = (X^T X)^{-1} X^{T} y.
+$$
+
+Where $\hat{\beta}$ is read as "beta hat". 
+
+The result $y$ with its `hist()` is
+
+```{r }
+hist(y)
+```
+
+The rubber meets the road here as we compute $\hat{\beta}$.
+
+```{r }
+X <- cbind(x_1, x_2)
+XTX_inverse <- solve(t(X) %*% X)
+(beta_hat <- XTX_inverse %*% t(X) %*% y )
+```
+
+The `beta_hat` coefficients are much different than our model for `y`. Why? Because of the innovation, error, disturbance term `rnorm(n_sim, 1, 2)` we added to the `1.5*x_1  + 0.8 * x_2` terms.
+
+Now for the estimated $\varepsilon$ where we use the matrix inner product `%*%`. We need to be sure to _pre_-multiply `beta_hat` with `X`!
+
+```{r }
+e <- y - X %*% beta_hat
+```
+
+
+```{r }
+hist(e)
+```
+
+We see that the "residuals" are almost centered at `0`.
+
+### More about residuals
+
+For no charge at all let's calculate the sum of squared errors in matrix talk, along with the number of obervations `n` and degrees of freedom `n - k`, all to get the standard error of the regression `e_se`. Mathematically we are computing
+
+$$
+\sigma_{\varepsilon} = \sqrt{\sum_{i=1}^N \frac{\varepsilon_i^2}{n-k}}
+$$
+
+```{r }
+(e_sse <- t(e) %*% e)
+(n <- dim(X)[1])
+(k <- nrow(beta_hat))
+(e_se <- (e_sse / (n - k))^0.5)
+```
+The statement `dim(X)[1]` returns the first of two dimensions of the matrix `X`. The R system has a built in OLS model called `lm()` (for linear model). Here is that model and a `summary()` of results.
+
+```{r lm-example-no-intercept}
+library(tidyverse)
+data_xy <- tibble(
+  x_1=x_1, 
+  x_2=x_2, 
+  y=y)
+fit_0 <- lm(
+  y ~ x_1 + x_2 - 1, 
+  data = data_xy)
+summary(fit_0)
+```
+
+First we load the `tidyverse` package and make a tibble data set. Then we use the statistical model `y ~ x_1 + x_2 - 1` The `lm()` function parses this formula into the dependent variable `y`, the two independent variables `x_1` and `x_2`, and `-1` for a zero intercept all referring to the components of the data set in the `lm()` function. We then can view the statistics of the regression using the `summary()` method associated with `lm()`. All results are in the object `fit_0`.
+
+Of course we must try our model with an intercept, the default in `lm()`. I usually put the `1 +` into the formula as a reminder.
+
+```{r}
+fit_1 <- lm(
+  y ~ 1 + x_1 + x_2, 
+  data = data_xy
+)
+summary(fit_1)
+```
+
+We see a very different story where the coefficient of the `x_2` variable changes sign. In future sagas we will bury $R^2$.
+
+The `lm()` function is thew orkhorse of R regression in the frequentist statistical tradition of Joseph Venn and R.A. @Fisher_1925.[^Fisher]
+
+[^Fisher]: Fisher was a geneticist who espoused this approach which really did apply quite well to his field. Our field is that of human behavior in the business domain. Fisher's approach might not always work for us there. He assumes effectively that the prior belief is uniformly distributed. More than that, his approach is to calculate averages, aggregations, of series of data, deviations (squared), of data, and so one. Then given the aggregation, simulate the aggregator. Our probabistic approach does not assume a prior belief. It goes on to simulate the range of possible, and logical, ways (hypotheses) that data can condition hypotheses about a parameter, and elicit a posterior response given a belief about the hypothesis. This approach solves for the parameter across a range of hypotheses conditional on beliefs and data. If our questions do not require this extent of analysis, then, so be it, we use Fisher's ellipsis of an approach.
+
+We also notice the layout of the writing of the function and its arguments. This tremendously aids comprehension as well as shooting trouble when running the functions.
+
+Finally, again for no charge at all, lets load library `psych` (use `install.packages("psych")` as needed). We will use `pairs.panels()` for a pretty picture of our work in this try out. First column bind `cbind()` the `y`, `X`, and `e` arrays to create a data frame for `pairs.panel()`.
+```{r }
+library(psych)
+all <- cbind(y, X, e)
+```
+We then invoke the `pairs.panels()` function using the `all` array we just created. The result is a scatterplot matrix with histograms of each variate down the diagonal. The lower triangle of the matrix is populated with scatterplots. The upper triangle of the matrix has correlations depicted with increasing font sizes for higher correlations.
+```{r }
+pairs.panels(all)
+```
+We will use this sort of tool again and again to explore the multivariate relationships among our data. Even better displays are available with the 
+
+## More Array Work
+We show off some more array operations in the following statements.
+```{r }
+nrow(A_min)
+ncol(A_min)
+dim(A_min)
+```
+We calculate the number of rows and columns first. We then see that these exactly correspond to the two element vector produced by `dim`. Next we enter these statements into the console.
+```{r }
+rowSums(A_min)
+colSums(A_min)
+apply(A_min,1,sum)
+apply(A_min,2,sum)
+```
+We also calculate the sums of each row and each column. Alternatively we can use the `apply` function on the first dimension (rows) and then on the second dimension (columns) of the matrix. Some matrix multiplications follow below.
+
+```{r }
+(A_inner <- A_sym %*% t(A_min[,1:dim(A_min)[2]]))
+```
+Starting from the inner circle of embedded parentheses we pull every row (the `[,col]` piece) for columns from the first to the second dimension of the `dim()` of `A_min`. We then transpose (row for column) the elements of `A_min` and cross left multiply in an inner product this transposed matrix with `A_sym`. 
+We have already deployed very useful matrix operation, the inverse. The `R` function `solve()` provides the answer to the question: what two matrices, when multiplied by one another, produces the identity matrix? The identity matrix is a matrix of all ones down the diagonal and zeros elsewhere.
+
+```{r }
+(A_inner_invert <- solve(A_inner))
+```
+
+Now we use our inverse with the original matrix we inverted.
+
+```{r }
+(A_result <- A_inner %*% A_inner_invert)
+```
+
+When we cross multiply `A_inner` with its inverse, we should, and do, get the identity matrix that is a matrix of ones in the diagonal and zeros in the off-diagonal elements.
+
+## Summary
+We covered very general data manipulation in `R` including arithmetical operations, vectors and matrices, their formation and operations, and data frames. We used data frames as inputs to plotting functions. We also built a matrix-based linear regression model and a present value calculator. This will be nearly the last time in this book we will employ frequentist statistical calculation. The next chapter will bring us to the brink of the statistical reasoning often called Bayesian. It is also nearly the last time we will seriously use the nouns and verbs of base R data wrangling. We will start next chapter to use modern data management nouns and verbs with the `tidyverse` package and ecosystem.
+
+## Further Reading
+This introductory chapter covers material from Teetor, chapters 1, 2, 5, 6. Present value, salvage, and other valuation topics can be found in Brealey et al. under `present value` in the index of any of several editions.
+
+## Practice Sets
+
+### Purpose, Process, Product
+
+These practice sets will repeat various `R` features in this chapter. Specifically we will practice defining vectors, matrices (arrays), and data frames and their use in present value, growth, future value calculations, We will build on this basic practice with the computation of ordinary lease squares coefficients and plots using `ggplot2`. We will summarize our findings in debrief documented with an `R markdown` file and output. 
+
+### `R Markdown` set up
+
+1. Open a new `R Markdown` html document file and save it with file name `MYName-FIN654-PS01` to your working directory. The `Rmd` file extension will automatically be appended to the file name. Create a new folder called `data` in this working directory and deposit the `.csv` file for practice set #2 to this directory.
+
+2. Modify the `YAML` header in the `Rmd` file to reflect the name of this practice set, your name, and date.
+
+3. Replace the `R Markdown` example in the new file with the following script.
+```{RMD }
+## Practice set 1: present value
+(INSERT results here)
+## Practice set 2: regression
+(Insert results here)
+```
+
+4. Click `knit` in the `Rstudio` command bar to produce the `html` document.
+
+### Mutual Fund simulation
+
+#### Problem
+
+We work for a mutual fund that is legally required to fair value the stock of unlisted companies it owns. Your fund is about to purchase shares of InUrCorner, a U.S. based company, that provides internet-of-things legal services. 
+
+- We sampled several companies with business plans similar to InUrCorner and find that the average weighted average cost of capital is 18\%. 
+
+- InUrCorner sales is \$80 million and projected to growth at 50\% per year for the next 3 years and 15\% per year thereafter. 
+
+- Cost of services provided as a percent of sales is currently 75\% and projected to be flat for the foreseeable future. 
+
+- Depreciation is also constant at 5\% of net fixed assets (gross fixed asset minus accumulated depreciation), as are taxes (all-in) at 35\% of taxable profits. 
+
+- Discussions with InUrCorner management indicate that the company will need an increase in working capital at the rate of 15\% each year and an increase in fixed assets at the rate of 10\% of sales each year. Currently working capital is \$10, net fixed assets is \$90, and accumulated depreciation is \$15.
+
+#### Questions
+
+1. Let's project `sales`, `cost`, increments to net fixed assets `NFA`, increments to working capital `WC`, `depreciation`, `tax`, and free cash flow `FCF` for the next 4 years. We will use a table to report the projection.
+```{r, echo = FALSE, eval = FALSE}
+growth <- rep(0.5, 4)                  # vector of 4 growth ratios:                                                                       (sales[t]-sales[t-1])/sales[t]
+growth[4] <- 0.15                      # replace 4 year growth value
+sales0 <- 80                           # constant
+WC0 <- 10                              # constant
+NFA0 <- 90                             # constant
+DEP.accum <- 15                        # constant
+time <- 1:4                            # time index
+year0 <- 2016                          # base (valuation) year
+year <- year0 + time                   # projection years
+sales <- sales0 * (1 + growth) ^ time  # sales projection
+cost.sales <- 0.70                     # constant ratio: cost / sales
+cost <- cost.sales * sales             # cost projection
+WC.incr.sales <- 0.10                  # constant ratio: incrWC / sales
+NFA.incr.sales <- 0.05                 # constant ratio: incrNFA / sales
+WC.incr <- WC.incr.sales * sales       # working capital increment projection
+NFA.incr <- NFA.incr.sales * sales     # net fixed assets increment projection
+WC <- cumsum(c(WC0, WC.incr))[-1]      # working capital projection
+NFA <- cumsum(c(NFA0, NFA.incr))[-1]   # net fixed assets projection
+depreciation.NFA <- 0.05               # constant ratio: depreciation / net fixed assets
+depreciation <- depreciation.NFA * NFA # depreciation projection
+tax.rate <- 0.25                       # tax rate constant:                                                                        tax / (sales-cost-depreciation)
+tax <- (sales - cost - depreciation) * tax.rate 
+                                       # tax projection
+FCF <- sales - cost - depreciation - tax - WC.incr - NFA.incr 
+                                       # free cash flow projection
+```
+Let's use this code to build and display a table.
+```{r, eval = FALSE}
+# Form table of results
+table.names <- c("Sales", "Cost", "Working Capital (incr.)", "Net Fixed Assets (incr.)", "Free                             Cash Flow")  
+                                       # Assign projection labels
+table.year <- year                                          # Assign projection years
+table.data <- rbind(sales, cost, WC.incr, NFA.incr, FCF)            # Layer projections
+rownames(table.data) <- table.names                         # Replace rows with projection labels
+colnames(table.data) <- table.year                          # Replace columns with projection years
+knitr::kable(table.data)                             # Display a readable table
+```
+
+2. Modify the assumptions by +/- 10\% and report the results.
+
+### Healthcare provider admission rates
+
+#### Problem
+
+We work for a healthcare insurer and our management is interested in understanding the relationship between input admission and outpatient rates as drivers of expenses, payroll, and employment. We gathered a sample of 200 hospitals in a test market in this data set.
+
+```{r eval = FALSE}
+x.data <- read.csv("data/hospitals.csv")
+```
+
+#### Questions
+
+1. Build a table that explores this data set variable by variable and relationships among variables.
+
+```{r echo = FALSE, eval = FALSE}
+head(x.data)
+tail(x.data)
+summary(x.data)
+library(psych)
+pairs.panels(x.data)
+```
+
+2. Investigate the influence of admission and outpatient rates on expenses and payroll. First, form these arrays.
+```{r echo = FALSE, eval = FALSE}
+y <- as.vector(x.data[,"expense"])
+X <- as.matrix(cbind(1, x.data[,c("admissions", "outpatients")]))
+head(y)
+head(X)
+```
+Next, compute the regression coefficients.
+```{r echo = FALSE, eval = FALSE}
+XTX.inverse <- solve(t(X) %*% X)
+(beta.hat <- XTX.inverse %*% t(X) %*% y )
+```
+Finally, compute the regression statistics.
+```{r echo = FALSE, eval = FALSE}
+e <- y - X %*% beta.hat
+e <- y - X %*% beta.hat
+(e.sse <- t(e) %*% e)
+(n <- dim(X)[1])
+(k <- nrow(beta.hat))
+(e.se <- (e.sse / (n - k))^0.5)
+```
+3. Use this code to investigate further the relationship among predicted expenses and the drivers, admissions and outpatients.
+```{r eval = FALSE}
+require(reshape2)
+require(ggplot2)
+actual <- y
+predicted <- X%*%beta.hat
+residual <- actual - predicted
+results <- data.frame(actual = actual, predicted = predicted, residual = residual)
+# Insert comment here
+min_xy <- min(min(results$actual), min(results$predicted))
+max_xy <- max(max(results$actual), max(results$predicted))
+# Insert comment here
+plot.melt <- melt(results, id.vars = "predicted")
+# Insert comment here
+plot.data <- rbind(plot.melt, data.frame(predicted = c(min_xy, max_xy), variable = c("actual", "actual"), value = c(max_xy, min_xy)))
+# Insert comment here
+p <- ggplot(plot, aes(x = predicted, y = value)) + geom_point(size = 2.5) + theme_bw()
+p <- p + facet_wrap(~variable, scales = "free")
+p
+```
+
+### Practice Set Debrief
+
+1. List the R skills needed to complete these practice labs.
+
+2. What are the packages used to compute and graph results. Explain each of them.
+
+3. How well did the results begin to answer the business questions posed at the beginning of each practice lab?
+
+## Project: Captive Financing
+
+### Purpose
+
+This project will allow us to practice various `R` features using live data to support a decision regarding the provision of captive financing to customers at the beginning of this chapter. We will focus on translating regression statistics into `R`, plotting results, and interpreting ordinary least squares regression outcomes. 
+
+### Problem
+
+As we researched how to provide captive financing and insurance for our customers we found that we needed to understand the relationships among lending rates and various terms and conditions of typical equipment financing contracts.
+
+We will focus on one question:
+
+> _What is the influence of terms and conditions on the lending rate of fully committed commercial loans with maturities greater than one year?_
+
+### Data
+
+The data set `commloan.csv` contains data from the St. Louis Federal Reserve Bank's [FRED](https://fred.stlouisfed.org/categories/32407) website we will use to get some high level insights. The quarterly data extends from the first quarter of 2003 to the second quarter of 2016 and aggregates a survey administered by the St. Louis Fed. There are several time series included. Each is by the time that pricing terms Were set and by commitment, with maturities more than 365 Days from a survey of all commercial banks. Here are the definitions.
+
+\begin{center}
+\begin{tabular}{| l | p{4cm} | l | }
+  \hline
+  Variable & Description & Units of Measure \\
+  \hline
+  rate & Weighted-Average Effective Loan Rate & percent \\ \hline
+  prepay & Percent of Value of Loans Subject to Prepayment Penalty & percent \\ \hline
+  maturity & Weighted-Average Maturity/Repricing Interval in Days & days \\ \hline
+  size & Average Loan Size & thousands USD \\ \hline
+  volume & Total Value of Loans & millions USD \\
+  \hline
+\end{tabular}
+\end{center}
+
+### Work Flow
+
+1. Prepare the data.
+
+- Visit the [FRED](https://fred.stlouisfed.org/categories/32407) website. Include any information on the site to enhance the interpretation of results.
+- Use `read.csv` to read the data into `R`. Be sure to set the  project's working directory where the data directory resides. Use `na.omit()` to clean the data.
+```{r , eval = FALSE}
+# setwd("C:/Users/Bill Foote/bookdown/bookdown-demo-master") the project directory
+x.data <- read.csv("data/commloans.csv")
+x.data <- na.omit(x.data)
+```
+- Assign the data to a variable called `x.data`. Examine the first and last 5 entries. Run a `summary` of the data set.
+```{r, eval = FALSE, echo = FALSE}
+head(x.data)
+tail(x.data)
+summary(x.data)
+```
+- What anomalies appear based on these procedures?
+
+2. Explore the data.
+- Let's plot the time series data using this code:
+```{r , eval = FALSE}
+require(ggplot2)
+require(reshape2)
+# Use melt() from reshape2 to build data frame with data as id and values of variables
+x.melted <- melt(x.data[, c(1:4)], id = "date")
+ggplot(data = x.melted, aes(x = date, y = value)) + 
+  geom_point() + facet_wrap(~variable, scales = "free_x")
+```
+- Describe the data frame that `melt()` produces.
+
+- Let's load the `psych` library and produce a scatterplot matrix. Interpret this exploration.
+```{r, eval = FALSE, echo = FALSE}
+require(psych)
+pairs.panels(x.data)
+```
+
+3. Analyze the data.
+- Let's regress `rate` on the rest of the variables in `x.data`. To do this we form a matrix of independent variables (predictor or explanatory variables) in the matrix `X` and a separate vector `y` for the dependent (response) variable `rate`. We recall that the `1` vector will produce a constant intercept in the regression model.
+```{r, eval = FALSE}
+y <- as.vector(x.data[,"rate"])
+X <- as.matrix(cbind(1, x.data[,c("prepaypenalty", "maturity", "size", "volume")]))
+head(y)
+head(X)
+```
+- Explain the code used to form `y` and `X`.
+
+- Calculate the $\hat{\beta}$ coefficients and interpret their meaning.
+```{r, eval = FALSE, echo = FALSE}
+XTX.inverse <- solve(t(X) %*% X)
+(beta.hat <- XTX.inverse %*% t(X) %*% y )
+```
+
+- Calculate actual and predicted `rates` and plot using this code.
+```{r, , eval = FALSE}
+# Insert comment here
+require(reshape2)
+require(ggplot2)
+actual <- y
+predicted <- X%*%beta.hat
+residual <- actual - predicted
+results <- data.frame(actual = actual, predicted = predicted, residual = residual)
+# Insert comment here
+min_xy <- min(min(results$actual), min(results$predicted))
+max_xy <- max(max(results$actual), max(results$predicted))
+# Insert comment here
+plot.melt <- melt(results, id.vars = "predicted")
+# Insert comment here
+plot.data <- rbind(plot.melt, data.frame(predicted = c(min_xy, max_xy), variable = c("actual", "actual"), value = c(max_xy, min_xy)))
+# Insert comment here
+p <- ggplot(plot, aes(x = predicted, y = value)) + geom_point(size = 2.5) + theme_bw()
+p <- p + facet_wrap(~variable, scales = "free")
+p
+```
+
+- Insert explanatory comments into the code chunk to document the work flow for this plot.
+
+- Interpret the graphs of actual and residual versus predicted values of `rate`.
+
+- Calculate the standard error of the residuals, Interpret its meaning.
+
+```{r, eval = FALSE, echo = FALSE}
+e <- y - X %*% beta.hat
+(e.sse <- t(e) %*% e)
+(n <- dim(X)[1])
+(k <- nrow(beta.hat))
+(e.se <- (e.sse / (n - k))^0.5)
+```
+

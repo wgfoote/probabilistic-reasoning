@@ -1,0 +1,12 @@
+```{r , include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Part III - The Basic Model  {-}
+
+- Sampling the hypothetical sets the stage to solve for $Pr(\theta \mid x)$, where $\theta$ are the hypothetical parameter values we desparately search for given hopefully not too many covariates $x$.
+
+- Statistical narcissism, also known as linear regression models, especially species of Gaussians, reclaims, revises, and expands our consciousness for the workhorse model of statistical analysis.
+
+- xxx
+
