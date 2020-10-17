@@ -24,7 +24,7 @@
 <meta name="author" content="William G. Foote" />
 
 
-<meta name="date" content="2020-09-30" />
+<meta name="date" content="2020-10-08" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -134,10 +134,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <li class="divider"></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Preamble</a><ul>
-<li class="chapter" data-level="" data-path="index.html"><a href="index.html#this-book"><i class="fa fa-check"></i>This book</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#why-this-book"><i class="fa fa-check"></i>Why this book</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#premises"><i class="fa fa-check"></i>Premises</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#dont-we-know-everything-we-need-to-know"><i class="fa fa-check"></i>Don’t we know everything we need to know?</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#what-we-desire"><i class="fa fa-check"></i>What we desire</a></li>
+<li class="chapter" data-level="0.1" data-path="index.html"><a href="index.html#frequentist-or-probabilistic"><i class="fa fa-check"></i><b>0.1</b> Frequentist or probabilistic?</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#a-work-in-progress"><i class="fa fa-check"></i>A work in progress</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="part-i-background.html"><a href="part-i-background.html"><i class="fa fa-check"></i>Part I. Background</a></li>
@@ -262,24 +263,25 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## [25] &quot;f&quot;                     &quot;fill&quot;                  &quot;fit&quot;                  
 ## [28] &quot;fit_0&quot;                 &quot;fit_1&quot;                 &quot;grid&quot;                 
 ## [31] &quot;hands&quot;                 &quot;hypotheses&quot;            &quot;indicator&quot;            
-## [34] &quot;k&quot;                     &quot;labels&quot;                &quot;lik&quot;                  
-## [37] &quot;lines_1&quot;               &quot;lines_2&quot;               &quot;logic_df&quot;             
-## [40] &quot;major&quot;                 &quot;minor&quot;                 &quot;move_over&quot;            
-## [43] &quot;n&quot;                     &quot;n.sim&quot;                 &quot;n_blue&quot;               
-## [46] &quot;n_sim&quot;                 &quot;n_white&quot;               &quot;position&quot;             
-## [49] &quot;posterior_hands&quot;       &quot;posterior_hands_raw&quot;   &quot;posterior_shovels&quot;    
-## [52] &quot;posterior_shovels_raw&quot; &quot;postSample&quot;            &quot;priors&quot;               
-## [55] &quot;prob&quot;                  &quot;prod&quot;                  &quot;pv.1&quot;                 
-## [58] &quot;pv.machine&quot;            &quot;pv.salvage&quot;            &quot;r&quot;                    
-## [61] &quot;R&quot;                     &quot;randomSample&quot;          &quot;rates&quot;                
-## [64] &quot;salvage&quot;               &quot;schools_dat&quot;           &quot;shovels&quot;              
-## [67] &quot;sum_column&quot;            &quot;sum_row&quot;               &quot;t&quot;                    
-## [70] &quot;table_posteriors&quot;      &quot;table_priors&quot;          &quot;trueMu&quot;               
-## [73] &quot;trueSig&quot;               &quot;truth&quot;                 &quot;x&quot;                    
-## [76] &quot;X&quot;                     &quot;x.char&quot;                &quot;x_1&quot;                  
-## [79] &quot;x_2&quot;                   &quot;x1&quot;                    &quot;XTX_inverse&quot;          
-## [82] &quot;xy_df&quot;                 &quot;xy_summary&quot;            &quot;xy_tbl&quot;               
-## [85] &quot;y&quot;                     &quot;z&quot;</code></pre>
+## [34] &quot;k&quot;                     &quot;kl_dyads&quot;              &quot;kl_households&quot;        
+## [37] &quot;labels&quot;                &quot;lik&quot;                   &quot;lines_1&quot;              
+## [40] &quot;lines_2&quot;               &quot;logic_df&quot;              &quot;major&quot;                
+## [43] &quot;minor&quot;                 &quot;move_over&quot;             &quot;n&quot;                    
+## [46] &quot;n.sim&quot;                 &quot;n_blue&quot;                &quot;n_sim&quot;                
+## [49] &quot;n_white&quot;               &quot;position&quot;              &quot;posterior_hands&quot;      
+## [52] &quot;posterior_hands_raw&quot;   &quot;posterior_shovels&quot;     &quot;posterior_shovels_raw&quot;
+## [55] &quot;postSample&quot;            &quot;priors&quot;                &quot;prob&quot;                 
+## [58] &quot;prod&quot;                  &quot;pv.1&quot;                  &quot;pv.machine&quot;           
+## [61] &quot;pv.salvage&quot;            &quot;r&quot;                     &quot;R&quot;                    
+## [64] &quot;randomSample&quot;          &quot;rates&quot;                 &quot;salvage&quot;              
+## [67] &quot;schools_dat&quot;           &quot;shovels&quot;               &quot;sum_column&quot;           
+## [70] &quot;sum_row&quot;               &quot;t&quot;                     &quot;table_posteriors&quot;     
+## [73] &quot;table_priors&quot;          &quot;trueMu&quot;                &quot;trueSig&quot;              
+## [76] &quot;truth&quot;                 &quot;x&quot;                     &quot;X&quot;                    
+## [79] &quot;x.char&quot;                &quot;x_1&quot;                   &quot;x_2&quot;                  
+## [82] &quot;x1&quot;                    &quot;XTX_inverse&quot;           &quot;xy_df&quot;                
+## [85] &quot;xy_summary&quot;            &quot;xy_tbl&quot;                &quot;y&quot;                    
+## [88] &quot;z&quot;</code></pre>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" title="1"><span class="kw">length</span>(x)</a></code></pre></div>
 <pre><code>## [1] 5</code></pre>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" title="1">x[<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(x)]</a></code></pre></div>
@@ -391,7 +393,7 @@ This expression translates into <code>R</code> this way:</p>
 </div>
 <div id="the-plot-thickens" class="section level2">
 <h2><span class="header-section-number">4.4</span> The plot thickens</h2>
-<p>We will want to see our handiwork, so load the <code>ggplot2</code> library using <code>install.packages("ggplot2")</code>.<a href="#fn16" class="footnote-ref" id="fnref16"><sup>16</sup></a></p>
+<p>We will want to see our handiwork, so load the <code>ggplot2</code> library using <code>install.packages("ggplot2")</code>.<a href="#fn17" class="footnote-ref" id="fnref17"><sup>17</sup></a></p>
 <p>This plotting package requires data frames. A “data frame” simply put is a list of vectors and arrays with names. An example of a data frame in Excel is just the worksheet. There are columns with names in the first row, followed by several rows of data in each column. If you were to install the <code>tidyverse</code> package and load the package with <code>library(tidyverse)</code> you could use <code>tibble()</code> instead of the bas R <code>data.frame()</code>.</p>
 <p>Here we have defined a data frame <code>xy_df</code>. All of the <code>x</code> and <code>y</code> variates are put into one part of the frame, and the distribution indicator into another. For all of this to work in a plot the two arrays must be of the same length. Thus we use the common <code>n.sim</code> and <code>length(x)</code> to insure this when we computed the series. We always examine the data, here using the <code>head</code> and <code>tail</code> functions.</p>
 <p>Type <code>help(ggplot)</code> into the console for details. The <code>ggplot2</code> graphics package embodies Hadley Wickham’s “grammar of graphics” we can review at <a href="http://ggplot2.org" class="uri">http://ggplot2.org</a>. Hadley Wickham has a very useful presentation with numerous examples at <a href="http://ggplot2.org/resources/2007-past-present-future.pdf" class="uri">http://ggplot2.org/resources/2007-past-present-future.pdf</a>.</p>
@@ -400,16 +402,16 @@ frames.</p>
 <p>We load the library first. The next statement sets up the blank but all too ready canvas (it will be empty!) on which a density plot can be rendered.</p>
 <div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb57-1" title="1"><span class="kw">library</span>(ggplot2)</a>
 <a class="sourceLine" id="cb57-2" title="2"><span class="kw">ggplot</span>(xy_df, <span class="kw">aes</span>(<span class="dt">x =</span> Variates, <span class="dt">fill =</span> Distributions))</a></code></pre></div>
-<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-66-1.png" width="672" /></p>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
 <p>The data frame name <code>xy_df</code> is first followed by the aesthetics mapping of data. The next statement inserts a geometrical element, here a density curve, which has a transparency parameter aesthetic <code>alpha</code>.</p>
-<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-67-1.png" width="672" /></p>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
 <div id="try-this-example" class="section level3">
 <h3><span class="header-section-number">4.4.1</span> Try this example</h3>
 <p>Zoom in with <code>xlim</code> and lower x-axis and upper x-axis limits using the following statement:</p>
 <div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb58-1" title="1"><span class="kw">ggplot</span>(xy_df, <span class="kw">aes</span>(<span class="dt">x =</span> Variates, <span class="dt">fill =</span> Distributions)) <span class="op">+</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb58-2" title="2"><span class="st">    </span><span class="kw">geom_density</span>(<span class="dt">alpha =</span> <span class="fl">0.3</span>) <span class="op">+</span><span class="st"> </span><span class="kw">xlim</span>(<span class="op">-</span><span class="dv">1</span>, </a>
 <a class="sourceLine" id="cb58-3" title="3">    <span class="dv">6</span>)</a></code></pre></div>
-<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-68-1.png" width="672" /></p>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
 <p>Now we are getting to extreme value statistics by visualizing the tail of this distribution.</p>
 </div>
 </div>
@@ -483,9 +485,9 @@ frames.</p>
 <a class="sourceLine" id="cb79-2" title="2">x_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">rgamma</span>(n_sim, <span class="fl">0.5</span>, <span class="fl">0.2</span>)</a>
 <a class="sourceLine" id="cb79-3" title="3">x_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">rlnorm</span>(n_sim, <span class="fl">0.15</span>, <span class="fl">0.25</span>)</a>
 <a class="sourceLine" id="cb79-4" title="4"><span class="kw">hist</span>(x_<span class="dv">1</span>)</a></code></pre></div>
-<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-74-1.png" width="672" /></p>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
 <div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb80-1" title="1"><span class="kw">hist</span>(x_<span class="dv">2</span>)</a></code></pre></div>
-<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-74-2.png" width="672" /></p>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-41-2.png" width="672" /></p>
 <div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb81-1" title="1">X &lt;-<span class="st"> </span><span class="kw">cbind</span>(x_<span class="dv">1</span>, x_<span class="dv">2</span>)</a></code></pre></div>
 <p><code>rgamma</code> allows us to generate <code>n_sim</code> versions of the gamma distribution with scale parameter <code>0.5</code> and shape parameter <code>0.2</code>. <code>rlnorm</code> is a popular financial return distribution with mean <code>0.15</code> and standard deviation <code>0.25</code>. We can call up <code>??distributions</code> to get detailed information. Let’s plot the histograms of each simulated random variate using <code>hist()</code>.</p>
 <p>The <code>cbind</code> function binds into matrix columns the row arrays <code>x_1</code> and <code>x_2</code>. These might be simulations of operational and financial losses. The <code>X</code> matrix could look like the <em><em>design matrix</em></em> for a regression.</p>
@@ -509,7 +511,7 @@ y = \beta_1 x_1 + \beta_2 x_2 + \varepsilon
 <p>Where <span class="math inline">\(\hat{\beta}\)</span> is read as “beta hat”.</p>
 <p>The result <span class="math inline">\(y\)</span> with its <code>hist()</code> is</p>
 <div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb83-1" title="1"><span class="kw">hist</span>(y)</a></code></pre></div>
-<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-76-1.png" width="672" /></p>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
 <p>The rubber meets the road here as we compute <span class="math inline">\(\hat{\beta}\)</span>.</p>
 <div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb84-1" title="1">X &lt;-<span class="st"> </span><span class="kw">cbind</span>(x_<span class="dv">1</span>, x_<span class="dv">2</span>)</a>
 <a class="sourceLine" id="cb84-2" title="2">XTX_inverse &lt;-<span class="st"> </span><span class="kw">solve</span>(<span class="kw">t</span>(X) <span class="op">%*%</span><span class="st"> </span>X)</a>
@@ -522,7 +524,7 @@ y = \beta_1 x_1 + \beta_2 x_2 + \varepsilon
 <p>Now for the estimated <span class="math inline">\(\varepsilon\)</span> where we use the matrix inner product <code>%*%</code>. We need to be sure to <em>pre</em>-multiply <code>beta_hat</code> with <code>X</code>!</p>
 <div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb86-1" title="1">e &lt;-<span class="st"> </span>y <span class="op">-</span><span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>beta_hat</a></code></pre></div>
 <div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb87-1" title="1"><span class="kw">hist</span>(e)</a></code></pre></div>
-<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-79-1.png" width="672" /></p>
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-46-1.png" width="672" /></p>
 <p>We see that the “residuals” are almost centered at <code>0</code>.</p>
 </div>
 <div id="more-about-residuals" class="section level3">
@@ -589,14 +591,14 @@ y = \beta_1 x_1 + \beta_2 x_2 + \varepsilon
 ## Multiple R-squared:   0.5,	Adjusted R-squared:  0.489 
 ## F-statistic: 48.5 on 2 and 97 DF,  p-value: 0.00000000000000257</code></pre>
 <p>We see a very different story where the coefficient of the <code>x_2</code> variable changes sign. In future sagas we will bury <span class="math inline">\(R^2\)</span>.</p>
-<p>The <code>lm()</code> function is thew orkhorse of R regression in the frequentist statistical tradition of Joseph Venn and R.A. <span class="citation">Fisher (<a href="#ref-Fisher_1925" role="doc-biblioref">1925</a>)</span>.<a href="#fn17" class="footnote-ref" id="fnref17"><sup>17</sup></a></p>
+<p>The <code>lm()</code> function is thew orkhorse of R regression in the frequentist statistical tradition of Joseph Venn and R.A. <span class="citation">Fisher (<a href="#ref-Fisher_1925" role="doc-biblioref">1925</a>)</span>.<a href="#fn18" class="footnote-ref" id="fnref18"><sup>18</sup></a></p>
 <p>We also notice the layout of the writing of the function and its arguments. This tremendously aids comprehension as well as shooting trouble when running the functions.</p>
 <p>Finally, again for no charge at all, lets load library <code>psych</code> (use <code>install.packages("psych")</code> as needed). We will use <code>pairs.panels()</code> for a pretty picture of our work in this try out. First column bind <code>cbind()</code> the <code>y</code>, <code>X</code>, and <code>e</code> arrays to create a data frame for <code>pairs.panel()</code>.</p>
 <div class="sourceCode" id="cb100"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb100-1" title="1"><span class="kw">library</span>(psych)</a>
 <a class="sourceLine" id="cb100-2" title="2">all &lt;-<span class="st"> </span><span class="kw">cbind</span>(y, X, e)</a></code></pre></div>
 <p>We then invoke the <code>pairs.panels()</code> function using the <code>all</code> array we just created. The result is a scatterplot matrix with histograms of each variate down the diagonal. The lower triangle of the matrix is populated with scatterplots. The upper triangle of the matrix has correlations depicted with increasing font sizes for higher correlations.</p>
 <div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb101-1" title="1"><span class="kw">pairs.panels</span>(all)</a></code></pre></div>
-<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-83-1.png" width="672" />
+<p><img src="book-probabilistic-reasoning_files/figure-html/unnamed-chunk-50-1.png" width="672" />
 We will use this sort of tool again and again to explore the multivariate relationships among our data. Even better displays are available with the</p>
 </div>
 </div>
@@ -868,9 +870,9 @@ We have already deployed very useful matrix operation, the inverse. The <code>R<
 </div>
 <div class="footnotes">
 <hr />
-<ol start="16">
-<li id="fn16"><p>Visit Hadley Wickham’s examples at <a href="http://ggplot2.org/" class="uri">http://ggplot2.org/</a>.)<a href="tickling-the-ivories.html#fnref16" class="footnote-back">↩</a></p></li>
-<li id="fn17"><p>Fisher was a geneticist who espoused this approach which really did apply quite well to his field. Our field is that of human behavior in the business domain. Fisher’s approach might not always work for us there. He assumes effectively that the prior belief is uniformly distributed. More than that, his approach is to calculate averages, aggregations, of series of data, deviations (squared), of data, and so one. Then given the aggregation, simulate the aggregator. Our probabistic approach does not assume a prior belief. It goes on to simulate the range of possible, and logical, ways (hypotheses) that data can condition hypotheses about a parameter, and elicit a posterior response given a belief about the hypothesis. This approach solves for the parameter across a range of hypotheses conditional on beliefs and data. If our questions do not require this extent of analysis, then, so be it, we use Fisher’s ellipsis of an approach.<a href="tickling-the-ivories.html#fnref17" class="footnote-back">↩</a></p></li>
+<ol start="17">
+<li id="fn17"><p>Visit Hadley Wickham’s examples at <a href="http://ggplot2.org/" class="uri">http://ggplot2.org/</a>.)<a href="tickling-the-ivories.html#fnref17" class="footnote-back">↩</a></p></li>
+<li id="fn18"><p>Fisher was a geneticist who espoused this approach which really did apply quite well to his field. Our field is that of human behavior in the business domain. Fisher’s approach might not always work for us there. He assumes effectively that the prior belief is uniformly distributed. More than that, his approach is to calculate averages, aggregations, of series of data, deviations (squared), of data, and so one. Then given the aggregation, simulate the aggregator. Our probabistic approach does not assume a prior belief. It goes on to simulate the range of possible, and logical, ways (hypotheses) that data can condition hypotheses about a parameter, and elicit a posterior response given a belief about the hypothesis. This approach solves for the parameter across a range of hypotheses conditional on beliefs and data. If our questions do not require this extent of analysis, then, so be it, we use Fisher’s ellipsis of an approach.<a href="tickling-the-ivories.html#fnref18" class="footnote-back">↩</a></p></li>
 </ol>
 </div>
             </section>

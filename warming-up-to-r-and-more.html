@@ -24,7 +24,7 @@
 <meta name="author" content="William G. Foote" />
 
 
-<meta name="date" content="2020-09-30" />
+<meta name="date" content="2020-10-08" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -134,10 +134,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <li class="divider"></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Preamble</a><ul>
-<li class="chapter" data-level="" data-path="index.html"><a href="index.html#this-book"><i class="fa fa-check"></i>This book</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#why-this-book"><i class="fa fa-check"></i>Why this book</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#premises"><i class="fa fa-check"></i>Premises</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#dont-we-know-everything-we-need-to-know"><i class="fa fa-check"></i>Don’t we know everything we need to know?</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#what-we-desire"><i class="fa fa-check"></i>What we desire</a></li>
+<li class="chapter" data-level="0.1" data-path="index.html"><a href="index.html#frequentist-or-probabilistic"><i class="fa fa-check"></i><b>0.1</b> Frequentist or probabilistic?</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#a-work-in-progress"><i class="fa fa-check"></i>A work in progress</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="part-i-background.html"><a href="part-i-background.html"><i class="fa fa-check"></i>Part I. Background</a></li>
@@ -260,7 +261,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><p>Practitioners can easily migrate to the commercially supported <code>S-Plus</code> program, if commercial software is required. <code>S</code> and <code>S-Plus</code> are the immediate ancestors of the R programming environment. Cloud computing is now available with large data implementations. Microsoft now supports a commercial <code>R</code> version.</p></li>
 <li><p><code>R</code>’s language has a powerful, easy-to-learn syntax with many built-in statistical and operational research functions. Just as important are the extensive web-scraping, text structuring, object class construction, and the extensible functional programming aspects of the language. A formal language definition is being developed. This will yield more standardization and better control of the language in future versions.</p></li>
 <li><p><code>R</code> is a computer programming language. For programmers it will feel more familiar than for others, for example Excel users. <code>R</code> requires array thinking and object relationships that are not necessarily native, but indeed are possible, in an Excel spreadsheet environment. In many ways, the Excel style and <code>R</code> style of environments complement one another.</p></li>
-<li><p>Even though it is not necessarily the simplest software to use, the basics are easy enough to master, so that learning to use <code>R</code> need not interfere with learning the statistical, operational research, data, and domain-specific concepts encountered in an analytics-focused course.<a href="#fn13" class="footnote-ref" id="fnref13"><sup>13</sup></a></p></li>
+<li><p>Even though it is not necessarily the simplest software to use, the basics are easy enough to master, so that learning to use <code>R</code> need not interfere with learning the statistical, operational research, data, and domain-specific concepts encountered in an analytics-focused course.<a href="#fn14" class="footnote-ref" id="fnref14"><sup>14</sup></a></p></li>
 </ul>
 <ul>
 <li><p>Doing statistics in a spreadsheet (e.g., Microsoft Excel) is generally a bad idea. While hundreds of millions of Excel users might disagree with this proposition learn the lesson of the 415 Report spreadsheet model to manage risks at JP Morgan Chase. Although many people are likely feel more familiar with them, spreadsheets are very limited in terms of what analyses they allow you do. If you get into the habit of trying to do your real life data analysis using spreadsheets, then you’ve dug yourself into a very deep hole.</p></li>
@@ -323,7 +324,7 @@ Type &#39;q()&#39; to quit R.</code></pre>
 <h3><span class="header-section-number">3.5.2</span> Installing R on a Mac</h3>
 <p>When you click on the Mac OS X link, you should find yourself on a page with the title “R for Mac OS X”. The vast majority of Mac users will have a fairly recent version of the operating system: as long as you run macOS 10.13 (High Sierra), then you’ll be fine.[^old]</p>
 <p>[^old]; If you’re running an older version of the Mac OS, then you need to follow the link to the “old” page (<a href="http://cran.r-project.org/bin/macosx/old/" class="uri">http://cran.r-project.org/bin/macosx/old/</a>). You should be able to find the installer file that you need at the bottom of the page.] There’s a fairly prominent link on the page called “R-4.0.2.pkg”, which is the one you want. Click on that link and you’ll start downloading the installer file, which is <code>R-4.0.2.pkg</code>. It’s about 84MB in size.</p>
-<p>Once you’ve downloaded <code>R-3.0.2.pkg</code>, all you need to do is open it by double clicking on the package file. The installation should go smoothly from there: just follow all the instructions just like you usually do when you install something. Once it’s finished, you’ll find a file called <code>R.app</code> in the Applications folder. You can now open up R in the usual way<a href="#fn14" class="footnote-ref" id="fnref14"><sup>14</sup></a> if you want to, but what I’m going to suggest is that instead of doing that you should now install RStudio (see Section <a href="warming-up-to-r-and-more.html#installingrstudio">3.5.4</a> for instructions).</p>
+<p>Once you’ve downloaded <code>R-3.0.2.pkg</code>, all you need to do is open it by double clicking on the package file. The installation should go smoothly from there: just follow all the instructions just like you usually do when you install something. Once it’s finished, you’ll find a file called <code>R.app</code> in the Applications folder. You can now open up R in the usual way<a href="#fn15" class="footnote-ref" id="fnref15"><sup>15</sup></a> if you want to, but what I’m going to suggest is that instead of doing that you should now install RStudio (see Section <a href="warming-up-to-r-and-more.html#installingrstudio">3.5.4</a> for instructions).</p>
 </div>
 <div id="installing-r-on-a-linux-computer" class="section level3">
 <h3><span class="header-section-number">3.5.3</span> Installing R on a Linux computer</h3>
@@ -336,7 +337,7 @@ Type &#39;q()&#39; to quit R.</code></pre>
 <blockquote>
 <p><a href="http://www.RStudio.org/" class="uri">http://www.RStudio.org/</a></p>
 </blockquote>
-<p>When you visit the RStudio website, you’ll see a new school user interface, much easier to navigate and simpler than the CRAN website,<a href="#fn15" class="footnote-ref" id="fnref15"><sup>15</sup></a></p>
+<p>When you visit the RStudio website, you’ll see a new school user interface, much easier to navigate and simpler than the CRAN website,<a href="#fn16" class="footnote-ref" id="fnref16"><sup>16</sup></a></p>
 <p>Just click the <code>Download</code> button and follow the directions to the desktop version for your system.</p>
 <p>After it’s finished installing, you start R by opening RStudio. You don’t need to open R.app or R.exe in order to access R. RStudio will take care of that for you. In this screenshot you can see four panels. One of them is the R console.</p>
 <div class="figure">
@@ -601,10 +602,10 @@ $$</code></pre>
 </div>
 <div class="footnotes">
 <hr />
-<ol start="13">
-<li id="fn13"><p>The attribute <em>simple</em> is relative. For example, this Excel formula with nested if statements is far from <em>simple</em> to understand, document, and implement: `=if(x3 = 1, 2, if(y2=0, “42”&amp;cell(3, 2), if(left(a<span class="math inline">\(4\)</span>, find(b<span class="math inline">\(4\)</span>, “=42”))))).<a href="warming-up-to-r-and-more.html#fnref13" class="footnote-back">↩</a></p></li>
-<li id="fn14"><p>Tip for advanced Mac users. You can run R from the terminal if you want to. The command is just “R”. It behaves like the normal desktop version, except that help documentation behaves like a “man” page instead of opening in a new window.<a href="warming-up-to-r-and-more.html#fnref14" class="footnote-back">↩</a></p></li>
-<li id="fn15"><p>This is probably no coincidence: the people who design and distribute the core R language itself are focused on technical stuff. And sometimes they almost seem to forget that there’s an actual human user at the end. The people who design and distribute RStudio are focused on the user. Their goal is to make R as available, usable, auditable as possible.<a href="warming-up-to-r-and-more.html#fnref15" class="footnote-back">↩</a></p></li>
+<ol start="14">
+<li id="fn14"><p>The attribute <em>simple</em> is relative. For example, this Excel formula with nested if statements is far from <em>simple</em> to understand, document, and implement: `=if(x3 = 1, 2, if(y2=0, “42”&amp;cell(3, 2), if(left(a<span class="math inline">\(4\)</span>, find(b<span class="math inline">\(4\)</span>, “=42”))))).<a href="warming-up-to-r-and-more.html#fnref14" class="footnote-back">↩</a></p></li>
+<li id="fn15"><p>Tip for advanced Mac users. You can run R from the terminal if you want to. The command is just “R”. It behaves like the normal desktop version, except that help documentation behaves like a “man” page instead of opening in a new window.<a href="warming-up-to-r-and-more.html#fnref15" class="footnote-back">↩</a></p></li>
+<li id="fn16"><p>This is probably no coincidence: the people who design and distribute the core R language itself are focused on technical stuff. And sometimes they almost seem to forget that there’s an actual human user at the end. The people who design and distribute RStudio are focused on the user. Their goal is to make R as available, usable, auditable as possible.<a href="warming-up-to-r-and-more.html#fnref16" class="footnote-back">↩</a></p></li>
 </ol>
 </div>
             </section>
