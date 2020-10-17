@@ -1,0 +1,51 @@
+---
+title: "Week 1 Notes"
+author: "Bill Foote"
+date: "8/26/2020"
+output:
+  ioslides_presentation:
+    widescreen: true
+    fig_width: 4
+    fig_height: 5
+    fig_caption: true
+    #css: styles.css
+  #prettydoc::html_pretty
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+#
+library(tidyverse)
+library(ggmap)
+library(stringr)
+library(viridis)
+library(plotly)
+library(visNetwork)
+#
+api_key <- "AIzaSyA5XmoJgeHOcNNxqixIQojokXOB_7YwOMY"
+register_google(api_key, write = TRUE)
+#
+
+```
+
+## What we will cover
+
+1. Syllabus and expectations
+
+2. Counting and how we will proceed
+
+3. The many faces of data
+
+## What do you think?
+
+- Pilots should love to know the defects in their planes
+
+- Organizations that have good rainy day funds are more valuable than those that use their cash to buy back stock
+
+- Probability does not exist, neither do means and standard deviations
+
+## Magick?
+
+<center>
+  ![Magick vs Grit](magick.jpg){ width=50% }
+</center>
