@@ -1,0 +1,387 @@
+---
+title: "Adam Smith Against Himself? Wealth of Nations versus Moral Sentiment: A Textual Criticism"
+author: "Bill Foote"
+date: "12/5/2020"
+output: html_document
+---
+
+```{r , include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidytext)
+library(tidyverse)
+library(tidyverse)
+library(tidytext)
+library(gutenbergr)
+library(tidygraph)
+library(corrr)
+library(igraph)
+library(ggraph)
+library(stringr)
+library(widyr)
+```
+
+## Some background
+
+Adam Smith is famous for the primal location of markets in political economic thought and practice. Markets are any kind of exchange at all for consideration. Some of these markets are for factors of production, including labor, but he mostly seemed to favor land as the primary factor and as an economy's capital base. Capital, that is, the Land, subordinates labor and thus relegates labor to a necessary but not sufficient role. Those who owned, even better yet, governed the use of capital seemed allowed, perhaps by fiat of the local prince, to use labor in any way necessary to deploy capital.
+
+This preliminary investigation will use [Julia Silge's tidytext framework explicated here in her online version of her book.](https://www.tidytextmining.com/tidytext.html) These techniques belong in large part to the methodology of text criticism. They attempt to identify similarities and differences in versions, developments, copies, and bodies of knowledge representted in written materials called corpora. Each corpus may have had multiple authors across vast periods of time in different cultures. Text criticism attempts to unravel the historical, times, and even the embedded sentiments in a corpus. It is a tool often employed by linguists, exegetes, philologists, historians, and others to identify authors, variants and versions, and even semantic meanings and developments along a time-line and across spatial boundaries, at least as represented in textual evidence.
+
+We can decompose a language, and its textual representation, into the atomic units of _**morphemes**_. Even in this term there are three units: _morph_, a root meaning the shape of a word; _eme_ denoting an object, that is, a word, rather than an action; _s_, which denotes in English the plural. All of these aspects are endemic to a textual study of bigrams which are two-word, multiple morpheme, agglutinations of characters, and pairs of words within a defined distance in a corpus. Semantics is a higher viewpoint than grammar, vocabulary, and syntax that attacks the problem of meaning and interpretation, that is, hermeneutics, of what we observe in a corpus. All of these processes, objects, and concepts come into play with textual criticism. A first stab at semantics is a sentiment analysis of the meaning and possible the feeling and connotation of a unit of a corpus.
+
+## The data are the books
+
+We use the `gutenbergr` package to access whatever books Project Gutenberg might have stored for Adam Smith.
+
+```{r}
+gutenberg_works(author == "Smith, Adam")
+```
+
+This call reveals that Project Gutenberg does not store Smith's "Theory of the moral Sentiments". A search finds this book [here](http://ota.ox.ac.uk/desc/3189). The code uses [Regex](http://www.rexegg.com/regex-quickstart.html) character, digit, and other operators to manage various types of strings and strings of strings like chapters.
+
+```{r}
+wealth <- gutenberg_download(gutenberg_id = 3300) %>% 
+  select(-gutenberg_id) %>% 
+  mutate(chapter = cumsum(str_detect(text, regex("^chapter [\\divxlc]",
+                                                 ignore_case = TRUE))),
+         book = as.factor("Wealth of Nations")
+  )
+glimpse( wealth )
+```
+
+```{r}
+theory <- read_file("adam-smith-moral-theory.txt") %>% 
+  tibble(text = .) %>% 
+    mutate(text = strsplit(text, "\n")) %>% 
+    unnest(text) %>% 
+    mutate(book = as.factor("The Theory of Moral Sentiments"),
+           chapter = cumsum(str_detect(text, regex("^Chap. [\\divxlc]",
+                                                 ignore_case = TRUE))))
+glimpse( theory )
+```
+
+## Mining the corpus
+
+There are several steps we can follow here. First, and foremost for subsequent analysis, is the descriptive frequency of words in the _corpora_.
+
+### Most used words
+
+Here we count (frequency) the words that Smith uses the most in each of the books. 
+
+```{r}
+smith_books <- rbind(theory, wealth)
+
+smith_books_tidy <- smith_books %>% 
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)
+
+smith_books_tidy %>% 
+  count(word, book) %>% 
+  group_by(book) %>% 
+  arrange(desc(n)) %>% 
+  top_n(10) %>% 
+  ggplot(aes(x = fct_reorder(word, n), y = n, fill = book)) +
+    geom_col() +
+    coord_flip() +
+    hrbrthemes::theme_ipsum_tw() +
+    facet_wrap(~ book, scales = "free") +
+    ggthemes::scale_fill_gdocs(guide = FALSE) +
+    labs(x = "")
+```
+
+From this simple text critical technique we can anecdotally surmise that
+
+1. The texts differ in frequency of key words. Price contrasts with conduct; country with persons; quantity with virtue.
+
+2. The top ten words for _Theory of Moral Sentiment_ perhaps naturally as to the subject relate to persons, values, and categories of a moral, philosophical argument.
+
+3. The top ten words relate to categories of markets, factors of production, accounting, and economic activity.
+
+We can go further with an _n-gram_ analysis. 
+
+
+```{r}
+smith_bigrams <- smith_books %>%
+  unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% 
+  group_by(book)
+# includes lots of otherwise stop words
+# smith_bigrams %>%
+#  count(bigram, sort = TRUE)
+# excludes stop words
+bigrams_separated <- smith_bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+bigrams_filtered <- bigrams_separated %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)
+# bigram counts
+bigram_counts <- bigrams_filtered %>% 
+  group_by(book) %>% 
+  count(word1, word2, sort = TRUE)
+head(bigram_counts)
+```
+Now we look for the most common bigrams (separated by " ", a blank space) using the `unite()` function.
+
+```{r}
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ")
+head(bigrams_united)
+```
+
+Let's busy ourselves with the frequency of terms and the inverse document frequency of terms (TF-IDF). The term frequency is simply the number of times a term, here a bigram, occurs relative to all terms, here bigrams. We weigh this relative frequency by an information importance measure called the inverse document frequency, which we define in natural logarithms as
+
+$$
+IDF(term) = log 
+\left[\frac{n_{documents}}{n_{documents\,containing\,term}} \right]
+$$
+This log ratio is related to, but not the same as, to the inverse of the odds in favor of seeing a document with the term versus any document.
+
+We multiply the TF by the IDF to weigh the TF away from very common terms and toward terms that otherwise are infrequent. 
+
+```{r}
+library(janeaustenr)
+book_words <- smith_books %>%
+  unnest_tokens(word, text) %>%
+  count(book, word, sort = TRUE)
+book_tf_idf <- book_words %>%
+  bind_tf_idf(word, book, n)
+book_tf_idf %>%
+  group_by(book) %>%
+  slice_max(tf_idf, n = 15) %>%
+  ungroup() %>%
+  ggplot(aes(tf_idf, fct_reorder(word, tf_idf), fill = book)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~book, ncol = 2, scales = "free") +
+  labs(x = "tf-idf", y = NULL)
+
+```
+
+```{r}
+
+
+bigram_tf_idf <- bigrams_united %>%
+  count(book, bigram) %>%
+  bind_tf_idf(bigram, book, n) %>%
+  arrange(desc(tf_idf))
+
+head(bigram_tf_idf)
+```
+
+Of course, we want to see a picture of our handiwork (really Silge et al.!).
+
+```{r}
+library(forcats)
+library(plotly)
+
+plt <- bigram_tf_idf %>%
+  group_by(book) %>%
+  slice_max(tf_idf, n = 15) %>%
+  ungroup() %>% 
+  ggplot(aes(tf_idf, fct_reorder(bigram, tf_idf), fill = book)) +
+  geom_col( show.legend = FALSE ) +
+  facet_wrap( ~ book, ncol = 2, scales = "free" ) +
+  labs( x = "tf-idf", y = NULL )
+plt
+```
+
+
+
+### Sentiment Analysis
+
+A typical sentiment analysis will match words by frequency in corpora with a lexicon of conceptual and emotionally connotative words. The analysis will only be as good as the lexicon, as it presents a higher viewpoint of potential comparisons using corpora as data observed. 
+
+We can use the `tidytext` package to deploy several sentiment lexicons.
+
+```{r}
+glimpse(get_sentiments(lexicon = c("bing", "afinn", "loughran", "nrc")))
+```
+Wherever a corpus has these words a match will be found in the lexicon. Sentiment scores can then be summed for each match.
+
+```{r message=FALSE, warning=FALSE}
+d <- smith_books_tidy %>% 
+  inner_join(get_sentiments(lexicon = c("bing", "afinn", "loughran", "nrc"))) %>% 
+  mutate( score = ifelse( sentiment == "negative", 0, 1) ) %>% 
+  group_by(book, chapter) %>% 
+  summarise(sentiment = sum(score)) 
+plt <- d %>% 
+  ggplot(aes(x = chapter, y = sentiment, color = book)) +
+    geom_point(alpha = 1/10) +
+    geom_smooth(se = FALSE) +
+    facet_wrap(~ book, scales = "free_x") +
+    hrbrthemes::theme_ipsum_tw() +
+    ggthemes::scale_color_gdocs(guide = FALSE)
+plt
+```
+
+The _Theory of Moral Sentiment_ begins on a negative note, which becomes more positive, ending on a higher note than the beginning, with perhaps a cautionary tale at the end. In contrast the _Wealth of Nations_ has an almost uninterrupted climb from low positive (high negative) sentiment scores to much higher counts of positively related words in the final chapters. We cannot emphasize enought that positive and negative sentiments is culture-bound, and time (if not epoch) sensitive. 
+
+### TF-IDF
+
+When we retrieve information from a corpus, the use of term frequency (TF)–inverse document frequency (IDF) techniques attempt to measure the importance of a neme (phoneme, is a numerical statistic that is intended to reflect how important a word is to a document in a collection or corpus.[1] It is often used as a weighting factor in searches of information retrieval, text mining, and user modeling. The tf–idf value increases proportionally to the number of times a word appears in the document and is offset by the number of documents in the corpus that contain the word, which helps to adjust for the fact that some words appear more frequently in general. tf–idf is one of the most popular term-weighting schemes today. A survey conducted in 2015 showed that 83% of text-based recommender systems in digital libraries use tf–idf.[
+
+Term Frequency (TF)-IDistribution Frequency techniwues adjusts the term frequency within document (in this case book) for the specificity of the term to that specific document. Thus, terms that are used in both books are weighted down, and terms that are used almost exclusively in one of the books are weighted up. The idea is to find the most distinctive terms for each book. My intuition tells me that this won't be much too different from the original counts (very different vocabularies in the books). Just for the sake of it, let's use bigrams:
+
+```{r}
+smith_bigrams <- smith_books %>% 
+  unnest_tokens( bigram, text, token = "ngrams", n = 2 )
+bigrams_separated <- smith_bigrams %>%
+  separate( bigram, c( "word1", "word2" ), sep = " " )
+bigrams_filtered <- bigrams_separated %>%
+  filter( !word1 %in% stop_words$word ) %>%
+  filter( !word2 %in% stop_words$word ) %>% 
+  filter( !str_detect(word1, "\\d" ),
+          !str_detect(word2, "\\d" ) )
+bigrams_united <- bigrams_filtered %>%
+  unite( bigram, word1, word2, sep = " " )
+bigrams_united %>% 
+  count( book, bigram ) %>% 
+  group_by( book ) %>% 
+  arrange( desc(n) ) %>% 
+  top_n( 10 ) %>% 
+  ggplot( aes( x = fct_reorder(bigram, n), y = n, fill = book ) ) +
+    geom_col() +
+    coord_flip() +
+    facet_wrap( ~ book, scales = "free" ) +
+    hrbrthemes::theme_ipsum() +
+    ggthemes::scale_fill_gdocs( guide = FALSE ) +
+    labs( x = "" )
+```
+
+With just the counts, the subject difference is even more striking, fjor example, human nature compared with foreign trade. We might even use the bigram for the "Theory" as the main subject of the book and not be completely wrong.
+
+```{r}
+bigrams_united %>%
+  count( book, bigram ) %>%
+  bind_tf_idf( bigram, book, n ) %>%
+  group_by( book ) %>% 
+  arrange( desc(tf_idf) ) %>% 
+  top_n( 10 ) %>% 
+  ggplot( aes(x = fct_reorder(bigram, tf_idf), y = tf_idf, fill = book ) ) +
+    geom_col() +
+    coord_flip() +
+    facet_wrap( ~ book, scales = "free" ) +
+    hrbrthemes::theme_ipsum() +
+    ggthemes::scale_fill_gdocs( guide = FALSE ) +
+    labs(x = "")
+```
+
+The TF-IDF adjustment did not change much. 
+
+### A network of words
+
+We can depict word pairs as nodes with correlated edges. 
+
+```{r}
+library(igraph)
+# filter for only relatively common combinations
+bigram_graph <- bigram_counts %>%
+  filter(n > 30) %>%
+  graph_from_data_frame()
+
+#bigram_graph
+library(ggraph)
+set.seed(42)
+
+ggraph(bigram_graph, layout = "fr") +
+  geom_edge_link() +
+  geom_node_point() +
+  geom_node_text(aes(label = name), vjust = 1, hjust = 1)
+```
+
+Bigrams are interesting artifacts because they represent specific constrained word pairings. In linguistics there are also other pairings including mono- and bigram pairings we might investigate using a correlation design. We can analyze pairs of words, and also bigrams, which more likely appear within a defined distance, such as a chapter or section, rather than just by themselves. This is the beginning of building a semantic structure. 
+
+For binary combinations, $\phi$ calculates the correlation. We suppose we search for the four combinations of finding two words $X$ and $Y$:
+
+- *not X and not Y* with $n_{00}$ of these,
+- *not X and Y* with $n_{01} out there,
+- *X and not Y* with $n_{10} of these, finally,
+- *X and Y* with $n_{11}$ present in the data.
+
+Then
+
+$$
+\phi = \frac{n_{11}n_{00}-n_{10}n_{01}}{\sqrt{(n_{00}+n_{10})(n_{01}+n_{11})(n_{00}+n_{01})(n_{10}+n_{11})}}
+$$
+The following bordered sums frequency table summarizes the calculation.
+
+$$
+\begin{bmatrix}
+ &|& not\,X & Y & | & \\    
+-----& | & ----- & ---- & | & ----- \\
+not\,X & | & n_{00} & n_{01} & | & n_{00} + n_{01} \\
+Y & | & n_{10} & n_{11} & | & n_{10} + n_{11} \\
+-----& | & ----- & ----- & & -----\\
+& | & n_{00}+n_{10} & n_{01}+n_{11} & | & n
+\end{bmatrix}
+$$
+These are all in row-column configuration, where, for example $n_{01}$ is the number of times in the corpus $not\,X$ and $Y$ occur. Also $n$ is the number of occurrences of either $X$ or $Y$. It would be correct to interpret the numerator of $\phi$ as a binary covariance of $X$ with $Y$ and the numerator as the product of the standard deviations of $X$ and $Y$ occurring. 
+
+The `corrr` package `correlation()` function calculates %\phi$.
+
+```{r}
+# unfertige Erzeugnisse
+# 
+# another function whose flow we might want to repeat
+# first a bespoke function to build a group-wise pairing correlation
+pairwise_book <- function(df) {
+  df %>% 
+  group_by(word) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(word, chapter, sort = TRUE)
+}
+# back to the tidy version of the books
+smith_correlations <- smith_books_tidy %>% 
+  filter(!str_detect(word, "\\d")) %>% 
+  group_by(book) %>% 
+  do(pairwise_book(.)) %>% 
+  group_by(book) %>% 
+  arrange(desc(correlation)) %>% 
+  top_n(20, correlation) %>% ungroup
+
+smith_correlations %>% 
+  ggraph( layout = "fr" ) +
+  geom_edge_link(aes(edge_alpha = correlation), show.legend = FALSE) +
+  geom_node_point(color = "lightblue", size = 3) +
+  geom_node_text(aes(label = name), repel = TRUE) +
+  theme_graph() 
+```
+
+
+```{r, eval = FALSE}
+
+corr_graph <- function(df) {
+  ggraph(df, layout = "fr") +
+  geom_edge_link(aes(edge_alpha = correlation), show.legend = FALSE) +
+  geom_node_point(color = "lightblue", size = 3) +
+  geom_node_text(aes(label = name), repel = TRUE) +
+  theme_graph() 
+}
+smith_data <- smith_correlations %>%
+  filter(correlation > 0.1) %>% 
+  group_by(book)
+smith_data %>% 
+  ggraph( layout = "fr") +
+  geom_edge_link(aes(edge_alpha = correlation), show.legend = FALSE) +
+  geom_node_point(color = "lightblue", size = 3) +
+  geom_node_text(aes(label = name), repel = TRUE) +
+  theme_graph() 
+smith_data[[2]] %>% 
+  map(graph_from_data_frame) %>% 
+  map(corr_graph) %>% 
+  reduce(cowplot::plot_grid, labels = c("Wealth of Nations", "Theory of Moral Sentiments"))
+  # %>% 
+#  nest()
+```
+
+We have two very dintinct clusters linked by _altogether_. In other parameterizations and filters the word is _human_. Words in _Moral_ are abstract, conceptual, a turn of philosophical terminology about the human condition and decisions made by humans in this condition. Notions of value, judgment, nature, and even probability enter the network. 
+
+The words in the network of ideas in _Wealth_ denote specific times, places, amounts, nations, products, price as value, markets as the nexus of human exchange, bellicose events, and political forces. Words in _Wealth_ are practical, measurable, observable immediately, and related through commerce and polity.
+
+## Some provisional hypotheses
+
+In a sense, without knowing anything except the assumed common authorship of the two works, one hypothesis is that _Wealth_ is the practical science of an _applied Morality_.  
+
+Another hypothesis, given that the publication of _Moral_ comes before that of _Wealth_ is whether or not the contentions in _Moral_ continue into _Wealth_.
+
+
+
+
+
