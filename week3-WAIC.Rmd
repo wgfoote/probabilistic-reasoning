@@ -1,0 +1,191 @@
+---
+title: "WAIC up! going beyond R squared"
+author: "Bill Foote"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+library(GGally)
+```
+
+## Deviance
+
+_*WAIC*_ stands for ____ ____ ? Yes it an information criterion and dutifully computes a statistic that tests the ability of a model to predict. Log odds ratios are involved, as well as the number of parameters, and thus the complexity of a model. This criterion approximates the out-of-sample deviance that converges to the cross-validation approximation in a large sample. 
+
+The cross-validation approximation, especially using the $N$-fold _*leave-one-out (LOO)*_ strategy results in the _*Pareto-smoothed Importance Sampling*_ cross-validation approach. Both measures go beyond simple goodness of fit, such as, $R*2$ and ANOVA, which often can promote more model complexity to attain higher values of explanation. The measure attempts to weigh observations by their importance to the predictive accuracy of the model.
+
+WAIC is the _*log-posterior-predictive density*_ (lppd, that is, the Bayesian deviance also used in the PSIS cross-validation approach) and a _*penalty*_ proportional to the variance in posterior predictions. Yes, we are only concerned now with predictive accuracy, not at all about confounding variables and causal inference.
+
+$$
+WAIC(y, \Theta) = −2(lppd − \underbrace{\Sigma_i var_{\theta}\,log  \,\,p(y_i|\theta))}_{penalty}
+$$
+
+The $lppd$ comes from the notion of model divergence  as the additional uncertainty induced by using probabilities from one distribution to describe another distribution. This divergence is often measured by the  Kullback-Leibler divergence, KL divergence. The divergence is the distance in log odds ratios between two models. Our two models are everything except the one observation left out, and everything left in. Lots of computing will make our day now.
+
+The Bayesian version of the log-probability score is called the
+log-pointwise-predictive-density for some data $y_i$ and posterior distribution $\theta$. With $N$ observations and fitting the model $N$ times, dropping a single observation $y_i$ each time, then the out-of-sample lppd is the sum
+of the average accuracy for each omitted y_i.
+.
+$$
+lppd(y, \Theta) = \Sigma_i \, log \frac{1}{S} \Sigma_s p(y_i | \Theta_s)
+$$
+where $S$ is the number of samples and is the $s$-th set of sampled parameter values in the posterior distribution with values $q_i$.
+
+$$
+S(q) = \Sigma_i log(q_i)
+$$
+
+Whenever we see logs we know we have scores. 
+
+The penalty measure in WAIC is part and parcel of a correction in non-Bayesian models called a _*ridge*_ regression. The _ridge_ is a parameter that tunes the fit in a regularizing way, much like choosing a fairly tight prior to squeeze only enough information of data and deposit only enough into the posterior probability distribution. We can shorten the penalty into an _*effective number of parameters*_ statistic $p_{WAIC}$, much like how the measurement of full-time employed relates to head count. 
+
+## Taxes anyone?
+
+Let's use the `Laffer` dataset loaded with the `rethinking` package. We begin a regularization process by standardizing the variables.
+
+```{r}
+library(rethinking)
+data(Laffer)
+summary(Laffer)
+d <- Laffer
+d$T <- standardize( d$tax_rate )
+d$R <- standardize( d$tax_revenue )
+m <- quap(
+alist(
+  R ~ dnorm(mu,sigma),
+  mu <- a + b*T,
+  a ~ dnorm(0,0.2), # regularized priors
+  b ~ dnorm(0,0.5),
+  sigma ~ dexp(1)
+) , data = d )
+precis( m )
+set.seed(42)
+post <- extract.samples(m,n=1000)
+```
+
+We compare this with the OLS regression.
+
+```{r}
+m_OLS <- lm(R ~ 1 + T, data = d)
+summary(m_OLS)
+```
+
+Much the same story emerges here. The F-statistic helps us reject the alternative hypothesis that **both** the intercept _and_ the slope are _not_ zero at a stargazingly low degree of plausibility. Ahh, but this routine does not at all help us identify those observations which might more influence our over-fitting issues. The two models do seem to be in some sort of agreement on the size and direction of the point estimates.
+
+What out our `quap` model? First, we compute the log-likelihood of each observation $i$ at each sample $s$ from the posterior:
+
+```{r}
+n_samples <- 1000
+log_prob <- sapply( 1:n_samples ,
+function(s) {
+  mu <- post$a[s] + post$b[s]*d$T
+  dnorm( d$R , mu , post$sigma[s] , log=TRUE )
+} )
+str(log_prob)
+```
+
+The `str()` view shows a 1000 samples column matrix with  scores for each observation in each row.
+
+## Computing WAIC
+
+We compute $lppd$, the Bayesian deviance, by averaging the samples in each row, taking the log, and adding all of the logs together (the sum of logs are like the products of probabilities, all logical *both-and*s. We have to use the  function log_sum_exp to compute the log of a sum of exponentiated terms, else we might be as precise as we need to be, let alone experience under and overflow arithmetical headaches. After all of that we subtract the log of the number of samples, and thus the log of the average.
+
+```{r}
+n_obs <- nrow( d )
+lppd <- sapply( 1:n_obs , function(i) log_sum_exp(log_prob[i,]) - log(n_samples) )
+sum(lppd)
+```
+
+We will need `sum(lppd)` for the total `lppd` in the WAIC formula. The penalty term p_{WAIC} adds up the variance across samples for each and every observation.
+
+```{r}
+pWAIC <- sapply( 1:n_obs , function(i) var(log_prob[i,]) )
+sum(pWAIC)
+summary(pWAIC)
+```
+
+Again `sum(pWAIC)` returns total `pWAIC` in the formula. At last we compute WAIC like this.
+
+```{r}
+ -2*( sum(lppd) - sum(pWAIC) )
+```
+
+We can compute the standard error of WAIC through the square root of number of cases multiplied by the variance over the individual observation terms in WAIC. Why the -2? We get a positive statistic. The 2 apocryphally came from the base 2 number system used by Shannon in developing information theory. The traditional reason is that the sum of lppd and the sum of pWAIC act like a likelihood ratio, and in logs a difference, thus deviance. The numerator and denominators are chi-squared distributed with so many degrees of freedom in parameters and data. Scaling by 2 helped with the construction of likelihood ratio distribution tables. So says the received tradition.
+
+```{r}
+waic_vec <- -2*( lppd - pWAIC )
+sqrt( n_obs*var(waic_vec) )
+```
+
+## Influence
+
+Since each observation has a penalty in the $p_WAIC$ vector, we attempt to identify those observations than contribute to overfitting using the `pointwise=TRUE` feature in the `rethinking::WAIC()` function.
+
+```{r}
+WAIC(m, pointwise = TRUE)
+d
+```
+
+Yes, the 12th observation has the highest deviance (WAIC version thereof) and the highest variance of the posterior distribution, that is, the highest penalty. Influential? Informative? Surprising? Again, yes.
+
+## Another model?
+
+Of course! Let's estimate then compare this model with the basic Laffer model above. Let's compare the Gaussian model with a so-called robust model using the Student's-t distribution with somewhat thicker tails. The 2 degrees of freedom will definitely thicken those tails.
+
+```{r}
+# linear model with student-t
+m_t <- quap(calist(
+  R ~ dstudent( 2 , mu , sigma ),
+  mu <- a + b*T,
+  a ~ dnorm( 0 , 0.2 ), # regularized priors
+  b ~ dnorm( 0 , 0.5 ),
+  sigma ~ dexp(1)
+) , data=d )
+precis( m_t )
+WAIC( m_t )
+```
+Now let's compare the two models.
+
+```{r}
+# the default comparison is our new friend WAIC
+compare( m, m_t )
+```
+
+Which would you choose? Here is where we can stand:
+
+- Goodness of fit always favor more complex models
+
+- Information divergence is the right measure of model accuracy, but it too leads to more complex models
+
+- Regularizing priors skeptical of extreme parameter values will begin to trade off complexity with accuracy and thus reduce overfitting
+
+- Use of multiple criteria: cross-validation (LOO), PSIS, WAIC will complement regularizing priors
+
+So onward to model selection. The first right thing we did was contrive two different models. One will deliver mesokurtic tails, the other leptokurtic tails. So which one? The one with the lower of the criterion values because these are deviance, distance, divergence measures. Less divergence, better predictive capability. Less deviance from the data means more plausible hypotheses that are compatible with, consistent with, the data. On this basis we choose the robust Student's-t model. But that will help us determine the best predictive model. 
+
+## The prediction-causality tradeoff
+
+What about statistical causality and inference? And how do we get to causality? Another day and time will help point the way. In the meantime, it is important to realize that causally incorrect models often, in practice, produce seemingly accurate predictions. For accurate causal inference we really need a higher viewpoint, that of the heuristic structure of the problem we are trying to solve. 
+
+Models can be constructed and taken to data, but they still might not provide better predictive power, that is, lower deviance or DKL or WAIC or log likelihood, or PSIS. We are now into analyst horizons, DAGs, constructive models of behavior that prescind from the data, but will ultimately be applied to the data for at least predictive validation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
