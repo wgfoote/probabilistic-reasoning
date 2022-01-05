@@ -1,0 +1,391 @@
+---
+title: "Markov Chains: Weather, Credit and Ruggedness"
+author: "Bill Foote"
+date: "11/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Who is Markov?
+
+Many credit the Russian mathematician A.A. Markov with the development of chains of probabilistic transitions across a variety of potential states, also known as Markov Chains. Analysts use Markov Chains to understand the development of infectious diseases, patient movements from one kind of treatment to another, borrower migrations from one credit notch to another, the weather (of course!).
+
+We can imagine this example.
+
+- Our company is trying to penetrate a new market. To do so it acquires several smaller competitors for the company's products and services. As we acquire the companies (NewCo, collectively), we also acquire their customers. With the acquisition of new customers we also acquire their ability to pay.
+
+- Not only that, but we have also taken over NewCo's supply chain. Our company also has to contend with the credit worthiness of NewCo's vendors. If they default we don't get supplied, we can't produce, we can't fulfill our customers, and they switch.
+
+### What about this?
+
+1. What are the key business questions we  should ask about customers' paying / defaulting patterns?
+
+2. What systematic approach might we use to manage customer and counterparty credit risk?
+
+Some ideas come to mind.
+
+1. Key business questions might be
+
+- What customers and counterparties default more often than others?
+
+- If customer default what can we recover?
+
+- What is the total exposure that we experience at any given point in time?
+
+- How far can we go with customers that might default?
+
+2. Managing credit risk
+
+- How can we set up a scoring system to accept new customers and track existing customers?
+
+- We might want to monitor transitions of customers from one rating notch to another
+
+- Can we build in early warning indicators of customer and counterparty default?
+
+- We should probably build a playbook to manage the otherwise insurgent and unanticipated credit events that can overtake our customers and counterparties.
+
+## New customers!
+
+Not so fast! While we have proffered some definitely crunchy questions, let's load the credit profiles of our newly acquired customers. Here is what was collected these past few years:
+
+```{r }
+firm_profile  <- read.csv("creditfirmprofile.csv")
+head(firm_profile)
+```
+
+Recorded for each of several years from 2006 through 2015 each firm's (customer's) indicator as to whether they defaulted or not (1 or 0).
+
+
+```{r }
+summary(firm_profile)
+```
+
+
+Several risk factors can contribute to credit risk. Let's enumerate the key risks by way of the measurements we take.
+
+#### 1. Working Capital risk is measured by the Working Capital / Total Assets ratio `wcTA`. 
+
+When this ratio is zero, current assets are matched by current liabilities. When positive (negative), current assets are greater (lesser) than current liabilities. The risk is that there are very large current assets of low quality to feed revenue cash flow. Or the risk is that there are high current liabilities balances creating a hole in the cash conversion cycle and thus a possibility of lower than expected cash flow.
+
+#### 2. Internal Funding risk is measured by the Retained Earnings / Total Assets ratio `reTA`. 
+
+Retained Earnings measures the amount of net income plowed back into the organization. High ratios signal strong capability to fund projects with internally generated cash flow. The risk is that if the organization faces extreme changes in the market-place, there is not enough internally generated funding to manage the change.
+
+
+#### 3. Asset Profitability risk is measured by EBIT / Total Assets ratio. 
+
+- This is the return on assets used to value the organization. The risk is that 
+1. EBIT is too low or even negative and thus the assets are not productively reaching revenue markets or efficiently using the supply change, or both, all resulting in too low a cash flow to sustain operations and investor expectations, and
+
+2. This metric falls short of investors' minimum required returns, and thus investors' expectations are dashed to the ground, they sell your stock, and with supply and demand simplicity your stock price falls, along with your equity-based compensation.
+
+
+#### 4. Capital Structure risk is measured by the Market Value of Equity / Total Liabilities ratio `mktcapTL`. 
+
+If this ratio deviates from industry norms, or if too low, then shareholder claims to cash flow for responding to market changes will be impaired. The risk is similar to internal funding risks,but carries the additional market perception that the organization is unwilling or unable to manage change.
+
+#### 5. Asset Efficiency risk is measured by the Sales / Total Assets ratio `sTA`. 
+If the ratio is too low, then the organization risks two things:
+
+1. Ability to support sales with
+assets, and 
+
+2. The overburden of unproductive assets unable to support new projects
+through additions to retained earnings or in meeting liability commitments.
+
+
+Let's load customer credit migration data. This data records the start rating, end rating, and timing for each of 830 customers as their business, and the recession, affected them.
+
+```{r }
+firm_migration <- read.csv("creditmigration.csv")
+head(firm_migration)
+```
+
+- Notice that the dates are given in number of days from January 1, 1900. 
+- Ratings are numerical.
+
+
+```{r }
+summary(firm_migration)
+firm_migration <- na.omit(firm_migration)
+firm_migration$time <- as.numeric(firm_migration$time)
+```
+
+
+- An interesting metric is in `firm_migration$time`. 
+- This field has records of the difference between `end.date` and `start.date` in days between start ratings and end ratings.
+- This duration is sometimes called "dwell time."
+
+```{r }
+hist(firm_migration$time)
+```
+
+
+- Let's now merge the two credit files by starting year. 
+- This will ("inner") join the data so we can see what customer conditions might be consistent with a rating change and rating dwell time. 
+- The two keys are `id` and `start.year`.
+
+```{r }
+firm.credit <- merge(firm_profile, firm_migration, by = c("id", "start.year"))
+head(firm.credit)
+dim(firm.credit)
+```
+
+### Let's try this
+
+The shape of `firm_migration$time` suggests a `gamma` or an `exponential` function. But before we go off on that goose chase, let's look at the inner-joined data to see potential differences in rating. 
+
+Let's use this code to make a pivot table.
+
+
+```{r }
+library(dplyr)
+
+## 1: filter to keep one state. Not needed (yet...) 
+pvt_table <-  firm.credit %>% ## filter(firm.credit, xxx %in% "NY")
+## 2: set up data frame for by-group processing. 
+  group_by( default, end.rating ) %>% 
+## 3: calculate the three summary metrics
+  summarize( time.avg = mean(time)/365, ebitTA.avg = mean(ebitTA), sTA.avg = mean(sTA) )
+
+```
+
+We display our pivot table in a nice format:
+
+```{r , eval = FALSE}
+knitr::kable(pvt_table)
+```
+
+Defaulting (`default` = 1) firms have very low EBIT returns on Total Assets as well as low Sales to Total Assets...as expected. They also spent a lot of time (in 365 day years) in rating 7 -- equivalent to a "C" rating at S\&P.
+
+Now let's use the credit migration data to understand the probability of default as well as the probabilities of being in other ratings or migrating from one rating to another.
+
+### It depends
+
+The most interesting examples in probability have a little dependence added in: "If it rained yesterday, what is the probability it rains today?" We can use this idea to generate weather patterns and probabilities for some time in the future. 
+
+- In market risk, we can use this idea to generate the persistence of consumption spending, inflation, and the impact on zero coupon bond yields.
+
+- In credit, dependence can be seen in credit migration: if an account receivable was A rated this year, what are the odds this receivable be A rated next year?
+
+## Enter A.A. Markov
+
+![A. A. Markov](AAMarkov.jpg)
+
+
+Suppose we have a sequence of $T$ observations, $\{X_t\}_{1}^{T}$, that are dependent. In a time series, what happens next depends on what happened before:
+
+\[ p(X_1, X_2, ..., X_T) = p(X_1)p(X_2|X_1)...p(X_t|X_{t-1},...,X_1) \]
+
+With Markov dependence each outcome `only` depends on the one that came before.
+
+\[ p(X_1, X_2, ..., X_T) = p(X_1)\prod_{s=2}^T p(X_s|X_{s-1})  \]
+
+Many of us have already encountered this sort of sequencing when we use the functions `acf` and `ccf` to explore very similar dependencies in time series data. Markov dependence is equivalent to an `AR(1)` process (today = some part of yesterday plus some noise).
+
+To generate a Markov chain, we
+
+1. Set up the conditional distribution.
+
+2. Draw the initial state of the chain.
+
+3. For every additional draw, use the previous draw to inform the new one.
+
+Let's use this work flow to develop a very simple (but oftentimes useful) credit model. We assume from a data analysis similar to the one we conducted above that
+
+- If a receivable's issuer (a customer) last month was investment grade, then this month's chance of also being investment grade is 80%.
+
+- If a receivable's issuer last month was **not** investment grade, then this month's chance of being investment grade is 20%.
+
+### Try this on for size
+
+Let's simulate a customers credit grade monthly for 5 years. Here we parameterize even the years and calculate the number of months in the simulation. We will set up a dummy `investmentgrade` variable with `NA` entries into which we deposit 60 dependent coin tosses using the binomial distribution.
+
+- The probability of success (state = "Investment Grade") is overall 80% and is composed of a long run 20% (across the 60 months) plus a short run 60% (of the previous month). 
+
+- Again there is a similarity to an autoregressive process here with lags at 1 month and 60 months.
+
+```{r }
+N_years <- 5
+N_months <- N_years*12
+investment_grade <- rep(NA, N_months)
+investment_grade[1] <- 1
+long_run <- 0.20
+short_run <- 0.60
+for (month in 2:N_months){ 
+  investment_grade[month] <- rbinom(1,1,long_run + short_run*investment_grade[month-1]) 
+  }
+hist(investment_grade)
+```
+
+
+- The `for (month in 2:N_months)` loop says "For each month starting at month 2, perform the tasks in the curly brackets (`{}`) until, and including, `N_months`"
+
+Almost evenly ditributed probabilities. And this as well...
+
+```{r , eval = FALSE}
+plot(investment_grade, main="Investment Grade", xlab="Month", ylab="IG?", ty="l")
+```
+
+Now we look at a scenario with long-run = 0.0, and short-run = 0.80.
+
+```{r }
+N_years <- 5
+N_months <- N_years*12
+investment_grade <- rep(NA, N_months)
+investment_grade[1] <- 0
+long_run <- 0.2  ## changed from base scenario 0.5
+short_run <- 0.8 ## changed from base scenario 0.0
+for (month in 2:N_months){ 
+  month_in <- month
+  investment_grade[month] <- rbinom(1,1,long_run + short_run*investment_grade[month-1]) 
+}
+ig_tbl <- tibble( month = month_in, 
+                  IG = investment_grade )
+plt <- ig_tbl %>% 
+  ggplot(aes(x=IG)) +
+           geom_histogram()
+plt
+```
+
+Much different now with more probability concentrated in lower end of investment grade scale.
+
+Next we plot the up and down transitions between investment grade and not-investment grade using lines to connect up to down transitions. Now this looks more like a `bull` and `bear` graph.
+
+```{r }
+plt <- ig_tbl$IG %>%  plot( main="Investment Grade", xlab="Month", ylab="IG", ty="l")
+```
+
+We can look at how different these transitions are from a simple coin toss credit model (independence, not dependence). You could just set the long.run rate to 50% (a truly unbiased coin) and rerun, or simply run the following.
+
+## A crude model
+
+Transitions are represented as a matrix: $Q_{ij}$ is $P(X_t = j|X_{t-1} = i)$ where, $i$ is the start state ("Investment Grade"), and $j$ is the end state ("not-Investment Grade"). Here is a transition matrix to encapsulate this data.
+
+```{r }
+(transition_matrix <- matrix (c(0.8, 0.2, 0.2, 0.8), nrow=2))
+```
+
+This function will nicely simulate this and more general random Markov chains.
+
+```{r }
+markovchain <- function (n_sim, 
+                          transition_matrix, 
+                          start=sample(1:nrow(transition_matrix), 1)) {
+  result <- rep (NA, n_sim)
+  result[1] <- start
+  for (t in 2:n_sim) result[t] <- 
+    sample(ncol(transition_matrix), 1, 
+           prob=transition_matrix[result[t-1],])
+  return(result)
+}
+```
+
+1. We run a 1000 trial Markov chain with the 2-state `transition.matrix` and save to a variable called 'markov.sim'.
+
+2. We then use the `table()` function to calculate how many 1s and 2s are simulated.
+
+Many trials (and tribulations...) later we find this.
+
+```{r }
+markov_sim <- markovchain(1000,transition_matrix)
+head(markov_sim)
+```
+
+
+We tabulate to help us interpret results.
+
+```{r }
+ones <- which(markov_sim[-1000]==1)
+twos <- which(markov_sim[-1000]==2)
+state_one <- signif(table(markov_sim[ones+1])/length(ones),3)
+state_two <- signif(table(markov_sim[twos+1])/length(twos),3)
+(transition_matrix_sim <- rbind(state_one, state_two))
+```
+
+What do we find? The results are fairly close to the `transition_matrix`. A law of large numbers would say we converge to these values. The `which()` function sets up two indexes to find where the 1s and 2s are in `markov_sim`.
+
+- `signif` with `3` means use 3 significant digits
+
+- `table` tabulates the number of 1 states and 2 states simulated.
+
+Each run of the `markov_chain()` function creates its own chain. These are used to build separate, acceptable, random variates in the Monte Carlo process. All of this is summarized in the `ulam()` function below. 
+
+#### Let's use Stan
+
+`Stan` comes from _____________. It is not an acronym! But the C++ program we will use deploys a physics simulation called HMC (Hamilton Monte Carlo). Sampling, very intelligently for a robot-Golem, follows the random directions of position and momentum up and down and across the posterior distribution's valley. All of this is in McElreath's Chapter 9. What we will need for our pedestrian purposes is the bottom line result of the chapter: the (Stan) `ulam()` interface between R and Stan.
+
+Here is a Stan / HMC / `ulam` implementation of one of our ruggedness models. We will compare the HMC model's results with the quadratic approximation model we know, and of course love.
+
+```{r}
+library(rethinking)
+data(rugged)
+d <- rugged
+d$log_gdp <- log(d$rgdppc_2000)
+dd <- d[ complete.cases(d$rgdppc_2000) , ]
+dd$log_gdp_std <- dd$log_gdp / mean(dd$log_gdp)
+dd$rugged_std <- dd$rugged / max(dd$rugged)
+dd$cid <- ifelse( dd$cont_africa==1 , 1 , 2 )
+##First we use quap as a basis for comparison
+m8.3 <- quap(
+alist(
+  log_gdp_std ~ dnorm( mu , sigma ) ,
+  mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) ,
+  a[cid] ~ dnorm( 1 , 0.1 ) ,
+  b[cid] ~ dnorm( 0 , 0.3 ) ,
+  sigma ~ dexp( 1 )
+  ) , data=dd )
+precis( m8.3 , depth=2 )
+```
+
+No worries here, or yet. Now for the HMC/Stan/ulam implementation. Immediately we need to whittle away the data to exactly what we need. We deposit the vectors we will use into a `list`.
+
+```{r}
+data_slim <- list(
+  log_gdp_std = dd$log_gdp_std,
+  rugged_std = dd$rugged_std,
+  cid = as.integer( dd$cid )
+  )
+str(data_slim)
+```
+
+Why a list instead of a data frame? The main reason is that we might want to have unequally long components in the data such as indices for categorical variables.
+
+Here is the Stan `ulam()` set up, and don't worry if you see `'-E' not found`, and this might take a minute to warm-up.
+
+```{r}
+m9.1 <- ulam(
+alist(
+    log_gdp_std ~ dnorm( mu , sigma ) ,
+    mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) ,
+    a[cid] ~ dnorm( 1 , 0.1 ) ,
+    b[cid] ~ dnorm( 0 , 0.3 ) ,
+    sigma ~ dexp( 1 )
+) , data=data_slim , chains=1 )
+```
+
+The actual run only took 0.555 seconds on a Lenovo Ideapad with a modest speed and RAM size. Most of the time other than this run was spent pulling up C++ and compiling Stan into C++.
+
+```{r}
+## make use of the analysis in Rethinking 2ed from p. 105ff
+## make a grid and generate some data on that grid
+## how did we get the from= to= values?
+G_seq <- seq( from=-2.5 , to=2 , length.out=100 )
+new_dat <- data.frame( A=0 , G=G_seq )
+## remember what link does? It seems we like m2
+mu <- link( m9.1 , data=new_dat )
+## plot the thing
+plot( L ~ G , data=d , col="slateblue" )
+  lines( G_seq , colMeans(mu) ) ## get the average linked mu to each G on the grid
+## plot several intervals with shading
+for ( p in c(0.5,0.79,0.95) ) {
+  mu_PI <- apply( mu , 2 , PI , prob=p )
+  shade( mu_PI , G_seq )
+}
+```
+
+Not bad for starting out with weather and a crude credit model. 

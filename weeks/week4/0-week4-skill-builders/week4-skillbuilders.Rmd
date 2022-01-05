@@ -1,0 +1,352 @@
+---
+title: "Week 4 Skill Builders"
+author: "Bill Foote"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+library(GGally)
+```
+
+## Assignment for Week 4
+
+**8H3. Rugged Seychelles** Consider again the data(rugged) data on economic development and terrain ruggedness, examined in this chapter. One of the African countries in that example, Seychelles, is far outside the cloud of other nations, being a rare country with both relatively high GDP and high ruggedness. Seychelles is also unusual, in that it is a group of islands far from the coast of mainland Africa, and its main economic activity is tourism.
+
+(a) Focus on model `m8.5` from the chapter. Use WAIC pointwise penalties and PSIS Pareto `k` values to measure relative influence of each country. By these criteria, is Seychelles influencing the results? Are there other nations that are relatively influential? If so, can you explain why?
+
+(b) Now use robust regression, as described in the previous chapter. Modify m8.5 to use a Student-t distribution with $\nu$ = 2, the number of degrees of freedom. Recall that a small $\nu$ produces thicker tails and thus the model influences the scale of sampling. Does this change in the model change the results in a substantial way?
+
+### Some data
+
+Why will this work? Let's index continents $c$ as 1 if Africa and 0 if not. Here is the basic model of expected per capital GDG $g$ influenced by ruggedness of terrain $r$ and the continent $c$.
+
+$$
+\mu = \alpha + \beta r + \gamma c
+$$
+
+The Africa model is really then
+
+$$
+\begin{align}
+\mu_1 &= \alpha + \beta r + \gamma \times 1 , \\
+      &= (\alpha + \gamma) + \beta_1 r
+\end{align}
+$$
+
+The rest of the world is
+
+$$
+\begin{align}
+\mu_0 &= \alpha + \beta r + \gamma \times 0 , \\
+      &= \alpha + \beta_0 r
+\end{align}
+$$
+Two regressions with two different intercepts, and possibly different slopes as the hypotheses are conditioned on two different subsets of the data.
+
+```{r}
+library(rethinking)
+data(rugged)
+d <- rugged
+d$log_gdp <- log(d$rgdppc_2000)
+dd <- d[ complete.cases(d$rgdppc_2000) , ]
+dd <- data.frame(
+  log_gdp = log(dd$rgdppc_2000), 
+  rugged = dd$rugged, 
+  cid = ifelse( dd$cont_africa==1 , 1 , 2 ), 
+  country = dd$country, 
+  isocode = dd$isocode 
+  )
+dd$log_gdp_std <- dd$log_gdp / mean(dd$log_gdp)
+dd$rugged_std <- dd$rugged / max(dd$rugged)
+summary( dd )
+```
+
+Notice we made a new variable `cid` for country ID. This could have been a zero-one so-called dummy or indicator variable. 
+
+We also standardized the ruggedness index using the maximum ruggedness. What does that indicate? Why would we do that instead of using, a mean-centered standard deviation? Or an inter-quantile range (IQR is a variant)? Or the minimum?
+
+- Your answer would be much appreciated!
+
+### A basic model
+
+Theh model now emerges.
+
+- Why do we subtract 0.215?
+
+```{r}
+m_8H3 <- quap(
+    alist(
+        log_gdp_std ~ dnorm( mu , sigma ) ,
+        mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) , # Why!!??
+        a[cid] ~ dnorm( 1 , 0.1 ) ,
+        b[cid] ~ dnorm( 0 , 0.2 ) , # tight priors
+        sigma ~ dexp( 1 ) # average deviation is naturally 1
+    ) , data=dd )
+precis( m_8H3, depth = 2, digits = 4 )
+```
+
+Two regions means two intercepts, two slopes, but one sigma? We might need to fix that bit of a flaw later.
+
+### Some inference is in order
+
+```{r}
+k <- PSISk( m_8H3 )
+ord <- order( k , decreasing=TRUE ) # sort this out!
+tibble( 
+  country=as.character( dd$country ),
+  k=k, 
+  dd$rugged_std, 
+  dd$log_gdp_std 
+  )[ ord, ]
+
+```
+The Pareto `k` values will depend upon samples, so the values you see will be a little different. But the basic order should be similar. Seychelles (SYC) does have  a Pareto k  value. But several other countries also have some  high values. 
+
+What do these countries have in common? 
+
+- fitting the trend? 
+
+- high and low GDP?
+
+- very flat, very not flat?
+
+### More robust measures to take
+
+```{r}
+m_8H3_t <- quap(
+    alist(
+        log_gdp_std ~ dstudent( 2, mu , sigma ) ,
+        mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) ,
+        a[cid] ~ dnorm( 1 , 0.1 ) ,
+        b[cid] ~ dnorm( 0 , 0.3 ) ,
+        sigma ~ dexp( 1 )
+    ) , data = dd
+  )
+precis( m_8H3_t, digits = 4, depth = 2) 
+```
+The change in sign for the slope of index 2 (non-African countries) is a significant finding in this data. How does the posterior distribution of the difference between b[1] and b[2] change when we use the Student's-t distribution? Let's directly compare the two models.
+
+```{r}
+post_N <- extract.samples( m_8H3 )
+post_T <- extract.samples( m_8H3_t )
+diff_N <- post_N$b[,1] - post_N$b[,2]
+diff_T <- post_T$b[,1] - post_T$b[,2]
+dens( diff_N )
+dens( diff_T , add=TRUE , col="blue" )
+```
+
+Of course let's also examine the deviancy of them both.
+
+```{r}
+compare( m_8H3, m_8H3_t )
+```
+The Gaussian model has less deviance, but is less robust to outliers like what 3 observations?
+
+-
+
+Our beloved Student's-t has thicker tails and thus includes the rarer events more influentially in the overall posterior distribution.
+
+## Multi-week Assignment
+
+**8H4 -- Language and Food -- a multi-week assignment.** This assignment will continue into next week. Do get started on it. We might even consider this as the final assignment in the course given the extensive modeling that we will eventually achieve.
+
+Daniel Nettle is a behavioral scientist who specializes in linguistic aspects of human development. His 1998 paper on language diversity, [which we can access here](https://www.danielnettle.org.uk/download/009.pdf) poses this question.
+
+> This paper, then, asks the question of, what, in general, determines the size of language communities found in a human population. 
+
+Language is a mask for regional integration or disintegration of societies. Powerful forces can unite, or divide, whole groups of people, often identifiable by the language of their region of origin. Food security is one of several fundamental sources of movements of people from one region to another. Ecological risk, as measured by the length of the mean growing season in a region, correlates with food security. Prominently for the time, Nettle published his paper with the original data he used to conduct the analysis.
+
+The values in `data(nettle)` are data on language diversity in 74 nations. The meaning of each column is given below.
+
+1. country: Name of the country
+2. num.lang: Number of recognized languages spoken
+3. area: Area in square kilometers
+4. k.pop: Population, in thousands
+5. num.stations: Number of weather stations that provided data for the next two columns
+6. mean.growing.season: Average length of growing season, in months
+7. sd.growing.season: Standard deviation of length of growing season, in months
+
+Use these data to evaluate the hypothesis that language diversity is partly a product of food security. The notion is that, in productive ecologies, people don’t need large social networks to buffer them
+against risk of food shortfalls. This means cultural groups can be smaller and more self-sufficient,leading to more languages per capita. Use the number of languages per capita as the outcome:
+
+```{r, eval = FALSE}
+d$lang.per.cap <- d$num.lang / d$k.pop
+```
+
+Use the logarithm of this new variable as your regression outcome. (We can continue this model using counts and this will be handled next week. 
+
+This problem is open ended, allowing you to decide how you address the hypotheses and the uncertain advice the modeling provides. If you think you need to use WAIC anyplace, please do. If you think you need certain priors, argue for them. If you think you need to plot predictions in a certain way, please do. Just try to honestly evaluate the main effects of both `mean.growing.season` and `sd.growing.season`, as well as their two-way interaction. 
+
+Here are three parts to help. 
+
+- (a) Evaluate the hypothesis that language diversity, as measured by `log(lang.per.cap)`, is positively associated with the average length of the growing season, `mean.growing.season`. Consider `log(area)` in your regression(s) as a covariate (not an interaction). Interpret your results. 
+
+- (b) Now evaluate the hypothesis that language diversity is negatively associated with the standard deviation of length of growing season, `sd.growing.season`. This hypothesis follows from uncertainty in harvest favoring social insurance through larger social networks and therefore fewer languages. Again, consider `log(area)` as a covariate (not an interaction). Interpret your results. 
+
+- (c) Finally, evaluate the hypothesis that `mean.growing.season` and
+`sd.growing.season` interact to synergistically reduce language diversity. The idea is that, in nations with longer average growing seasons, high variance makes storage and redistribution even more important than it would be otherwise. That way, people can cooperate to preserve and protect harvest windfalls to be used during the droughts.
+
+### Revving up the engine
+
+Let's fit three models t0 begin to analyze the hypothesis 
+
+> Language diversity, as measured by `log(lang.per.cap)`, is positively associated with the average length of the growing season, `mean.growing.season`.
+
+The models:
+
+1. We can predict log-lang-per-capita naively with a constant and no other predictors. 
+
+2. We can build on the constant with only mean growing season as a predictor.
+
+3. Let's then include `log(area)`. 
+
+All of this will deserve a comparison. Let's use WAIC.
+
+```{r}
+library(rethinking)
+data(nettle)
+d <- nettle
+d$L <- standardize( log( d$num.lang / d$k.pop ) )
+d$A <- standardize( log(d$area) )
+d$G <- standardize( d$mean.growing.season )
+#
+m0 <- quap(
+  alist(
+    L ~ dnorm(mu,sigma),
+    mu <- a + 0,
+    a ~ dnorm(0,0.2),
+    sigma ~ dexp(1)
+  ) , data=d )
+#
+m1 <- quap(
+  alist(
+    L ~ dnorm(mu,sigma),
+    mu <- a + bG*G,
+    a ~ dnorm(0,0.2),
+    bG ~ dnorm(0,0.5),
+    sigma ~ dexp(1)
+  ) , data=d )
+#
+m2 <- quap(
+  alist(
+    L ~ dnorm(mu,sigma),
+    mu <- a + bG*G + bA*A,
+    a ~ dnorm(0,0.2),
+    c(bG,bA) ~ dnorm(0,0.5),
+    sigma ~ dexp(1)
+  ) , data=d )
+#
+precis( m1, digits = 4, depth = 2)
+compare( m0, m1, m2)
+```
+More covariates less deviancy and more predictivity. But very much more?
+
+- which to choose? (HINT: it is not m0)
+
+Let's use the `link()` function next to help us pre What does the `link()` function do?
+
+- It....
+
+```{r}
+# make use of the analysis in Rethinking 2ed from p. 105ff
+# make a grid and generate some data on that grid
+# how did we get the from= to= values?
+G_seq <- seq( from=-2.5 , to=2 , length.out=100 )
+new_dat <- data.frame( A=0 , G=G_seq )
+# remember what link does? It seems we like m2
+mu <- link( m2 , data=new_dat )
+# plot the thing
+plot( L ~ G , data=d , col="slateblue" )
+  lines( G_seq , colMeans(mu) ) # get the average linked mu to each G on the grid
+# plot several intervals with shading
+for ( p in c(0.5,0.79,0.95) ) {
+  mu_PI <- apply( mu , 2 , PI , prob=p )
+  shade( mu_PI , G_seq )
+}
+```
+Where are a lot of errors from?
+
+- From...
+
+
+## Let's use Stan
+
+`Stan` comes from _____________. It is not an acronym! But the C++ program we will use deploys a physics simulation called HMC (Hamilton Monte Carlo). Sampling, very intelligently for a robot-Golem, follows the random directions of position and momentum up and down and across the posterior distribution's valley. All of this is in McElreath's Chapter 9. What we will need for our pedestrian purposes is the bottom line result of the chapter: the (Stan) `ulam()` interface between R and Stan.
+
+Here is a Stan / HMC / `ulam` implementation of one of our ruggedness models. We will compare the HMC model's results with the quadratic approximation model we know, and of course love.
+
+```{r}
+library(rethinking)
+data(rugged)
+d <- rugged
+d$log_gdp <- log(d$rgdppc_2000)
+dd <- d[ complete.cases(d$rgdppc_2000) , ]
+dd$log_gdp_std <- dd$log_gdp / mean(dd$log_gdp)
+dd$rugged_std <- dd$rugged / max(dd$rugged)
+dd$cid <- ifelse( dd$cont_africa==1 , 1 , 2 )
+#First we use quap as a basis for comparison
+m8.3 <- quap(
+alist(
+  log_gdp_std ~ dnorm( mu , sigma ) ,
+  mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) ,
+  a[cid] ~ dnorm( 1 , 0.1 ) ,
+  b[cid] ~ dnorm( 0 , 0.3 ) ,
+  sigma ~ dexp( 1 )
+  ) , data=dd )
+precis( m8.3 , depth=2 )
+```
+
+No worries here, or yet. Now for the HMC/Stan/ulam implementation. Immediately we need to whittle away the data to exactly what we need. We deposit the vectors we will use into a `list`.
+
+```{r}
+data_slim <- list(
+  log_gdp_std = dd$log_gdp_std,
+  rugged_std = dd$rugged_std,
+  cid = as.integer( dd$cid )
+  )
+str(data_slim)
+```
+
+Why a list instead of a data frame?
+
+- The main reason is....
+
+Now for Stan `ulam()`, and don't worry if you see `'-E' not found`, and this might take a minute to warm-up.
+
+```{r}
+m9.1 <- ulam(
+alist(
+    log_gdp_std ~ dnorm( mu , sigma ) ,
+    mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) ,
+    a[cid] ~ dnorm( 1 , 0.1 ) ,
+    b[cid] ~ dnorm( 0 , 0.3 ) ,
+    sigma ~ dexp( 1 )
+) , data = data_slim , chains=1 )
+```
+The actual run only took 0.555 seconds on a Lenovo Ideapad with a modest speed and RAM size. Most of the time other than this run was spent pulling up C++ and compiling Stan into C++.
+
+```{r}
+# make use of the analysis in Rethinking 2ed from p. 105ff
+# make a grid and generate some data on that grid
+# how did we get the from= to= values?
+G_seq <- seq( from=-2.5 , to=2 , length.out=100 )
+new_dat <- data.frame( A=0 , G=G_seq, CID=1 )
+# remember what link does? It seems we like m2
+mu <- link( m9.1 , data=new_dat )
+# plot the thing
+plot( L ~ G , data=dd , col="slateblue" )
+  lines( G_seq , colMeans(mu) ) # get the average linked mu to each G on the grid
+# plot several intervals with shading
+for ( p in c(0.5,0.79,0.95) ) {
+  mu_PI <- apply( mu , 2 , PI , prob=p )
+  shade( mu_PI , G_seq )
+}
+```
+

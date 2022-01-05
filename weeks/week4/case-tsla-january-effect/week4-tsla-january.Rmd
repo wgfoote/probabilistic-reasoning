@@ -1,0 +1,225 @@
+---
+title: "Week 4 - TSLA in January"
+author: "Bill Foote"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(rethinking)
+library(ggridges)
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+```
+
+## Tesla example
+
+The question is:
+
+> I see volume of trading rise. What will the stock price do?
+
+The question gives rise to hypotheses. The data includes volume and price.
+
+```{r }
+tsla <- read_csv("tsla.csv")
+d <- tsla[ , 2:4] # date not needed (yet!)
+d$P <- standardize( d$price ) # first steps in regularizing
+d$V <- standardize( d$volume )
+precis( d )
+```
+
+### A simple model emerges
+
+The simplest geocentric (approximating model relative to our frame of reference, us) model is:
+
+$$
+\begin{align}
+P &\sim Normal(\mu, \sigma) \\
+\mu &= \alpha + \beta V \\
+\alpha &\sim Normal(0, 0.5) \\
+\beta &\sim Normal(0, 0.25) \\
+\sigma &\sim Exponential(1)
+\end{align}
+$$
+We translate this math into R thusly.
+
+```{r }
+m1 <- quap(
+  alist(
+    P ~ dnorm(mu, sigma),
+    mu <- a + b*V,
+    a ~ dnorm( 0, 0.5 ),
+    b ~ dnorm( 0, 0.25 ),
+    sigma ~ dexp(1)
+  ), data = d )
+precis( m1 )
+```
+A MCMC version here.
+
+
+```{r }
+dmcmc <- list(
+  P = d$P,
+  V = d$V
+)
+m1_mcmc <- ulam(
+  alist(
+    P ~ dnorm(mu, sigma),
+    mu <- a + b*V,
+    a ~ dnorm( 0, 0.5 ),
+    b ~ dnorm( 0, 0.25 ),
+    sigma ~ dexp(1)
+  ), data = d, chains = 1 )
+precis( m1_mcmc )
+```
+
+
+A second model comes to mind from economics. If we take natural logs of each of the variables, then the coefficient on the predictor $V$ will estimate the elasticity of stock price with respect to volume of trading.
+
+```{r }
+logVbar <- mean( log(d$volume) )
+m2 <- quap(
+  alist(
+    price ~ dnorm(mu_logP, sigma_logP),
+    mu_logP <- a + b*( log(volume) - logVbar),
+    a ~ dnorm( 1, 0.5 ),
+    b ~ dnorm( 1, 0.25 ),
+    sigma_logP ~ dexp(1)
+  ), data = d )
+precis( m2 )
+```
+Yes, the same coefficients pop up. Are they any different from one another?
+
+```{r}
+compare( m1, m2, func = WAIC)
+```
+It appears that `m1` has a lower level of probable incompatibility of the model with the data than does `m2`. It does so with less variability and a higher penalty to parameters across the samples in the predictive simulation. It is simply tighter. 
+
+### The January Effect
+
+One more model. This one will index months of the year to test for a [January effect](https://www.investopedia.com/terms/j/januaryeffect.asp#:~:text=The%20January%20effect%20is%20a%20perceived%20seasonal%20increase,to%20offset%20realized%20capital%20gains%2C%20prompt%20a%20sell-off.). This effect seems to explain higher stock prices in January as investors buy back stocks sold off in December. What is the intervening event? Tax season begins in December as investors harvest tax-losses to balance increases in capital gains on the appreciation of their stocks in the past year or simply pile their year-end cash bonuses into the stock market.
+
+We code the January days with this rendering in R.
+
+```{r}
+d$mid <- ifelse( d$month==1 , 1L , 2L )
+```
+
+where `mid` is the month ID for January.
+
+```{r }
+m3 <- quap(
+  alist(
+    P ~ dnorm(mu, sigma),
+    mu <- a[mid] + b[mid]*V,
+    a[mid] ~ dnorm( 0, 0.5 ),
+    b[mid] ~ dnorm( 0, 0.25 ),
+    sigma ~ dexp(1)
+  ), data = d )
+precis( m3, digits = 2, depth = 2 )
+```
+Let's expand the tails using a thick-tailed Student's-t distribution with degrees of freedom $\nu=2$.
+
+```{r }
+m4 <- quap(
+  alist(
+    P ~ dstudent(2, mu, sigma),
+    mu <- a[mid] + b[mid]*V,
+    a[mid] ~ dnorm( 0, 0.5 ),
+    b[mid] ~ dnorm( 0, 0.25 ),
+    sigma ~ dexp(1)
+  ), data = d )
+precis( m3, digits = 2, depth = 2 )
+```
+
+Perhaps a model bake-off will perk us up.
+
+```{r}
+compare( m1, m3 , m4)
+```
+
+Including the January effect definitely improves the deviance over the first and definitely the second. This picture will capture a bit of this 
+
+```{r}
+just_volume <- extract.samples( m1 )$sigma
+with_january <- extract.samples( m3 )$sigma
+with_tails_january <- extract.samples( m4 )$sigma
+
+tibble( sim =1:10000, just_volume, with_january, with_tails_january ) %>% 
+  pivot_longer( -sim, names_to = "model", values_to = "sigma") %>% 
+  mutate(january_present = if_else(model == "with_january", FALSE, TRUE)) %>% 
+  ggplot(aes(sigma, model, fill = january_present)) +
+  geom_density_ridges() +
+  scale_fill_viridis_d() +
+  theme(legend.position = "bottom") +
+  labs(title = "Predicted variation across traded volume",
+       subtitle = "Presence of January explains some of the variation across volume.")
+```
+The ridges diagram depicts the range and location of the regression `sigma`s. It is clear that a January model with thickened tails will provide more predictive ability than not. Even though the WAIC of the January model with Gaussian tails (not so thick or inclusive of potential outliers) is best in class, this plot would seem to lean toward a robust sampling of stock prices conditional on trading volumes controlled by a month of January effect.
+
+We can further view the impact of the sensitivity of January on prices with this plot.
+
+```{r}
+with_january <- extract.samples( m3 )$b[ ,1 ]
+without_january <- extract.samples( m3 )$b[ ,2 ]
+t_with_january <- extract.samples( m4 )$b[,1 ]
+t_without_january <- extract.samples( m4 )$b[ ,2 ]
+
+plot_extract <- tibble( sim =1:10000, with_january, without_january, t_with_january, t_without_january ) %>% 
+  pivot_longer( -sim, names_to = "model", values_to = "b") 
+plot_extract %>%   
+  ggplot( aes( b, model) ) +
+    geom_density_ridges() +
+    scale_fill_viridis_d() +
+    theme(legend.position = "bottom") +
+    labs(title = "Predicted variation of sensitivity of price to volume",
+         subtitle = "The presence of a January effect explains some of the sensitivity of price to volume.")
+# %>% 
+#  mutate( january_present = if_else( (model != "t_with_january") | (model != "with_January"), FALSE, TRUE ) )
+```
+Love those waves. Mean sensitivities ($\beta = b$) vary among models, as do their relative ranges, all a mask for uncertainty about the impact of trading volume on stock prices. Of course, most practitioners would at least first difference the price. Let's try that model next.
+
+```{r}
+dmcmc <- list(
+  P = d$P,
+  V = d$V,
+  mid = ifelse( d$month==1 , 1L , 2L )
+)
+m4_mcmc <- ulam(
+  alist(
+    P ~ dstudent(2, mu, sigma),
+    mu <- a[mid] + b[mid]*V,
+    a[mid] ~ dnorm( 0, 0.5 ),
+    b[mid] ~ dnorm( 0, 0.25 ),
+    sigma ~ dexp(1)
+  ), data = d )
+precis( m4_mcmc, digits = 2, depth = 2 )
+```
+```{r}
+#
+with_january_ulam <- extract.samples( m4_mcmc )$b[ ,1 ]
+without_january_ulam <- extract.samples( m4_mcmc )$b[ ,2 ]
+with_january_quap <- extract.samples( m4 )$b[,1 ]
+without_january_quap <- extract.samples( m4 )$b[ ,2 ]
+#
+plot_extract <- tibble( 
+  sim =1:10000, 
+  with_january_ulam, 
+  without_january_ulam, 
+  with_january_quap, 
+  without_january_quap 
+  ) %>% 
+  pivot_longer( -sim, names_to = "model", values_to = "b") 
+plot_extract %>%   
+  ggplot( aes( b, model) ) +
+    geom_density_ridges() +
+    scale_fill_viridis_d() +
+    theme(legend.position = "bottom") +
+    labs(title = "Predicted variation of sensitivity of price to volume",
+         subtitle = "The presence of a January effect explains some of the sensitivity of price to volume.")
+```
