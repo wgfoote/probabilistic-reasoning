@@ -1,0 +1,894 @@
+---
+title: "Week 3 Skill Builders"
+author: "Your Names"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+library(GGally)
+```
+
+## Assignment
+
+### Chapter 6 questions
+
+6M1. Modify the DAG on page 186 to include the variable V, an unobserved cause of C and Y: $C \leftarrow V \rightarrow Y$. Reanalyze the DAG. How many paths connect X to Y? Which must be closed? Which variables should you condition on now?
+
+![](2-roads.jpg)
+
+6M2. Sometimes, in order to avoid multicollinearity, people inspect pairwise correlations among predictors before including them in a model. This is a bad procedure, because what matters is the conditional association, not the association before the variables are included in the model. To highlight this, consider the DAG $X \rightarrow Z \rightarrow Y$. Simulate data from this DAG so that the correlation between X and Z is very large. Then include both in a model to predict $Y$. Do you observe any multicollinearity? Why or why not? What is different from the legs example in the chapter?
+
+6M3. Learning to analyze DAGs requires practice. For each of the four DAGs below, state which variables, if any, you must adjust for (condition on) to estimate the total causal influence of $X$ on $Y$.
+
+![](4-dags.jpg)
+
+All three problems below are based on the same data. The data in data(foxes) are 116 foxes from 30 different urban groups in England. These foxes are like street gangs. Group size varies from 2 to 8 individuals. Each group maintains its own urban territory. Some territories are larger than others. The area variable encodes this information. Some territories also have more avgfood than others. We want to model the weight of each fox. For the problems below, assume the following DAG:
+
+```{r}
+library(dagitty)
+dag_6H3 <- dagitty("dag{
+  avgfood -> weight <- groupsize 
+  avgfood -> groupsize
+  area -> avgfood
+  }"
+)
+coordinates(dag_6H3) <- list(
+  x=c(avgfood=0,groupsize=2,weight=1,area=0),
+  y=c(avgfood=1,groupsize=1,weight=0,area=2) 
+  )
+drawdag(dag_6H3)
+```
+
+6H3. Use a model to infer the total causal influence of area on weight. Would increasing the area available to each fox make it heavier (healthier)? You might want to standardize the variables. Regardless, use prior predictive simulation to show that your model’s prior predictions stay within the
+possible outcome range.
+
+6H4. Now infer the causal impact of adding food to a territory. Would this make foxes heavier? Which covariates do you need to adjust for to estimate the total causal influence of food?
+
+6H5. Now infer the causal impact of group size. Which covariates do you need to adjust for? Looking at the posterior distribution of the resulting model, what do you think explains these data? That is, can you explain the estimates for all three problems? How do they go together?
+
+### Chapter 7 questions
+
+7H1. In 2007, The Wall Street Journal published an editorial (“We’re Number One, Alas”) with a graph of corporate tax rates in 29 countries plotted against tax revenue. A badly fit curve was drawn in, seemingly by hand, to make the argument that the relationship between tax rate and tax revenue increases and then declines, such that higher tax rates can actually produce less tax revenue. I want you to actually fit a curve to these data, found in `data(Laffer)`. Consider models that use tax rate to predict tax revenue. Compare, using WAIC or PSIS, a straight-line model to any curved models you like. What do you conclude about the relationship between tax rate and tax revenue?
+
+7H2. Consider three fictional Polynesian islands. On each there is a Royal Ornithologist charged by the king with surveying the bird population. They have each found the following proportions of 5 important bird species:
+
+```{r}
+library(kableExtra)
+dt <- mtcars[1:5, 1:4]
+dt <- tibble(
+  Island_1 = c( 0.2, 0.2, 0.2, 0.2, 0.2 ),
+  Island_2 = c( 0.8, 0.1, 0.05, 0.025, 0.025 ),
+  Island_3 = c( 0.05, 0.15, 0.7, 0.05, 0.05) 
+)
+rownames(dt) <- c( "Species A", "Species B", "Species C", "Species D", "Species E" )
+colnames(dt) <- c( "Island 1", "Island 2", "Island 3")
+# HTML table
+kbl(dt, caption = "Birds of a Feather") %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = F) 
+```
+
+- What does each column add up to? 
+
+This problem has two parts. It is not computationally complicated. But it is conceptually tricky. 
+
+- First, compute the entropy of each island’s bird distribution. Interpret these entropy values.[^GE-entropy]
+
+[^GE-entropy]: Now for something seemingly completely different, but very much isomorphically aligned with this example, the [GE software module](https://clinicalview.gehealthcare.com/quick-guide/entropy-monitoring-valuable-tool-guiding-delivery-anesthesia) to track the degree of irregular brain function during the delivery of anaesthesia.
+
+
+
+- Second, use each island’s bird distribution to predict the other two. This means to compute the KL divergence of each island from the others, treating each island as if it were a statistical model of the other islands. You should end up with 6 different KL divergence values.
+
+Which island predicts the others best? Why?
+
+7H5. Revisit the urban fox data, `data(foxes)`, from the previous chapter’s practice problems. Use WAIC or PSIS based model comparison on five different models, each using weight as the outcome, and containing these sets of predictor variables:
+
+(1) avgfood + groupsize + area
+
+(2) avgfood + groupsize
+
+(3) groupsize + area
+
+(4) avgfood
+
+(5) area
+
+Can you explain the relative differences in WAIC scores, using the fox DAG from the previous chapter? Be sure to pay attention to the standard error of the score differences (dSE).
+
+## Chapter 6 Solutions
+
+### 6M1: How many roads can we walk down?
+
+From p. 186 in the text, the DAG below contains an exposure of interest X, an outcome of interest Y, an unobserved variable U, and three observed covariates (A, B, and C) that are somehow involved with X and Y.
+
+```{r}
+library(dagitty)
+dag_6M1_UV <- dagitty("dag{
+  U [unobserved]
+  V [unobserved]
+  X -> Y
+  X <- U -> B <- C -> Y
+  U <- A -> C
+  C <- V -> Y }")
+coordinates(dag_6M1_UV) <- list(
+  x=c(X=0,Y=2,U=0,A=1,B=1,C=2,V=2.5),
+  y=c(X=2,Y=2,U=1,A=0.5,B=1.5,C=1,V=1.5) 
+  )
+drawdag(dag_6M1_UV)
+```
+
+This get's the message across: an easy to plot thought experiment on a chalkboard or your living room wall. For the moment forget we posit the existence of an unobserved $V$; instead we focus on unobserved variate $U$. We will soon introduce $V$.
+
+In practical work, the DAG step is often run over, several times, forward and backward. Analysts, who code faster than they think, avoid, or are even unaware, of this most critical of modeling steps. They will dive head first into the concrete of data, often from a great height. The DAG forces us to take a stab at what might be the pathways of inference in answering the question: what can we expect of $Y$? Better yet, deviations from $Y$ can be explained by what variates? Which explanatory, predictive, variates are most important? Do we need them all? Do we need different ones? The spanner in the works is of course $U$ (or, puns intended: YOU:) ), and soon $V$.
+
+We are interested in the $X \rightarrow Y$ path, which depicts the causal effect of $X$ on $Y$. Which of the observed covariates do we need to add to the model, in order to correctly infer it? 
+
+To figure this out, we look for backdoor paths. Aside from the direct path, there is first the causal path from $X$ to $Y$. Also there are two other paths from $X$ to $Y$:
+
+$$
+\begin{align}
+(1) X &\rightarrow Y, \,\,\,\, \text{(the causal path)} \\
+(2) X &\leftarrow U \leftarrow A \rightarrow C \rightarrow Y \\
+(3) X &\leftarrow U \rightarrow B \leftarrow C \rightarrow Y
+\end{align}
+$$
+
+Paths 2 and 3 are both backdoor paths that could confound inference. Thus we ask which of these paths is open. If a backdoor path is open, then we must close it. If a backdoor path is closed already, then we must not accidentally open it and create a new confounding influence. Either $A$ or $C$ will shut the backdoor. This the answer given by `adjustmentSets()`.
+
+```{r}
+library(dagitty)
+dag_6M1_U <- dagitty( "dag {
+U [unobserved]
+X -> Y
+X <- U <- A -> C -> Y
+U -> B <- C
+}")
+adjustmentSets( dag_6M1_U , exposure="X" , outcome="Y" )
+```
+
+Conditioning on either $C$ or $A$ would suffice. Conditioning on $C$ is the better idea, from the perspective of efficiency, since it could also help with the precision of the estimate of $X \rightarrow Y$. So much from the text.
+
+Here is a DAG that includes the variable $V$, an unobserved cause of $C$ and $Y$ such that $C \leftarrow V \rightarrow Y$.
+
+```{r}
+library(dagitty)
+dag_6M1_UV <- dagitty("dag{
+  U [unobserved]
+  V [unobserved]
+  X -> Y
+  X <- U -> B <- C -> Y
+  U <- A -> C
+  C <- V -> Y }")
+coordinates(dag_6M1_UV) <- list(
+  x=c(X=0,Y=2,U=0,A=1,B=1,C=2,V=2.5),
+  y=c(X=2,Y=2,U=1,A=0.5,B=1.5,C=1,V=1.5) 
+  )
+drawdag(dag_6M1_UV)
+```
+Now there are 5 paths connecting $X$ and $Y$:
+
+$$
+\begin{align}
+(1) X &\rightarrow Y \text{(the causal path)} \\
+(2) X &\leftarrow U \rightarrow B \leftarrow C \rightarrow Y \\
+(3) X &\leftarrow U \rightarrow B \leftarrow C \leftarrow V \rightarrow Y \\
+(4) X &\leftarrow U \leftarrow A \rightarrow C \rightarrow Y \\
+(5) X &\leftarrow U \leftarrow A \rightarrow C \leftarrow V \rightarrow Y
+\end{align}
+$$
+
+We want to leave path 1 open and make sure all of the others are closed, because they are non-causal paths that will otherwise confound inference. Let's find the colliders: $B$ and $C$ first. As before with just $U$, all the paths through $B$ are already closed, since $B$ is a collider (*_Why?_*). So we don’t condition on $B$. 
+
+In a similar way, the new paths through both $A$ and $V$ are closed, because $C$ is a collider on those paths. So it will be enough to condition just on $A$ to close all non-causal paths.
+
+Let's can check this reasoning using `dagitty`:
+
+```{r}
+adjustmentSets( dag_6M1_UV , exposure="X" , outcome="Y" )
+```
+
+A question (or two):
+
+- Note that in the chapter, where $V$ is absent, it is also fine to condition on $C$. That is no longer the case, again explain why.
+
+- What is the role of the collider?
+
+Another question (or two):
+
+- What is a DAG good for?
+
+- When don't we need a DAG?
+
+
+### 6M2 -- Rock 'em sock 'em
+
+Mathematically, an example of multicollinearity effectively means we cannot solve a simultaneous equation. that is because the determinant of a coefficient matrix is zero. Here is perfectly correlated set of data. The two columns in this matrix are exactly the same. In general, one column is linearly dependent on another.
+
+```{r eval = FALSE}
+A <- matrix( c(2, 3), nrow = 2, ncol = 2)
+b <- matrix( c(4, 5), nrow =2, ncol = 1)
+# solve Ax = b for x = inverse(A)b
+inverse_A <- solve(A)
+```
+If you were to run this code, you would get back this error:
+
+> Error in solve.default(A) : Lapack routine dgesv: system is exactly singular: U[2,2] = 0
+
+This exactly correlated set of columns in A will not solve because it is singular. That means that we cannot distinguish between the two columns. It is as if there is only one column in A.
+
+Now for a demonstration of noisy, that is, partially correlated data. To simulate collinear data:
+
+```{r }
+N <- 1000
+X <- rnorm(N)
+Z <- rnorm(N,X,0.1)
+Y <- rnorm(N,Z)
+cor(X,Z)
+XZY <- tibble( X = X, Z = Z, Y = Y)
+XZY %>% 
+  ggpairs()
+```
+
+How correlated? Are X and Z the same variable or different variables? If the same why use both? 
+
+Let’s regress:
+ 
+```{r} 
+m_6M2 <- quap(
+  alist(
+    Y ~ dnorm( mu , sigma ),
+    mu <- a + bX*X + bZ*Z,
+    c(a,bX,bZ) ~ dnorm(0,1),
+    sigma ~ dexp(1)
+) , data=list(X=X,Y=Y,Z=Z) )
+precis( m_6M2 )
+```
+
+The standard deviations are larger than we might expect, for such a large sample. But the model has no trouble finding the truth here. 
+
+This is an example of how two variables knock each other out.
+
+**Bottom line:** We must interpret multicollinearity both in the context of data, but  more importantly in the construction of a model. We choose the data to put into the model. This pathological condition is not a property of the data alone. The model and the modeler have some culpability as well.
+
+### 6M3 -- Paths of least resistance?
+
+In each case, the procedure is the same: 
+
+- List all paths between X and Y
+
+- Identify open non-causal paths are open and 
+
+- Hunt for variables to close the open non-causal paths. 
+
+We’ll consider each of these panes in turn:
+
+![](4-dags.jpg)
+
+- *Top left.* There are three paths between X and Y: 
+
+$$
+\begin{align}
+(1) X &\rightarrow Y, \\
+(2) X &\leftarrow Z \rightarrow Y, \\
+(3) X &\leftarrow Z \leftarrow A \rightarrow Y.
+\end{align}
+$$
+
+Both (2) and (3) are open, non-causal paths. Conditioning on Z is sufficient to close both.
+
+*Top right.* Again three paths: 
+
+$$
+\begin{align}
+(1) X &\rightarrow Y, \\
+(2) X &\rightarrow Z \rightarrow Y, \\
+(3) X &\rightarrow Z \leftarrow A \rightarrow Y. 
+\end{align}
+$$
+
+Paths (1) and (2) are both causal. We want both open. Path (3) is non-causal, but it is also closed already because Z is a collider on that path.
+
+*Bottom left.* Paths: 
+
+$$
+\begin{align}
+(1) \,X &\rightarrow Y, \\
+(2) \,X &\leftarrow Z \leftarrow Y, \\
+(3) \,X &\leftarrow A \rightarrow Z \leftarrow Y.
+\end{align}
+$$
+
+Only path (1) is causal. The other paths are both closed, because both contain a collider at Z. Conditioning on Z would be a disaster.
+
+Bottom right. Paths: 
+
+$$
+\begin{align}
+(1) \,X &\rightarrow Y, \\
+(2) \,X &\leftarrow Z \leftarrow Y, \\
+(3) \,X &\leftarrow A \rightarrow Z \rightarrow Y.
+\end{align}
+$$
+
+Paths (1) and (2) are causal. Path (3) is an open backdoor path. To close it, we must condition on A or Z, but if condition on Z, that would close a causal path.
+
+### 6H3 -- Weighty matters
+
+Here is the DAG again.
+
+```{r}
+library(dagitty)
+dag_6H3 <- dagitty("dag{
+  avgfood -> weight <- groupsize 
+  avgfood -> groupsize
+  area -> avgfood
+  }"
+)
+coordinates(dag_6H3) <- list(
+  x=c(avgfood=0,groupsize=2,weight=1,area=0),
+  y=c(avgfood=1,groupsize=1,weight=0,area=2) 
+  )
+drawdag(dag_6H3)
+```
+
+Let's start the interrogation.
+
+- If there are no back-door paths from area to weight, what should we include?
+
+Here is a model using standardized versions of the variables and those
+standardized priors from the book:
+
+```{r}
+library(rethinking)
+data(foxes)
+d <- foxes
+d$W <- standardize(d$weight)
+d$A <- standardize(d$area)
+m1 <- quap(
+alist(
+  W ~ dnorm( mu , sigma ),
+  mu <- a + bA*A,
+  a ~ dnorm(0,0.2),
+  bA ~ dnorm(0,0.5),
+  sigma ~ dexp(1)
+), data=d )
+precis(m1)
+```
+
+Some followup questions, of course.
+
+- What is the influence of territory size?
+
+### 6H4 - Free lunches for fox gangs? 
+
+To infer the causal influence of avgfood on weight, we need to close any back-door paths. There are no back-door paths in the DAG. So again, we can just use a model with a single predictor. 
+
+- What happens if we include groupsize, to block the indirect path?
+
+- But how about the effect of adding food?
+
+```{r}
+d$F <- standardize(d$avgfood)
+m2 <- quap(
+alist(
+  W ~ dnorm( mu , sigma ),
+  mu <- a + bF*F,
+  a ~ dnorm(0,0.2),
+  bF ~ dnorm(0,0.5),
+  sigma ~ dexp(1)
+), data=d )
+precis(m2)
+```
+
+More questions. 
+
+- What is the effect of adding food?
+
+- Does this have anything to do with area?
+
+### 6H5 -- Back doors
+
+The variable groupsize does have a back-door path, passing through avgfood. So to infer the causal influence of groupsize, we need to close that path. This implies a model with both groupsize and avgfood as predictors.
+
+```{r}
+d$G <- standardize(d$groupsize)
+m3 <- quap(
+alist(
+  W ~ dnorm( mu , sigma ),
+  mu <- a + bA*A + bG*G,
+  a ~ dnorm(0,0.2),
+  c(bA,bG) ~ dnorm(0,0.5),
+  sigma ~ dexp(1)
+), data=d )
+precis(m3)
+```
+
+Some questions:
+
+- What is the relationship between group size and weight? What would this relationship control for?
+
+- What is the relationship between food and weight, and what does this relationship control for?
+
+- What is the causal influence of group size? And the causal influence of food?
+
+- What masking effect is at work here and why? Hint: review the milk example.
+
+- Look up the ecological behavior known as an ideal free distribution. How might this at work in the gang of foxes?
+
+
+## Chapter 7 Solutions
+
+### 7H1 -- Arthur Laffer
+
+Let's explore the data first.
+
+```{r}
+library(GGally)
+library(rethinking)
+data(Laffer)
+d <- Laffer
+ggpairs( d )
+```
+
+Let's attempt polynomial fits of degree 1 (the so-called linear model), degree 2 (affectionately known as a quadratic fit), and degree 3 (cubic, almost related to Picasso).
+
+```{r}
+d$T <- standardize( d$tax_rate )
+d$R <- standardize( d$tax_revenue )
+# linear model
+m7H1_lin <- quap(
+  alist(
+    R ~ dnorm( mu , sigma ),
+    mu <- a + b*T,
+    a ~ dnorm( 0 , 0.2 ),
+    b ~ dnorm( 0 , 0.5 ),
+    sigma ~ dexp(1)
+  ) , data=d )
+precis(m7H1_lin, digits = 4)
+# quadratic model
+m7H1_quad <- quap(
+  alist(
+    R ~ dnorm( mu , sigma ),
+    mu <- a + b1*T + b2*T^2,
+    a ~ dnorm( 0 , 0.2 ),
+    c(b1,b2) ~ dnorm( 0 , 0.5 ),
+    sigma ~ dexp(1)
+  ) , data=d )
+precis(m7H1_quad, digits = 4)
+# cubic model
+m7H1_cub <- quap(
+  alist(
+    R ~ dnorm( mu , sigma ),
+    mu <- a + b1*T + b2*T^2 + b3*T^3,
+    a ~ dnorm( 0 , 0.2 ),
+    c(b1, b2, b3) ~ dnorm( 0 , 0.5 ),
+    sigma ~ dexp(1)
+  ) , data=d )
+precis(m7H1_cub, digits = 4)
+```
+
+Use the PSIS to examine the models on a purely predictive basis.
+
+```{r}
+compare( m7H1_lin, m7H1_quad, m7H1_cub, func = PSIS )
+```
+
+- Any high leverage points?
+
+- Any support for the polynomial models over the linear model?
+
+```{r}
+PSISk(m7H1_quad) # Run the other models too
+```
+
+- Any points over 1? What does this indicate?
+
+We can review the scatter plot to identify any outlying culprits.
+
+We can (and should) review the posterior distributions of each model.
+
+```{r}
+T_seq <- seq( from=-3.2 , to=1.2 , length.out=30 )
+#l_lin <- link( m7H1_lin , data=list(T=T_seq) )
+l_quad <- link( m7H1_quad , data=list(T=T_seq) )
+#l_cub <- link( m7H1_cub , data=list(T=T_seq) )
+plot( d$T , d$R , xlab="tax rate" , ylab="revenue" )
+mtext( "quadratic model" )
+lines( T_seq , colMeans(l_quad) )
+shade( apply( l_quad , 2 , PI ) , T_seq )
+## Run plots for the other models too
+```
+
+We should remember these are standardized variables.
+
+Let's now try a so-called robust model using the Student-t distribution for the response variable. 
+
+- Why might we think the Student-t is *robust*?
+
+We will make the tails of the outcome nice and thick. To do this, we use the degrees of freedom parameter $\nu = 2$. This parameter derives from the definition of the student-t distribution with a Gaussian distribution in the numerator and a (square root of) chi-squared in the denominator with degrees of freedom.
+
+```{r}
+# linear model with student-t
+m7H1_robust <- quap(
+  alist(
+    R ~ dstudent( 2 , mu , sigma ),
+    mu <- a + b*T,
+    a ~ dnorm( 0 , 0.2 ),
+    b ~ dnorm( 0 , 0.5 ),
+    sigma ~ dexp(1)
+) , data=d )
+precis( m7H1_robust )
+```
+
+Comparing the previous models:
+
+```{r}
+compare( m7H1_lin , m7H1_quad , m7H1_cub , m7H1_robust , func=PSIS )
+```
+
+- Any winners?
+
+
+### 7H2 -- Islands in the stream
+
+We just need a function to compute the entropy as
+
+$$
+H(p) = −\Sigma_i p_i log(p_i)
+$$
+
+where $p$ is a vector of probabilities summing to 1. 
+
+Here's a function:
+
+```{r}
+H <- function(p) {
+  -sum(p*log(p))
+}
+```
+
+Let's first make a list() of the distributions. 
+
+```{r}
+IB <- list()
+IB[[1]] <- c( 0.2 , 0.2 , 0.2 , 0.2 , 0.2 )
+IB[[2]] <- c( 0.8 , 0.1 , 0.05 , 0.025 , 0.025 )
+IB[[3]] <- c( 0.05 , 0.15 , 0.7 , 0.05 , 0.05 )
+```
+
+Now we use `sapply()` to calculate the `H` values for each item in the list.
+
+```{r}
+sapply( IB , H )
+```
+
+[1] 1.6094379 0.7430039 0.9836003
+
+Entropy measures the evenness, the lack of surprise, and of information, in a distribution.
+
+- What are the largest to smallest entropies?
+
+- How surprised would you have been to see birbs in the distribution on each island?
+
+Since there are differences, we should get right to the Kullback–Leibler divergence (KL divergence) measure.
+
+```{r}
+DKL <- function(p,q) sum( p*(log(p)-log(q)) )
+```
+
+- What does this measure? Hint: distance?
+
+- What is p, what is q?
+
+Let's let p be true and use q as the model in the different ordered pairings below using the newly minted `DKL()` function
+
+```{r}
+Dm <- matrix( NA , nrow=3 , ncol=3 )
+for ( i in 1:3 ) for ( j in 1:3 ) Dm[i,j] <- DKL( IB[[j]] , IB[[i]] )
+round( Dm , 2 )
+```
+
+
+The way to read this is that each row is a model and each column is a true distribution. 
+
+- Island the first. Comment on the information distances to the other islands.
+
+- Island the second, and so on.
+
+*Hint:* An Island with longest distances to the other islands, is it more or less surprised by the other islands?
+
+### 7H5 -- Foxes revisited
+
+Here's the DAG for the model from the previous chapter.
+
+```{r}
+library(dagitty)
+dag_6H3 <- dagitty("dag{
+  avgfood -> weight <- groupsize 
+  avgfood -> groupsize
+  area -> avgfood
+  }"
+)
+coordinates(dag_6H3) <- list(
+  x=c(avgfood=0,groupsize=2,weight=1,area=0),
+  y=c(avgfood=1,groupsize=1,weight=0,area=2) 
+  )
+drawdag(dag_6H3)
+```
+
+These are the models for outcome weight with predictors
+
+1. avgfood + groupsize + area
+
+2. avgfood + groupsize
+
+3. groupsize + area
+
+4. avgfood
+
+5. area
+
+```{r }
+library(rethinking)
+data(foxes)
+d <- foxes
+d$W <- standardize(d$weight)
+d$A <- standardize(d$area)
+d$F <- standardize(d$avgfood)
+d$G <- standardize(d$groupsize)
+m1 <- quap(
+alist(
+  W ~ dnorm( mu , sigma ),
+  mu <- a + bF*F + bG*G + bA*A,
+  a ~ dnorm(0,0.2),
+  c(bF,bG,bA) ~ dnorm(0,0.5),
+  sigma ~ dexp(1)
+), data=d )
+precis( m1)
+#
+m2 <- quap(
+alist(
+  W ~ dnorm( mu , sigma ),
+  mu <- a + bF*F + bG*G + bA*A,
+  a ~ dnorm(0,0.2),
+  c(bF,bG,bA) ~ dnorm(0,0.5),
+  sigma ~ dexp(1)
+), data=d )
+precis( m2)
+m3 <- quap(
+alist(
+  W ~ dnorm( mu , sigma ),
+  mu <- a + bG*G + bA*A,
+  a ~ dnorm(0,0.2),
+  c(bG,bA) ~ dnorm(0,0.5),
+  sigma ~ dexp(1)
+  ), data=d )
+precis( m3)
+m4 <- quap(
+alist(
+  W ~ dnorm( mu , sigma ),
+  mu <- a + bF*F,
+  a ~ dnorm(0,0.2),
+  c(bF) ~ dnorm(0,0.5),
+  sigma ~ dexp(1)
+  ), data=d )
+precis( m4)
+m5 <- quap(
+alist(
+  W ~ dnorm( mu , sigma ),
+  mu <- a + bA*A,
+  a ~ dnorm(0,0.2),
+  c(bA) ~ dnorm(0,0.5),
+  sigma ~ dexp(1)
+), data=d )
+precis( m5)
+```
+
+Compare using WAIC:
+
+```{r}
+compare( m1, m2, m3,m4, m5, func = WAIC )
+```
+
+- What are the top 3 models?
+
+- How do these relate to the size of differences and the standard error of the difference?
+
+- Does any of this line up with the DAG? Hint: Any back door paths? Check the influence of area on the way to food and group size.
+
+Look at the posterior distributions of the remaining two models.
+
+```{r}
+coeftab( m4, m5 )
+```
+
+- What do they omit? and So what?
+
+- Any different than the causal influence of area or food?
+
+One more stab at this. We don’t use the standard
+errors of the models, but rather the standard error of their difference. Just like each WAIC value, each difference in WAIC values also has a standard error.
+
+```{r}
+set.seed(91)
+waic_m4 <- WAIC( m4 , pointwise=TRUE )$WAIC
+waic_m5 <- WAIC( m5 , pointwise=TRUE )$WAIC
+n <- length(waic_m4)
+diff_m4_m5 <- waic_m4 - waic_m5
+sqrt( n*var( diff_m4_m5 ) )
+```
+```{r}
+library(ggridges)
+
+with_food <- extract.samples( m4 )$b #[ ,1 ]//
+with_area <- extract.samples( m5 )$b #[ ,2 ]
+
+plot_extract <- tibble( sim =1:10000, with_food, with_area ) %>% 
+  pivot_longer( -sim, names_to = "model", values_to = "b") 
+plot_extract %>%   
+  ggplot( aes( b, model) ) +
+    geom_density_ridges() +
+    scale_fill_viridis_d() +
+    theme(legend.position = "bottom") +
+    labs(title = "Predicted variation of slope sensitivity",
+         subtitle = "Average Food and Area Size explain much the same variation in Weight.")
+```
+Now look at the compare table again. We notice that:
+
+- What do we notice?
+
+If we imagine the 99% (corresponding to a z-score of about 2.6) interval of the difference, it’ll be about:
+
+```{r}
+quantile(diff_m4_m5, 0.005)
+quantile(diff_m4_m5, 0.995)
+```
+
+We can view these differences with this plot of the compare function's results.
+
+```{r}
+library(ggridges)
+
+with_food <- extract.samples( m4 )$b #[ ,1 ]//
+with_area <- extract.samples( m5 )$b #[ ,2 ]
+
+plot_extract <- tibble( sim =1:10000, with_food, with_area ) %>% 
+  pivot_longer( -sim, names_to = "model", values_to = "b") 
+plot_extract %>%   
+  ggplot( aes( b, model) ) +
+    geom_density_ridges() +
+    scale_fill_viridis_d() +
+    theme(legend.position = "bottom") +
+    labs(title = "Predicted variation of slope sensitivity",
+         subtitle = "Average Food and Area Size explain much the same variation in Weight.")
+```
+The filled points are the in-sample deviance values. The open points are the WAIC values. The line segments show the standard error of each WAIC. These are the values in the column labeled SE in the table above. What we really want however is the standard error of the difference in WAIC
+between the two models. That is shown by the lighter line segment with the triangle on it,
+
+What does all of this mean?
+
+- Causation?
+
+- Mediating effects?
+
+## WAIC
+
+_*WAIC*_ stands for ____ ____ ? Yes it an information criterion and dutifully computes a statistic that tests the ability of a model to predict. Log odds ratios are involved, as well as the number of parameters, and thus the complexity of a model. This criterion approximates the out-of-sample deviance that converges to the cross-validation approximation in a large sample. The CV approximation, especially using the $N$-fold _*leave-one-out (LOO)*_ strategy results in the _*Pareto-smoothed*_ blah, blah.
+
+WAIC is just the _*log-posterior-predictive density*_ (lppd, that is, the Bayesian deviance) and a penalty proportional to the variance in posterior predictions:
+
+$$
+WAIC(y, \Theta) = −2(lppd − \underbrace{\Sigma_i var_{\theta}\,log  \,\,p(y_i|\theta))}_{penalty}
+$$
+
+The $lppd$ comes from the notion of model divergence  as the additional uncertainty induced by using probabilities from one distribution to describe another distribution. This divergence is often measured by the  Kullback-Leibler divergence, KL divergence. The divergence is the distance in log odds ratios between two models. Our two models are everything except the one observation left out, and everything left in. Lots of computing will make our day now.
+
+The Bayesian version of the log-probability score is called the
+log-pointwise-predictive-density. For some data $y$ and posterior distribution $\theta$.
+
+$$
+lppd(y, \Theta) = \Sigma_i \, log \frac{1}{S} \Sigma_s p(y_i | \Theta_s)
+$$
+where $S$ is the number of samples and is the $s$-th set of sampled parameter values in the posterior distribution. 
+
+Whenever we see logs we know we have scores. The penalty is part and parcel of a correction in non-Bayesian models called a _*ridge*_ regression. The _ridge_ is a parameter that tunes the fit in a regularizing way, much like choosing a fairly tight prior to squeeze only enough information of data and deposit only enough into the posterior probability distribution. We can shorten the penalty into an _*effective number of parameters*_ statistic $p_{}, much like full-time employed relates to head count. 
+
+Let's use the `cars` dataset loaded with base R. Everyone uses this to build certain models and compare the results.
+
+```{r}
+data(cars)
+summary(cars)
+m <- quap(
+alist(
+  dist ~ dnorm(mu,sigma),
+  mu <- a + b*speed,
+  a ~ dnorm(0,100),
+  b ~ dnorm(0,10),
+  sigma ~ dexp(1)
+) , data=cars )
+precis( m )
+set.seed(42)
+post <- extract.samples(m,n=1000)
+```
+
+Compare this with the OLS regression.
+
+```{r}
+m_OLS <- lm(cars$dist ~ 1 + cars$speed, data = cars)
+summary(m_OLS)
+
+```
+
+Right on the nose! They agree, almost; and, phew! The F-statistic helps us reject the null hypothesis that the intercept _and_ slope are zero at a stargazingly high degree of plausibility. Ahh, but this routine does not at all help us identify those observations which might more influence our over-fitting issues.
+
+What out our `quap` model? First, we compute the log-likelihood of each observation $i$ at each sample $s$ from the posterior:
+
+```{r}
+n_samples <- 1000
+log_prob <- sapply( 1:n_samples ,
+function(s) {
+  mu <- post$a[s] + post$b[s]*cars$speed
+  dnorm( cars$dist , mu , post$sigma[s] , log=TRUE )
+} )
+str(log_prob)
+```
+
+The `str()` view shows a 1000 samples column matrix with observations in each row, among other things, all scores.
+
+We compute $lppd$, the Bayesian deviance, by averaging the samples in each row, taking the log, and adding all of the logs together (the sum of logs are like the products of probabilities, all logical *both-and*s. We have to use the  function log_sum_exp to compute the log of a sum of exponentiated terms, else we might be as precise as we need to be, let alone experience under and overflow arithmetical headaches. After all of that we subtract the log of the number of samples, and thus the log of the average.
+
+```{r}
+n_obs <- nrow(cars)
+lppd <- sapply( 1:n_obs , function(i) log_sum_exp(log_prob[i,]) - log(n_samples) )
+sum(lppd)
+```
+
+We will need `sum(lppd)` for the total `lppd` in the WAIC formula. The penalty term p_{WAIC} adds up the variance across samples for each and every observation.
+
+```{r}
+pWAIC <- sapply( 1:n_obs , function(i) var(log_prob[i,]) )
+sum(pWAIC)
+summary(pWAIC)
+```
+
+Again sum(pWAIC) returns total p_{WAIC} in the formula. At last we compute WAIC like this.
+
+```{r}
+ -2*( sum(lppd) - sum(pWAIC) )
+```
+You can compute the standard error of WAIC through the square root of number of cases multiplied by the variance over the individual observation terms in WAIC.
+
+```{r}
+waic_vec <- -2*( lppd - pWAIC )
+sqrt( n_obs*var(waic_vec) )
+```
+
+Since each observation has a penalty in the $p_{WAIC}$ vector, we attempt to identify those observations than contribute to overfitting using the `pointwise=TRUE` feature in the `rethinking::WAIC()` function.
+
+```{r}
+WAIC(m, pointwise = TRUE)
+tail(cars)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

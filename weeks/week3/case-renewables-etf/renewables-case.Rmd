@@ -1,0 +1,355 @@
+---
+title: "Regressing the Stock Market: UNDER CONSTRUCTION"
+author: "Bill Foote"
+date: "10/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=F, warning=F)
+library(tidyverse)
+library(plotly)
+library(GGally)
+library(rethinking)
+library(knitr)
+library(tidybayes)
+library(tidyquant) # install.packages("tidyquant")
+```
+
+## The business situation
+
+Our aluminum recyling company just bought a renewable energy manufacturing and services company to expand its earnings opportunities. The renewables devision dabbles in wind, clean energy technologies (very similar to the aluminum recycling clean technologies), and solar, a very new field for the company. The CFO would like to measure the  impact of this new market on the earnings of the renewables division. To do this she commissions a project team.
+
+### Some complications
+
+- The company has experienced very high volatility of earnings in aluminum and input energy markets. 
+
+- There is increased competition in these and their substitute and complementary markets. 
+
+- New technology is outpacing the efficiency and cost per unit of existing facilities in the company's fleet of plants. 
+
+- The company continues to violate levels of risk tolerance and thresholds for total return set by the board of directors,
+
+
+### We have questions
+
+Your CFO has a few questions for us:
+
+1. How do we characterize renewables variability and the impact of one market on another? 
+
+2. What are the best combinations of renewables drivers?
+
+3. How much capital is needed to support a renewables earnings stream?
+
+4. How should the company plan to meet risk tolerances and thresholds for losses?
+
+Before we get to all of that, we must first understand the relationships among these drivers of value for the company. Answers to the other three quesitons depend on that first analysis.
+
+### Data
+
+For the renewables sector we select [exchange traded funds (ETF)](https://www.investopedia.com/terms/e/etf.asp) fromm the [global renewables sector](https://www.etf.com/channels/renewable-energy-etfs): 
+
+- TAN for solar, 
+
+- ICLN for clean technologies, and 
+
+- PBW for wind
+
+and we will condition everything on the S\&P 500 broad market index to ferret out unique signals from the renewables market.
+
+These funds act as indices to effectively summarize the inputs, process, management, decisions, and outputs of various aspects of the renewables sector. Examining and analyzing this series will go a long way to helping the CFO undersPBWd the riskiness of these markets. 
+
+We load historical data on three ETFs, tranform prices into returns, and then further transform the returns into within-month correlations and standard deviations. Our goal initially is just to review the stylized facts of volatility and relationships among three repesentative markets.
+
+```{r}
+# Get ETF Prices
+symbol <- c("TAN", "ICLN", "PBW", "^GSPC")
+from <- "2020-11-05"; to <- "2021-11-05"
+prices <- tq_get( symbol, 
+                  get = "stock.prices", 
+                  from = from, to = to )
+volumes <- prices %>% 
+  select( symbol, date, volume )
+breaks <- c( 0, quantile( volumes$volume, 0.045), quantile( volumes$volume, 0.50), quantile( volumes$volume, 0.945), Inf )
+labels <- c( "very low", "low", "medium", "high" )
+regimes <- cut( volumes$volume, breaks, labels )
+levels( regimes ) <- c( "very low", "low", "medium", "high" )
+prices$regimes <- regimes
+```
+
+This faceted candlestick plot indicates some of the daily structure of price movements.
+
+```{r}
+# 
+end <- as_date( to )
+weeks_number <- 6
+start <- end - weeks( weeks_number )
+prices %>%
+    filter(date >= start - days(2 * 15)) %>%
+    ggplot(aes(x = date, y = close, group = symbol)) +
+    geom_candlestick(aes(open = open, high = high, low = low, close = close)) +
+    labs(title = "Renewables Candlestick Chart", 
+         subtitle = "Experimenting with ETFs",
+         y = "Closing Price", x = "") + 
+    coord_x_date(xlim = c(start, end)) +
+    facet_wrap(~ symbol, ncol = 2, scale = "free_y") + 
+    theme_tq()
+```
+
+They seem to ride in tandem. Let's model their relationships.
+
+```{r}
+prices_wide <- prices %>%
+  select( symbol, date, adjusted, regimes ) %>% 
+  pivot_wider(
+    names_from = symbol,
+    values_from = adjusted
+  ) %>% 
+  as_tibble()
+prices_wide %>% 
+  #filter(date >= start - days(2 * 15)) %>%
+  ggpairs(aes( color = regimes ) )
+```
+
+Strong correlations abound. Leaving the date column in this pairs plot produces the three time series plots for the ETFs. Correlations are high across all levels of transactions. The plot in column 1, row 2, indicates the low number of very low and high levels of transaction activity by volume and date. The diagonal bargraph indicates the same by density or count.
+
+## Returns
+
+```{r}
+returns <- prices %>% 
+  group_by(symbol) %>%
+  tq_transmute(select = adjusted,
+               mutate_fun = periodReturn,
+               period = "daily",
+               col_rename = "return") %>% 
+  inner_join( volumes )
+volumes <- returns %>% 
+  select( symbol, date, volume )
+breaks <- c( 0, quantile( volumes$volume, 0.045), quantile( volumes$volume, 0.50), quantile( volumes$volume, 0.945), Inf )
+regimes <- cut( volumes$volume, breaks )
+levels( regimes ) <- c( "very low", "low", "medium", "high" )
+returns$regimes <- regimes
+```
+
+```{r}
+returns_wide <- returns %>%
+  select( symbol, date, return ) %>% 
+  pivot_wider(
+    names_from = symbol,
+    values_from = return
+  ) %>% 
+  as_tibble()
+market <- returns[returns$symbol == "^GSPC", ]
+regimes <- market$regimes
+returns_wide <- bind_cols( returns_wide, as_tibble(regimes,  regime=regimes) )
+names( returns_wide )[6] <- "regime"
+names( returns_wide )[5] <- "GSPC"
+plt <- returns %>% 
+  ggplot( aes( x = date, y = return, color = regimes  )) +
+  geom_point( shape = 21)
+ggplotly( plt )
+```
+
+```{r}
+returns_wide %>% 
+  #filter(date >= start - days(2 * 15)) %>%
+  ggpairs( # Columns to include in the matri
+    columns = c(1:6),
+    # What to include above diagonal
+    # list(continuous = "points") to mirror
+    # "blank" to turn off
+    # upper = "blank",
+    legends=T,
+    # What to include below diagonal
+    lower = list(continuous = "points"),
+    # What to include in the diagonal; cleaner than area plot
+    diag = list(continuous = "density"),
+    # How to label inner plots
+    # internal, none, show
+    axisLabels = "none",
+    # Other aes() parameters
+    ggplot2::aes(group= regime, fill=regime, colour = "regime"),
+    title = "Renewables ETF Returns"
+    )
+```
+
+## Predictive diagnostics
+
+There are two statistical plots and one causal inference plot we might use to understand the outcomes of our models.
+
+- Predictor residual plots. We plot the predicted outcome versus the residuals (actual minus predicted). The residuals help us understand the pattern of unsystematic variations in the model. 
+
+- Posterior prediction plots. These show model-based predictions against raw data, or otherwise display the error in prediction. They are tools for checking fit and assessing predictions. They are not causal tools.
+
+- Counterfactual plots. These show the implied predictions for imaginary experiments. These plots allow you to explore the causal implications of manipulating one or more variables.
+
+## Predictor residual plots
+
+
+```{r}
+d <- tibble(
+  tan = returns_wide$TAN,
+  vol_tan = abs(returns_wide$TAN),
+  icln = returns_wide$ICLN,
+  vol_icln = abs(returns_wide$ICLN),
+  pbw = returns_wide$PBW,
+  gspc = returns_wide$GSPC,
+  regime = returns_wide$regime,
+  date = returns_wide$date
+) %>% 
+  mutate( cov_t_i = (tan - mean(tan))*(icln - mean(icln)) / ( sd(tan)* sd(icln) ),
+          cov_t_p = (tan - mean(tan))*(pbw - mean(pbw)) / ( sd(tan)* sd(pbw) ),
+          cov_p_i = (pbw - mean(pbw))*(icln - mean(icln)) / ( sd(pbw)* sd(icln) ))
+
+#%>% 
+#  filter(date >= start - days(2 * 15))
+#
+m_1 <- quap( alist(
+  cov_t_p ~ dnorm( mu, sigma ),
+  mu <- aCOV + bCOV*vol_tan,
+  aCOV ~ dnorm( 0, 1 ),
+  #bICLN ~ dnorm( 0, 0.5 ),
+  bCOV ~ dnorm( 0, 0.5 ),
+  sigma ~ dexp( 1 )
+), data=d)
+precis( m_1 )
+
+
+
+```{r}
+mu <- link(m_1)
+mu_mean <- apply( mu , 2 , mean )
+mu_resid <- d$M - mu_mean
+#
+
+```
+
+
+```{r}
+
+d %>% 
+  ggplot( aes( x = icln, y = tan, color = regime) ) +
+  geom_point( shape = 21) +
+  geom_smooth( method = lm )
+
+mu <- link( m_1 )
+mu_mean <- apply( mu, 2, mean )
+mu_PI <- apply( mu, 2, PI )
+D_sim <-  sim( m_1, n=1e4 )
+D_PI <- apply( D_sim, 2, PI )
+d$L <- mu_PI[1,]
+d$U <- mu_PI[2,]
+d$Lpnt <- D_PI[1,]
+d$Upnt <- D_PI[2,]
+dplt <- tibble(
+  mu_mean = mu_mean,
+  lower_mu = d$L,
+  upper_mu = d$U,
+  lower_point = d$Lpnt,
+  upper_point = d$Upnt,
+  tan =d$tan,
+  icln = d$icln,
+  regime = d$regime
+)
+plt <- dplt %>% 
+  ggplot( aes( x = icln, y = tan, color = regime ) ) +
+  geom_point( shape = 21 ) +
+  geom_line( aes( y = mu_mean)) +
+  labs(
+    title = "TAN: predicted versus actual returns",
+    x = "actual",
+    y = "predicted"
+  )
+plt
+
+dplt %>% 
+ ggplot(aes(x = tan, y = mu_mean, color = regime)) +
+ geom_segment( aes( x = tan, xend = tan, y = lower_mu, yend = upper_mu ) ) +
+ geom_smooth (method = lm ) +
+ geom_point( shape = 21 ) +
+ coord_cartesian(ylim = range(dplt$tan)) +
+ labs(
+    title = "TAN: predicted versus actual",
+    x = "actual",
+    y = "predicted"
+  ) +
+  theme_bw() +
+  theme(panel.grid = element_blank())  
+ 
+plot( mu_mean ~ d$tan , col=rangi2 , ylim=range(mu_PI) ,xlab="Observed TAN" , ylab="Predicted TAN" )
+abline( a=0 , b=1 , lty=2 )
+for ( i in 1:nrow(d) ) lines( rep(d$tan[i],2) , mu_PI[,i] , col=rangi2 )
+
+
+post <- extract.samples( m_1 )
+amzn_seq <- seq(from=-2,to=3,length.out=50)
+mu <- sapply( amzn_seq , function(z) mean( post$aAAPL + post$bAAPL*z + post$bAAPL2*z^2 ) )
+mu_ci <- sapply( amzn_seq , function(z) PI( post$aAAPL + post$bAAPL*z + post$bAAPL2*z^2 , prob=0.89 ) )
+pred_ci <- sapply( amzn_seq , function(z) PI( rnorm( 10000 , post$aAAPL + post$bAAPL*z + post$bAAPL2*z^2 , post$sigma ) , 0.89 ) )
+
+plot( aapl ~ amzn , data=d , col=col.alpha("slateblue",0.6) , cex=0.5 )
+lines( aapl_seq , mu )
+lines( aapl_seq , mu_ci[1,] , lty=2 )
+
+```
+
+
+## Other stuff
+```{r cars}
+d_extr <- tibble(
+  X = rgampois( 1000, 10, 5),
+  Y = rnorm( 1000, X, 5)
+)
+table_precis <- precis( d_extr )[,1:4]
+str(table_precis)
+kable( table_precis, booktabs = T )
+```
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+m_extr <- ulam( alist(
+  Y ~ dnorm( mu, sigma ),
+  mu <- a + b*X,
+  a ~ dnorm( 5, 1 ),
+  b ~ dnorm( 1, 0.5 ),
+  sigma ~ dexp( 1 )
+  ), data=d_extr, chains=4, log_lik=TRUE )
+m_ols <- lm( data=d_extr, Y ~ X)
+summary( m_ols )
+table_precis <- precis( m )[,1:6]
+str(table_precis)
+kable( table_precis, booktabs = T )
+```
+
+```{r cars}
+d_norm <- tibble(
+  X = rnorm( 1000, 10, 5),
+  Y = rnorm( 1000, X, 5)
+)
+table_precis <- precis( d_norm )[,1:4]
+str(table_precis)
+kable( table_precis, booktabs = T )
+```
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+m_norm <- ulam( alist(
+  Y ~ dnorm( mu, sigma ),
+  mu <- a + b*X,
+  a ~ dnorm( 10, 5 ),
+  b ~ dnorm( 1, 0.5 ),
+  sigma ~ dexp( 1 )
+  ), data=d_norm, chains=4, log_lik=TRUE )
+m_ols <- lm( data=d_norm, Y ~ X)
+summary( m_ols )
+table_precis <- precis( m_norm )[,1:6]
+str(table_precis)
+kable( table_precis, booktabs = T )
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r compare}
+compare( m_extr, m_norm, func=PSIS)
+```
