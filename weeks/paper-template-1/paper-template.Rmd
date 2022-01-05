@@ -1,0 +1,167 @@
+---
+title: "A Template for Causal Inference is Learning Projects"
+author:
+  - name: William G. Foote
+    email: wfoote01@manhattan.edu
+    department: Business Analytics
+    affiliation: Manhattan College
+    footnote: 1
+address:
+  - code: Manhattan College
+    address: O'Malley School of Business, Riverdale, NY 10471
+footnote:
+  - code: 1
+    text: "Corresponding Author"
+abstract: |
+  A project workflow is proposed. Included are an introduction with the key questions posed for analysis, exploratory data analysis, causal inference, and concluding discussion.
+keywords: Project Report; Workflow; Exploratory Data Analysis; Causal Inference; Probabilistic Reasoning; WAIC; PSIS; Counterfactual Inference
+date: "`r Sys.Date()`"
+bibliography: paper.bib
+biblio-style: apalike
+link-citations: yes
+#linenumbers: true
+numbersections: true
+longtable: true
+output: 
+  bookdown::html_document2:
+    fig_caption: yes
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+library(plotly)
+library(tidybayes)
+library(tidybayes.rethinking)
+library(ggdag)
+library(GGally)
+library(ggrepel)
+library(ggridges)
+library(cowplot)
+```
+
+You may use whatever headers you like. Here are some generic examples.
+
+# Introduction
+
+Begin with an initial, eye-popping, ear-splitting, etc. statement: the catch, the hook.
+
+- Motivation
+
+- Relevant literature. @Keynes1923, @amrheinScientistsRiseStatistical2019
+
+- What to accomplish
+
+- Organization of the report
+
+# Models
+
+Ways of thinking, formation of hypotheses, building on previous work, new thoughts and insights. Remember the statistics can only go so far as building an antecedent probability that assesses the capatibility of hypotheses (refutable theories) with the data at hand. 
+
+If you are having a difficult time generating questions for deliberation, [read this chapter in Foote's _Probabilistic Reasoning_](https://wgfoote.github.io/book-probabilistic-reasoning/questions-to-live-by.html) to get started. 
+
+- DAGs to reveal causal paths, the many confounds. Use the models in @McelreathStatisticalRethinkingBayesian2020 and @PearlGlymourJewell2016. DAGs may derive from behavioral and other scientific models such as economic optimization, reduced forms, mediation and moderation.
+
+- Generative models to illustrate and provide further insight into potential causal relationships, simplification of otherwisse over-complicated and over-fitting models, as well as a meta-foundation for an underlying statistical inference.
+
+- Resolving the causal models. Remember the four models we discussed way back? Find and resolve the confounds. List the confounds, their backdoors, their resolutions.
+
+- Commentary, for example: We make Golems and Robots (see @CollinPinch1998 and @CapekRUR1921 ). We will take great care not to repeat the mistakes of the past (@amrheinScientistsRiseStatistical2019).
+
+# Data
+
+This is the infamous `table one` that describes the data.
+
+- Source. for example, [Gap Minder](https://www.gapminder.org/data/) with any descriptions and additional citations.
+
+- Relevance to the resolved causal models.
+
+- Issues and assumptions
+
+- Summaries of the data including percentiles, max, min, Tukey's fences for outliers, `GGally::ggpairs()` plots, types of data (categorical, continuous, discrete, ordered)
+
+- Visualize the exploration.
+
+- We then omment on questions raised data. We can recall that data are the results of previous decisions, rational (or absurd) judgments of value (what is is more or less better, or better than not -- the status quo) and reflections on understanding or mis-understanding, in turn rising from previous data as experienced. 
+
+# Learning is inference
+
+Based on the exploratory commentary, we proceed to use the causal models, infiltrated and challenged with data and observational models that purport to link logically data with hypotheses. 
+
+- State the assumptions of the analysis.
+
+- State hypotheses, including the potential impact of an unobserved driver of an outcome. Here we measure impact by the probable scale of the influence of an unobserved factor on intermediate and immediate outcomes.
+
+- Mathematically display and explain opposing distributional models. By opposing we imply a dialectical comparison of models. For example, we might hypothesize that two drivers influence an outcome. Three models emerge from this hypothesis: two models each with a single driver and one model with both drivers. Each of the three models may be influenced by the inclusion of an unobserved driving influence for a total of six models.
+
+- Combine data with hypotheses into likelihoods of data given hypotheses. Logically determine (mathematics is the logic!) the ranges of most plausible hypotheses, given the data, the observational models of understanding the data, the causal theory behind the key questions raised in this study.
+
+- Visualize the inferences using simulated parameter distributions and pointwise WAIC or PSIS differentials among models.
+
+# Conclusions
+
+We conclude with a discussion that includes these elements.
+
+- A summary of the causal theory and link to the questions for inquiry.
+
+- A summary of exploratory findings.
+
+- A summary of the casual inferences that attempt to link questions, causality, assumptions, data, hypotheses, and affirmations of likely ranges of plausible hypotheses, with counterfactual inferences.
+
+- A summary of important caveats, dead ends, blind alleys, pitfalls a consumer of the analysis should keep in mind.
+
+- A summary of unanswered questions, portions of questions, and an indication of the next steps to close gaps in data, understanding, and judgments of fact and value.
+
+# BibTex for References 
+
+You can use a bibtex JSON file to list your many useful references. Here is are example entries. I have gathered hundreds of these over the years for my own work. Our library provides a reference discovery service. When you locate a reference, most of the time you can download a bibtex citation like these.
+
+```{r, eval=F}
+@book{Jeffreys1961,
+ title = {The Theory of Probability},
+ edition = {3rd},
+ author = {Harold Jeffreys},
+ publisher = {Oxford},
+ year = 1961
+}
+
+@article{Kahneman1973,
+ title = {On the psychology of prediction},
+ author = {Kahneman, D. and Tversky, A.},
+ year = 1973,
+ journal = {Psychological Review},
+ volume =80,
+ pages = {237-251}
+}
+
+@book{Keynes1923,
+  title = {A Tract on Monetary Reform},
+  year = 1923,
+  publisher = {Macmillan and Company},
+  address = {London},
+  author = {John Maynard Keynes}
+}
+```
+
+- These references are stored in the companion file `paper.bib` referenced in the YAML for this Rmd file.
+
+- For the purposes of this project, use references which more, rather than less, directly impact your initial questions, data, model, and conclusions.
+
+- A counterfactual reference will lend credence and usefulness to the interpretation of findings. 
+
+- For example, we can reference @Kahneman1973 using the expression `@Kahneman1973`. We will see the citation in full below in the list of references. 
+
+# Endnotes
+
+We will use endnotes to expand on a point made in the body of the paper. The syntax is`[^label]` where `label` is a unique identifier of the endnote. Here is an example of an endnote located at the place it will appear as a superscripted index number in the text. Right after the preceding sentence we have simply typed `[^example-endnote] The content of the endnote is inserted anywhere after this citation in the body of the text.
+
+[^example-endnote]: Here is an example of an endnote that might reveal further ideas from @Keynes1923.
+
+```{r, eval=F}
+[^example-endnote]: Here is an example of an endnote that might reveal further ideas from @Keynes1923.
+```
+
+# References
+
