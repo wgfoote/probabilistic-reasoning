@@ -1,0 +1,47 @@
+---
+title: "BDA-Ake assignment 2"
+author: "Bill Foote"
+date: "1/13/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#remotes::install_github("avehtari/BDA_course_Aalto",
+#subdir = "rpackage", upgrade="never")
+library(aaltobda)
+```
+
+## Conjugacy rights
+
+The property that the posterior distribution follows the same parametric form as the prior distribution is called **conjugacy**. We can show that the the beta prior distribution is a conjugate family for the binomial likelihood. When we use a conjugate family we get a closed form solution for the posterior distribution. Realistically in practical applications we usually are not so blessed and must consider non-conjugate family priors.[^conjugacy-1]
+
+[^conjugacy-1]: For example we might realize that the uniform distribution represented by the beta distribution might be truncated due to experience with ranges of hypothetical data. The ancestry of numerical methods from 50 years ago often necessitated approximate closed form posterior distributions simply because simulation methods might not converge in one's lifetime. Even so today, they are instructive in their simplicity. 
+
+### A derivation
+
+If we classify ourselves as mathematically faint of heart, this section can be skipped, but we should try it anyway.
+
+We start by performing $n$ independent Bernoulli trials (0-1 coding, say by flipping a coin) with unobserved probability of a success (code = 1) $\pi$. In this experiment the number of successes $x$ can be represented with the binomial distribution. With the unobserved $\pi$ and the observed number of trials $n$, the statistical model can be expressed as
+
+$$
+x\mid \pi \sim Binomial(n, \pi),
+$$
+where
+$$
+\begin{align}
+p(x \mid \pi) &=\binom{n}{x} \pi^x (1-\pi)^{n-x} \\
+              &= \frac{n!}{x!(n-x)!} \pi^x (1-\pi)^{n-x} 
+\end{align}
+$$
+The expression $p(x \mid \pi)$ is the distribution of observed data $x$ conditional on the hypothesized and unobserved data $\pi$.
+
+Suppose we feign complete ignorance about the values of the unobserved $\pi$. We may represent this assumption as a so-called *prior distribution* using the *beta distribution* as our stalking horse. 
+
+$$
+\pi \sim Beta(\alpha, \beta)
+$$
+
+Yes, we use two betas, one is the name of the distribution the other a shape parameter just to confuse us.
+
+

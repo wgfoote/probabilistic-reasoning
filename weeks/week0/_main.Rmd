@@ -1,0 +1,1493 @@
+---
+title: "Week 1 Notes"
+author: "Bill Foote"
+date: "8/26/2020"
+output:
+  ioslides_presentation:
+    widescreen: true
+    fig_width: 4
+    fig_height: 5
+    fig_caption: true
+    #css: styles.css
+  #prettydoc::html_pretty
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+#
+library(tidyverse)
+library(ggmap)
+library(stringr)
+library(viridis)
+library(plotly)
+library(visNetwork)
+#
+api_key <- "AIzaSyA5XmoJgeHOcNNxqixIQojokXOB_7YwOMY"
+register_google(api_key, write = TRUE)
+#
+
+```
+
+## What we will cover
+
+1. Syllabus and expectations
+
+2. Counting and how we will proceed
+
+3. The many faces of data
+
+## What do you think?
+
+- Pilots should love to know the defects in their planes
+
+- Organizations that have good rainy day funds are more valuable than those that use their cash to buy back stock
+
+- Probability does not exist, neither do means and standard deviations
+
+## Magick?
+
+<center>
+  ![Magick vs Grit](magick.jpg){ width=50% }
+</center>
+
+<!--chapter:end:graphics-trial.Rmd-->
+
+---
+title: "Week 0 Notes"
+author: "Bill Foote"
+date: "10/16/2020"
+output:
+  ioslides_presentation:
+    widescreen: true
+    logo: gapminder.gif
+  #prettydoc::html_pretty
+---
+<script>
+.gdbar img {
+  width: 600px !important;
+  height: 300px !important;
+  margin: 8px 8px;
+}
+
+.gdbar {
+  width: 700px !important;
+  height: 340px !important;
+}
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+      $('slide:not(.title-slide, .backdrop, .segue)').append('<footer label=\"MBAC 611 - Week 0 - Copyright 2020, William G. Foote, all rights reserved\"></footer>');    
+    })
+</script>
+
+<style>
+  footer:after {
+    content: attr(label);
+    font-size: 12pt;
+    position: absolute;
+    bottom: 20px;
+    left: 60px;
+    line-height: 1.9;
+  }
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+#
+library(tidyverse)
+library(ggmap)
+library(stringr)
+library(viridis)
+library(plotly)
+library(visNetwork)
+#
+api_key <- "AIzaSyA5XmoJgeHOcNNxqixIQojokXOB_7YwOMY"
+register_google(api_key, write = TRUE)
+#
+
+```
+
+## Mind the gap
+
+<center>
+![](gapminder.gif){ width=60% }
+
+</center>
+
+**Source of this sort of analysis: <https://www.gapminder.org/> **
+
+
+## What we will cover
+
+1. Syllabus and expectations
+
+2. Counting and how we will proceed
+
+3. The many faces of data
+
+## What do you think?
+
+- Pilots should love to know the defects in their planes. Unreliability aids the informativeness needed to make difficult decisions, like landing in bad weather.
+
+- Organizations that have good rainy day funds are more valuable than those that use their cash to buy back stock. When the rain arrives, and it always does, cash will keep jobs and businesses afloat.
+
+- Probability does not exist, neither do means and standard deviations.
+
+- Any distribution of anything that can be described only by means and standard deviations is (plausibly) the least informative.
+
+- Why do cooks eat their own food (or should)? If the cook fails, the cook suffers and may die, thus eliminating very dangerous people from the planet. (a saying of Taleb)
+
+## Progress
+
+### noun or verb? or both?
+
+Do until (days left in the semester == 0) OR (you have not completed your learning of a topic) 
+
+1.	Prepare for each week through reading, research, practice, and marching through the videos
+
+2.	Live sessions to reinforce key topics and the solving of posed problems
+
+3.	Questions and answers and follow-up on THE WALL for the next round
+
+
+## Magick?
+
+<center>
+  ![](magick.jpg){ width=50% }
+</center>
+
+## Hammers
+
+<center>
+  ![](hammer.jpg){ width=50% }
+</center>
+
+## Getting to yes
+
+### modus ponens plausibility
+
+```{r}
+library(kableExtra)
+#caption <- "modus ponens plausibility"
+major <- "if A is true, then B is true"
+minor <- "B is true"
+conclusion <- "thus, A becomes more plausible"
+argument <- rbind(major, minor, conclusion)
+knitr::kable(argument, align = "c" ) %>% 
+  kable_styling(full_width = F) %>%
+  row_spec(2, hline_after = T) %>% 
+  column_spec(1, width = "7em", bold = TRUE, italic = TRUE)
+```
+
+## Truth or consequences
+
+```{r modus-ponens-truth}
+library(kableExtra)
+library(knitr)
+
+caption <- "modus ponens truth table"
+  
+truth <- data.frame(
+  P0 = c(T, T, F, F),
+  Q0 = c(T, F, T, F),
+  ifPthenQ = c(T, F, T, T),
+  P1 = c(T, T, F, F),
+  Q1 = c(T, F, T, F)
+)
+
+colnames(truth) <- c("P", "Q", "if P then Q", "P", "Q")
+
+kable(truth, align = "c", caption = caption, escape = FALSE) %>% 
+  kable_styling(full_width = F)
+```
+
+
+## Plausible deniability
+
+### modus tollens plausibility
+
+```{r}
+library(kableExtra)
+#caption <- "modus tollens plausibility"
+major <- "if A is true, then B is true"
+minor <- "A is false"
+conclusion <- "thus, B becomes less plausible"
+argument <- rbind(major, minor, conclusion)
+knitr::kable(argument, align = "c" ) %>% 
+  kable_styling(full_width = F) %>% 
+  row_spec(2, extra_latex_after = "\\cline(2)")%>% 
+  column_spec(1, width = "7em", bold = TRUE, italic = TRUE)
+#%>% row_spec(1, hline_after = T)
+```
+
+## What's the story?
+
+1. Concoct a data story
+
+2. Condition the story with data observations
+
+3. Critique the conditioned data story
+
+##  Suppose this
+
+- We know there are positive and negative cases of a new virus in 4 zip codes.
+
+- Three data collectors observe at random and independently a positive, then a negative, then another positive zip code. The sites might all have the same zips or not.
+
+- We ask: how many of the 4 zip codes test positive?
+
+## Count until morale improves!
+
+<center>
+![](start-counting.jpg){ width=50% }
+</center>
+
+## Yes, until something improves
+
+<center>
+![](counting.jpg){ width=50% }
+</center>
+
+
+## In R this looks like ...
+
+
+```{r grid-1, echo = TRUE}
+library(tidyverse)
+library(rethinking)
+n <- 1000
+n_success <- 6
+n_trials  <- 8
+(
+  binomial_model <-
+  tibble(p_grid = seq(from = 0, to = 1, length.out = n),
+         # note we're still using a flat uniform prior
+         prior  = 1) %>% 
+  mutate(likelihood = dbinom(n_success, size = n_trials, prob = p_grid)) %>% 
+  mutate(posterior = (likelihood * prior) / sum(likelihood * prior))
+)
+summary( binomial_model )
+```
+
+## A picture helps
+
+```{r grid-1-plot, echo = TRUE}
+library(tidybayes) # Mode() helper function
+library(plotly) # make the plot interactive
+# how many samples would you like
+n_samples <- 10000 # 1e4
+# make it reproducible
+set.seed(42) # Hitchhiker's Guide
+samples <-
+  binomial_model %>% 
+  sample_n( size = n_samples, weight = posterior, replace = TRUE )
+#
+y_label <- "h = proportion of positive tests"
+x_label <- "sample index"
+title <- "Zip Code Tests: Bronx"
+p_MAP <- Mode(samples$p_grid) #MAximum A Posteriori point estimate
+title <- "Bronx Zip Code Tests"
+x_label <- "proporation of zip codes testing positive"
+y_label <- "posterior density"
+plt <- samples %>% 
+  ggplot(aes(x = p_grid)) +
+  geom_density(fill = "blue", alpha = 0.3) +
+  scale_x_continuous(x_label, limits = c(0, 1)) +
+  geom_vline(xintercept=p_MAP, color = "orange", size = 1.3) +
+  annotate( "text", x = 0.50, y = 2, label = paste0("MAP = ", round(p_MAP, 4)) ) +
+  ylab(y_label) + xlab(x_label) +
+  ggtitle(title)
+# ggplotly(plt) Uncomment this to see the plot next
+```
+
+## The plot thickens
+
+```{r a-plot-emerges, echo = F}
+ggplotly(plt)
+```
+
+
+## The whole course is here
+
+### First
+
+We set up a context, a story that has data associated with it:
+  
+  - 4 zip codes
+  
+  - positive and negative tests
+
+## The whole course is here
+
+### Second
+
+We collected 3 observations in various zip codes, conditioned the data against the observations
+
+  - 5 hypotheses, theories, models conjectured
+
+  - Conditioned the models with observations
+
+  - Counted (finally admitting this!) the ways a model is consistent with data
+
+  - Consistency means can the data imply a model (LOGIC!)
+
+## The whole course is here
+
+### Third
+
+We analyzed the ways and found the plausibility of each model; we then might have been forced by our employer to select the most plausible theory
+  
+  - Probability, Likelihood, is Plausibility
+  
+  - Ways normed by their sum
+  
+  - Only one theory is most probable: sample, sample, sample
+  
+## The many faces of data
+
+<center>
+![](poster_OrigMinard.gif){ width=50% }
+</center>
+
+## For example
+
+- Blue and red
+
+- Plausibility
+
+- Direction
+
+- Time
+
+- Troop strength
+
+- Temperature
+
+- Geo-coordinates
+
+## What's a hierarchy?
+
+A hierarchy is an analytical technique that takes a group of objects and asks two questions:
+
+1. How are the objects (nodes) related to one another (edges)? (just a network)
+
+2. What objects are parents (higher level) or children (lower level) of one another
+
+## A data hierarchy emerges
+
+<center>
+  ![](data-hierarchy.jpg){ width=60% }
+</center>
+
+```{r data-hierarchy, eval=FALSE}
+#
+library(visNetwork)
+visNetwork(main = list(text = "Data Classification",
+ style = "font-family:Comic Sans MS;color:#ff0000;font-size:15px;text-align:center;"),
+        dot = 'dinetwork{ node [shape=box];  
+           "Data" -> "Numeric" ;
+           "Data" -> "Categorical" ;
+           "Numeric" -> "Continuous" ;
+           "Numeric" -> "Discrete" ;
+           "Categorical" -> "Nominal" ; 
+           "Categorical" -> "Ordinal" ; 
+           }'
+           ) %>%  visNodes(color = list(background = "white", border = "blue", 
+    highlight = "yellow")) %>% visHierarchicalLayout(nodeSpacing = 200, sortMethod = "directed") %>% 
+  visSave(file = "data-hierarchy.html")
+```
+
+
+## Load and inspect data
+
+- Open NYC Data has NYPD complaint data for the past few months at <https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-YTD/5uac-w243/data>
+
+- A simple `lat` and `lon` (latitude and longitude) scatter plot will indicate light and dark areas for us to inspect the data.
+
+## Summarise { .smaller}
+
+```{r bx-crime-load}
+#Load data
+
+bx_crime <- read_csv("bx-crime.csv")
+
+
+# Inspect data
+
+tail(bx_crime[,c(2, 10, 22:23)])
+```
+
+## Scatter plot
+
+<center>
+![](bx-scatter.jpg){ width=50%}
+</center>
+
+
+```{r bx-scatter, eval=FALSE}
+ggplot() +
+  geom_point(data = bx_crime, aes(x = lon, y = lat), alpha = .05) +
+  ggsave("bx-scatter.jpg")
+```
+
+## Fierce?
+
+<center>
+![](bx-crime.jpg){ width=50%}
+</center>
+
+```{r box-crime-heat-map, eval = FALSE}
+#
+map_bx <- get_map("Bronx", zoom = 12, maptype = 'satellite')
+
+#
+p <- ggmap(map_bx) +
+  stat_density2d(data = bx_crime, aes(x = lon, y = lat, 
+      fill = ..density..), geom = "tile", contour = F, alpha = .5) +
+  scale_fill_viridis(option = "inferno") +
+  labs(title = str_c("BX has largest concentration of crime\n"
+                     ,"near Fordham Rd., Morrisania, and the South Bronx"
+                     ),
+       subtitle = str_c("2017-18 source:", "\nhttps://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-YTD/5uac-w243/data"),
+       fill = str_c("Number of", "\ncrime incidents")
+       ) +
+  theme(text = element_text(color = "#444444"),
+        plot.title = element_text(size = 13, face = 'bold'),
+        plot.subtitle = element_text(size = 8),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank()
+        ) +
+  guides(fill = guide_legend(override.aes= list(alpha = 1))) +
+  ggsave("bx-crime.jpg")
+p
+```
+
+## What do we have to show for it?
+
+- A procedure of story, conditioning, choice
+
+- The many ways we can represent our physical reality with data, models, and plausibility
+
+## Next stop
+
+- Contingency tables
+
+- Logic and the Reverend Bayes
+
+- Check MOODLE for each week's activities and requirements
+
+- In this fully remote course: every day is a class day!
+
+<!--chapter:end:notes-week0.Rmd-->
+
+---
+title: "Week 1 Notes"
+author: "Bill Foote"
+date: "8/26/2020"
+output:
+  ioslides_presentation:
+    widescreen: true
+    logo: gapminder.gif
+  #prettydoc::html_pretty
+---
+<script>
+.gdbar img {
+  width: 600px !important;
+  height: 300px !important;
+  margin: 8px 8px;
+}
+
+.gdbar {
+  width: 700px !important;
+  height: 340px !important;
+}
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+      $('slide:not(.title-slide, .backdrop, .segue)').append('<footer label=\"BUAN 227 - Week 1 - Copyright 2020, William G. Foote, all rights reserved\"></footer>');    
+    })
+</script>
+
+<style>
+  footer:after {
+    content: attr(label);
+    font-size: 12pt;
+    position: absolute;
+    bottom: 20px;
+    left: 60px;
+    line-height: 1.9;
+  }
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+#
+library(tidyverse)
+library(ggmap)
+library(stringr)
+library(viridis)
+library(plotly)
+library(visNetwork)
+#
+api_key <- "AIzaSyA5XmoJgeHOcNNxqixIQojokXOB_7YwOMY"
+register_google(api_key, write = TRUE)
+#
+
+```
+
+## Mind the gap
+
+<center>
+![](gapminder.gif){ width=60% }
+
+</center>
+
+**Source of this sort of analysis: <https://www.gapminder.org/> **
+
+
+## What we will cover
+
+1. Syllabus and expectations
+
+2. Counting and how we will proceed
+
+3. The many faces of data
+
+## What do you think?
+
+- Pilots should love to know the defects in their planes. Unreliability aids the informativeness needed to make difficult decisions, like landing in bad weather.
+
+- Organizations that have good rainy day funds are more valuable than those that use their cash to buy back stock. When the rain arrives, and it always does, cash will keep jobs and businesses afloat.
+
+- Probability does not exist, neither do means and standard deviations.
+
+- Any distribution of anything that can be described only by means and standard deviations is (plausibly) the least informative.
+
+- Why do cooks eat their own food (or should)? If the cook fails, the cook suffers and may die, thus eliminating very dangerous people from the planet. (a saying of Taleb)
+
+## Progress
+
+### noun or verb? or both?
+
+Do until (days left in the semester == 0) OR (you have not completed your learning of a topic) 
+
+1.	Prepare for class through reading, research, practice, and marching through the videos
+
+2.	In class team and personal solving of posed problems
+
+3.	Questions and answers and follow-up for next class
+
+
+## Magick?
+
+<center>
+  ![](magick.jpg){ width=50% }
+</center>
+
+## Hammers
+
+<center>
+  ![](hammer.jpg){ width=50% }
+</center>
+
+## Getting to yes
+
+### modus ponens plausibility
+
+```{r}
+library(kableExtra)
+#caption <- "modus ponens plausibility"
+major <- "if A is true, then B is true"
+minor <- "B is true"
+conclusion <- "thus, A becomes more plausible"
+argument <- rbind(major, minor, conclusion)
+knitr::kable(argument, align = "c" ) %>% 
+  kable_styling(full_width = F) %>%
+  row_spec(2, hline_after = T) %>% 
+  column_spec(1, width = "7em", bold = TRUE, italic = TRUE)
+```
+
+## Truth or consequences
+
+```{r modus-ponens-truth}
+library(kableExtra)
+library(knitr)
+
+caption <- "modus ponens truth table"
+  
+truth <- data.frame(
+  P0 = c(T, T, F, F),
+  Q0 = c(T, F, T, F),
+  ifPthenQ = c(T, F, T, T),
+  P1 = c(T, T, F, F),
+  Q1 = c(T, F, T, F)
+)
+
+colnames(truth) <- c("P", "Q", "if P then Q", "P", "Q")
+
+kable(truth, align = "c", caption = caption, escape = FALSE) %>% 
+  kable_styling(full_width = F)
+```
+
+
+## Plausible deniability
+
+### modus tollens plausibility
+
+```{r}
+library(kableExtra)
+#caption <- "modus tollens plausibility"
+major <- "if A is true, then B is true"
+minor <- "A is false"
+conclusion <- "thus, B becomes less plausible"
+argument <- rbind(major, minor, conclusion)
+knitr::kable(argument, align = "c" ) %>% 
+  kable_styling(full_width = F) %>% 
+  row_spec(2, extra_latex_after = "\\cline(2)")%>% 
+  column_spec(1, width = "7em", bold = TRUE, italic = TRUE)
+#%>% row_spec(1, hline_after = T)
+```
+
+## What's the story?
+
+1. Concoct a data story
+
+2. Condition the story with data observations
+
+3. Critique the conditioned data story
+
+##  Suppose this
+
+- We know there are positive and negative cases of a new virus in 4 zip codes.
+
+- Three data collectors observe at random and independently a positive, then a negative, then another positive zip code. The sites might all have the same zips or not.
+
+- We ask: how many of the 4 zip codes test positive?
+
+## Count until morale improves!
+
+<center>
+![](start-counting.jpg){ width=50% }
+</center>
+
+## Yes, until something improves
+
+<center>
+![](counting.jpg){ width=50% }
+</center>
+
+## The whole course is here
+
+### First
+
+We set up a context, a story that has data associated with it:
+  
+  - 4 zip codes
+  
+  - positive and negative tests
+
+## The whole course is here
+
+### Second
+
+We collected 3 observations in various zip codes, conditioned the data against the observations
+
+  - 5 hypotheses, theories, models conjectured
+
+  - Conditioned the models with observations
+
+  - Counted (finally admitting this!) the ways a model is consistent with data
+
+  - Consistency means can the data imply a model (LOGIC!)
+
+## The whole course is here
+
+### Third
+
+We analyzed the ways and found the plausibility of each model; we then might have been forced by our employer to select the most plausible theory
+  
+  - Probability, Likelihood, is Plausibility
+  
+  - Ways normed by their sum
+  
+  - Only one theory is most probable
+  
+## The many faces of data
+
+<center>
+![](poster_OrigMinard.gif){ width=50% }
+</center>
+
+## For example
+
+- Blue and red
+
+- Plausibility
+
+- Direction
+
+- Time
+
+- Troop strength
+
+- Temperature
+
+- Geo-coordinates
+
+## What's a hierarchy?
+
+A hierarchy is an analytical technique that takes a group of objects and asks two questions:
+
+1. How are the objects (nodes) related to one another (edges)? (just a network)
+
+2. What objects are parents (higher level) or children (lower level) of one another
+
+## A data hierarchy emerges
+
+<center>
+  ![](data-hierarchy.jpg){ width=60% }
+</center>
+
+```{r data-hierarchy, eval=FALSE}
+#
+library(visNetwork)
+visNetwork(main = list(text = "Data Classification",
+ style = "font-family:Comic Sans MS;color:#ff0000;font-size:15px;text-align:center;"),
+        dot = 'dinetwork{ node [shape=box];  
+           "Data" -> "Numeric" ;
+           "Data" -> "Categorical" ;
+           "Numeric" -> "Continuous" ;
+           "Numeric" -> "Discrete" ;
+           "Categorical" -> "Nominal" ; 
+           "Categorical" -> "Ordinal" ; 
+           }'
+           ) %>%  visNodes(color = list(background = "white", border = "blue", 
+    highlight = "yellow")) %>% visHierarchicalLayout(nodeSpacing = 200, sortMethod = "directed") %>% 
+  visSave(file = "data-hierarchy.html")
+```
+
+
+## Load and inspect data
+
+- Open NYC Data has NYPD complaint data for the past few months at <https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-YTD/5uac-w243/data>
+
+- A simple `lat` and `lon` (latitude and longitude) scatter plot will indicate light and dark areas for us to inspect the data.
+
+## Summarise { .smaller}
+
+```{r bx-crime-load}
+#Load data
+
+bx_crime <- read_csv("bx-crime.csv")
+
+
+# Inspect data
+
+tail(bx_crime[,c(2, 10, 22:23)])
+```
+
+## Scatter plot
+
+<center>
+![](bx-scatter.jpg){ width=50%}
+</center>
+
+
+```{r bx-scatter, eval=FALSE}
+ggplot() +
+  geom_point(data = bx_crime, aes(x = lon, y = lat), alpha = .05) +
+  ggsave("bx-scatter.jpg")
+```
+
+## Fierce?
+
+<center>
+![](bx-crime.jpg){ width=50%}
+</center>
+
+```{r box-crime-heat-map, eval = FALSE}
+#
+map_bx <- get_map("Bronx", zoom = 12, maptype = 'satellite')
+
+#
+p <- ggmap(map_bx) +
+  stat_density2d(data = bx_crime, aes(x = lon, y = lat, 
+      fill = ..density..), geom = "tile", contour = F, alpha = .5) +
+  scale_fill_viridis(option = "inferno") +
+  labs(title = str_c("BX has largest concentration of crime\n"
+                     ,"near Fordham Rd., Morrisania, and the South Bronx"
+                     ),
+       subtitle = str_c("2017-18 source:", "\nhttps://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-YTD/5uac-w243/data"),
+       fill = str_c("Number of", "\ncrime incidents")
+       ) +
+  theme(text = element_text(color = "#444444"),
+        plot.title = element_text(size = 13, face = 'bold'),
+        plot.subtitle = element_text(size = 8),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank()
+        ) +
+  guides(fill = guide_legend(override.aes= list(alpha = 1))) +
+  ggsave("bx-crime.jpg")
+p
+```
+
+## What do we have to show for it?
+
+- A procedure of story, conditioning, choice
+
+- The many ways we can represent our physical reality with data, models, and plausibility
+
+## Next week
+
+- Contingency tables
+
+- Logic and the Reverend Bayes
+
+- Check MOODLE for week 2 activities and requirements
+
+- Monday is LABOR DAY! NO CLASS
+
+<!--chapter:end:notes-week1.Rmd-->
+
+---
+title: "Plausibility, Probability and Information"
+author: "Bill Foote"
+date: "2020-08-24"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+citation_package: apalike
+bibliography: bibliography_all.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options( digits = 2, scipen = 99999)
+```
+
+According to Aristotle, if two claims are well-founded, their truth values can be ascertained. A plate is either green, or it is not. When thrown, the plate will land without a chip or it will break. If I claim that when I throw the plate, it will land with out a chip and you disagree, I can simply throw the plate to find out who was correct. One part of this is a mind game, a thought experiment a potential outcome. The other is a reality of actually throwing the plate and observing its status on landing.
+
+It is in disagreement that logical deduction might (plausibly) break down. There is no guarantee that the plate will break, or, for that matter, that it will chip. We must simply experiment with plate(s), green, blue or otherwise, to support the claim (or not). These claims arise in everyday life. For example, despite my poor performance in plate throwing in the past, there is no cogent reason to believe that it is absolutely, positively false that the plate I throw would land without a chip. There is a degree of acceeptance, of plausibility, in one side of the claim, and on the other as well. Certainly it is not as false as the claim that $2+2=5$ in base 10 arithmetic, or the patently spurious claim that true is false or my cat is a dog.
+
+Claims about things that are neither definitely true nor definitely false arise in matters both mundane and consequential: producing weather reports, catching the bus, predicting the outcomes of elections, interpreting experimental vaccine results, and betting on sports games, throwing the plate, to name just a few.
+
+So we would benefit from a method of comparing claims in these situations – which atmospheric model produces better predictions? What is the best source for predicting elections? Should I blow three times on my lucky dice, or is this all just a figment of my denial based imagination?
+
+## Some Surprise
+
+The goal, in all the cases above, is to guess about something that we don’t or can’t know directly, like the future, or the fundamental structure of the economy, or reasons why customer preferences change, on the basis of things we do know, like the present and the past, or the results of an existing or past experiment.
+
+Mostly we guess. Some us try to systematically consider and attempt to support with evidence the guess. Lacking precision, and sometimes even accuracy, we try to avoid bad surprises. Goods ones are often welcome. If I use the NOAA weather application on my smart phone it might not surprise me to see rain pelting down at 1630 this afternoon. After all the app indicated as much. In advance of the rain I brought in chair pads and anything else that might get ruined with rain. An airline pilot knows all the defects of her aircraft. That knowledge saves lives.
+
+Our mortal inferences, clever or dumb as they are, must have a surprise somewhere between _totally expected_, or zero surprises and thus certain 100\% of the ways to make the statement, and _totally surprising_ and 0\% chance of anticipation. We will generally be making statements like: _it will probably rain tomorrow_, or _nine times out of ten, the team with a better defense wins_. This motivates us to express our surprise in terms of plausibility and we hanker for more precision with probability.
+
+## Informative?
+
+When we producing clarity in the various interrleted concepts of any discourse, argument, report, or presentation of results in the process of analysis. The process begins with clearly definitions of data, methodology, assumptions, conclusions, and interpretations.
+
+Statements encapsulate the products of analysis. We define a statement, a _literal_, as a linguistic construct at a minimum consisting of a noun and verb, that is, a subject and a predicate. We might add an object, also a noun, too. If we agree that analysis produces knowledge, and knowledge is justified true belief, [^one] we will argue only when we dispute the (plausible / probable) true or false judgment. The dispute itself derives ultimately from what is valuable to discuss (@Lepore_2006). The practice of analysis is then the raising and answering of questions for reflection about the meaning of statements of results emanating from the analysis. [^reflective-meaning]
+
+[^one]: @Plato_Theaetetus _Theaetetus 210a-b_ for details. Through careful, and relentless, dialectic, Socrates sculpts the features of knowledge as justified true belief as opposed to merely sensation and perception. At the end of this dialogue, Socrates leaves Theaetetus to answer the law suit against him that lead to his condemnation and death.
+
+[^reflective-meaning]: @Polya_1954 will have us use the word credibility
+
+We could use possible, probable, reasonable, and more generally if possible, [plausible](https://www.merriam-webster.com/dictionary/plausible) as in _appearing worthy of belief_. Let's start with Aristotle's _apodeixis_ (Gr.,  ) found in @Aristotle_Organon, especially the books on prior and posterior analytics.
+
+Ultimately we ask: do we have enough of the right information to make a credible judgment? If so, are we also willing to implement the implications of a decision based on justified true belief itself? Here we must define _information_.
+
+The word _information_ itself derives from what is inside ( _in-_ ) a shape ( _form_ ) and more broadly an _idea_.[^eidos] The air molecules inside a blown up balloon is analogous to data, facts as we might see, hear, smell, and store. The balloon (please prescind, using a willing suspension of disbelief, from the material a balloon is made) shapes the air molecules, taken together in the context of elastic enclosure, into the shape of the expanded balloon. The shape of the balloon expanded such that the volume of air molecules expands the balloon, is analogous to the idea that shapes data. 
+
+The shape of data is often mentioned in statistics where it means producing a frequency distribution of ranges of data from low to high values. What the frequency distribution does to data is order the data, bin and group the data into low to high categories, and count the number of low to high data elements. All of that _shaping of the data_ is the application of ideas (order, groups, frequencies) about data.
+
+[^eidos]: The Greek philosophers, including Aristotle, regularly used both shape, _Gr.:_ $morph{\hat{e}}$, and idea, _Gr.:_ $e\hat{i}dos$, to represent the notion of form. See @Citation_needed.  
+
+So how much information do we need (plausibly)? We can follow the discussion about the English language in @Feynman_1996 and @Jaynes_2004. Let's start with the English language. We have 26 letters and punctuation (e.g., `. , ? ! : ;`)for a total of 32 symbols at our disposal. Of course we do not use all 32, but we do have them available to us. 
+
+For the moment we have $n$ equally plausible messages to send. One message might be a tweet line _Got up and has some breakfast_ and another _Didn't do my chores yesterday_. Assign each message a number of bits $I$ needed to send the message. We might recall a bit is a binary set of numbers, 0's and 1's. Binary means two. The first part of the encoded message might be a 0, the second might be a 0 or a 1, the third might be a 0 or 1 following the 0 and following the 1, and so on. For example we might code this.
+
+$\text{Got up and has some breakfast} = 0111000100$
+
+This is now easy enough to send in packets of on or off voltages across wireless networks.
+
+If we need $I$ bits to send the message, then we need
+
+$2^I = n$
+
+or, remembering some long-lost algebra about extracting exponents,
+
+$I = log_2n$
+
+The `2` is because we have two possibilities for coding at each stage of coding our message. The `n` are the number of messages to be coded, send, and decoded by our communication system.
+
+If we have 10 messages to send, then we need $I = `r log(10, 2)`$ bits, really four bits to do the job. That is the way we will characterize information about messages.  
+
+Suppose our language has $xN$ symbols to send and receive. If $N=32$ is the number of symbols for one message segment in English, then for a string of $x=2$ segments, say $us$ for example, or $we$, or $or$, we have 64 symbols we can use the convey the message. Hold on for dear life now! there are now $n^2$ messages we can send in a two string message. If there are $x=3$ messages like $are$ or $not$, there are $xN=3\times 32= 96$ possible symbols in $n^3$ possible messages and so on. We now have the drift. There are $n^x$ possible messages to send, still all equally plausible.
+
+Exhaustingly, what is the information now in bits if we area sending and receiving 5 messages?[^jaynes_db]
+
+[^jaynes_db]: @Jaynes_2004 uses a base 10, in only because the convenience of decimal arithmetic and that many of us have 10 fingers and 10 toes. The resulting information measure is none other than a _decibel_.
+
+$I(xN)=log_2(n^x)=xlog_2(n)= 3 \times log_2(5) = 7 \,\, bits$
+
+If we think of a bit as space on a card that carries the messages, we get an idea about the amount of information in the message. More information means more bits and takes up more space on the card. Space on the card is real. Bits are a measure we use as a convenience to talk about information on a physical medium like a card. 
+
+Now that we have the beginnings of a notion of information, quasi-quantiatively, we need to tackle plausibility. We said that each message is equally plausible to be on or off, true or false, and yes, this means we have to think about logic, which worries itself over the business of combining the truth values of statements.
+
+## We have a proposition for you
+
+We move from information now; and just put that on hold for a bit (snarky, yes). Its well nigh time to develop the most basic algebra possible, the logic of George @Boole_1854. We follow @Polya_1954 and @Jaynes_2004 in notation. 
+
+The _logical product_ or _conjunction_ is a _both-and_ proposition. If $A=1$, that is $A$ is true, and $B=1$, that is $B$ is also then the proposition that _both A and B_ must also be true. This proposition is symbolized with
+
+$$
+AB
+$$
+
+and substituting the assigned truth values of $1 = true$ and $0 = false$, we can then in effect calculate that
+
+$$
+AB=(1) \times (1) = 1 = true
+$$
+Thus if $A$ and $B$ are true then taken together as _both A and B_ is also true.
+
+The _logical sum_ or _disjunction_ is an _either-or_ proposition. If $A=1$, that is $A$ is true, and $B=0$, that is $B$ is false then the proposition that _either A or B_ must be true. This proposition is symbolized with
+
+$$
+A + B
+$$
+
+and substituting the assigned truth values of $1 = true$ and $0 = false$, we can then in effect calculate that
+
+$$
+A + B=(1) + (0) = 1 = true
+$$
+And also with these truth values
+
+$$
+AB=(1) \times (0) = 0 = false
+$$
+We can see then that conjunction and disjunction can yield diametrically opposed conclusions about the truth value of the two compound statements.
+
+To deny a proposition we use the bar, read _not A_ So if $A=1=true$, then $not\,\,A = \bar{A} = |1 - 1| = false$. Also if $A=0=false$, then $not\,\,A = \bar{A} = |0 - 1| = 1 = true$, where the vertical bars represent the absolute value operation needed to get the right logical answer from the binary arithmetic.
+
+Let's play with this. What is $\bar{AB}$, again using the binary arithmetic of combining $0$ and $1$?
+
+What about the plausibility of $A|BC$? This is read the _plausibility of $AB$ given, conditional upon, experienced with $C$. The experience of $C$ will allow us to include that which is fundamental to all decision making, the fact of a history and knowledge of events and their outcomes, including the experience of beliefs and changes in preferences to go along with anticipating the future of anything.
+
+It turns out that the basic idea of conditioning, making assumptions, or creating implications of the form _If A happens, then B happens_ is equivalent to the statement that _if A does not happen, or B does happen_. Here is an implication truth table to whet our burgeoning appetite for analysis.
+
+```{r modus-imply-truth}
+library(kableExtra)
+library(knitr)
+
+caption <- "implication truth table"
+  
+truth <- data.frame(
+  P0 = c(T, T, F, F),
+  Q0 = c(T, F, T, F),
+  ifPthenQ = c(T, F, T, T)
+)
+
+colnames(truth) <- c("P", "Q", "if P then Q")
+
+kable(truth, align = "c", caption = caption, escape = FALSE) %>% 
+  kable_styling(full_width = F)
+```
+
+We can, sometime in the near future, of course check that the results of this table agree with the statement that _not P or Q_. Knowing this we can begin to argue -- reasonably.
+
+## The power of plausible thinking
+
+We talked about information, and some logic. Now we have the machinery to discuss plausibility. We recall that all messages were equally likely. We begin relax that assumption her and now.
+
+Let's begin with any two propositions or statements or messages $A$ and $B$. Specifically, let's talk about the weather. We let
+
+$$
+\begin{align}
+A &= \text{It will start to rain by noon at the latest right here.} \\
+B &= \text{The sky will get cloudy before noon, also right here.}
+\end{align}
+$$
+
+The implication is the statement _If A, then B_. This is our starting point with plausibility. But we must first begin even more strongly with a guaranteed statement from the follow deduction. If it will rain, then it _must_ happen that the sky will get cloudy some nearly immediate time before it does rain, right here on the near-sphere of the earth. 
+
+```{r}
+library(kableExtra)
+caption <- "modus ponens deduction"
+major <- "if A is true, then B is true"
+minor <- "B is true"
+conclusion <- "therefore, A is true"
+argument <- rbind(major, minor, conclusion)
+knitr::kable(argument, align = "c", caption = caption) %>% 
+  kable_styling(full_width = F) %>%
+  row_spec(2, hline_after = T)
+```
+
+Here is a Euler Diagram to help make the point.
+
+```{r euler-diagram}
+library(dplyr)
+library(tidyverse)
+library(ggforce)
+
+labels <- c("magic", "wizard", "lizard")
+x <- c(0.75, 0.62, 1.25)
+y <- c(0.75, 0.62, 1.25)
+r <- c(0.37, 0.1, 0.3)
+logic_df <- data.frame(labels = labels, x = x, y = y, r = r)
+logic_df %>% 
+      ggplot() +
+        geom_circle(aes(x0 = x, y0 = y, r = r, fill=labels), alpha = .5) +
+        #facet_wrap(~animal) +
+        geom_text(aes(x = x, y = y, label = labels)) +
+        coord_fixed()
+
+```
+
+The full name of this syllogism is **modus ponendo ponens** which is Latin for _the way that, by affirming, affirms_ , also known as _affirming the antecedent_ . Take the word _plausible_ out of the syllogism and we have a deductive inference guarateed to be consistent with the logic of implication.[^not-mp]
+
+[^not-mp]: It is invalid to affirm the consequent, that is say B is true, so A must be true, a frequent and very misleading and logically illegal argument on talk shows, especially when the subject is political.
+
+Here is a truth table for _modus ponens_. Each column holds the truth values ( _TRUE_ = T and _FALSE_ = F) of each statement in the syllogism.
+
+```{r modus-ponens-truth}
+library(kableExtra)
+library(knitr)
+
+caption <- "modus ponens truth table"
+  
+truth <- data.frame(
+  P0 = c(T, T, F, F),
+  Q0 = c(T, F, T, F),
+  ifPthenQ = c(T, F, T, T),
+  P1 = c(T, T, F, F),
+  Q1 = c(T, F, T, F)
+)
+
+colnames(truth) <- c("P", "Q", "if P then Q", "P", "Q")
+
+kable(truth, align = "c", caption = caption, escape = FALSE) %>% 
+  kable_styling(full_width = F)
+```
+
+We can read this table line by line using this statement: **If you get an A, then I'll give you a lollipop.** The statement will be true if I keep my promise and false if I do not.
+
+1. Suppose it is true that you get an A _and_ it is true that I give you a lollipop. Since I kept my promise, the implication, the statement, is true. This corresponds to the first line in the table. Doesn't this sound like a logical conjunction? Both A and B are true, that is $AB = (1) \times (1) = 1 = TRUE$.
+
+2. Suppose it's true that you get an A but it's false that I give you a dollar. Since I didn't keep my promise, the implication is false. This corresponds to the second line in the table. These truth values again act like a logical conjunction. If A is true and B is false, we have $AB = (1) \times (0) = 0 = FALSE$. 
+
+3. and also line 4.  What if it is false that you get an A? Whether or not I give you a lollipop (Q is true or Q is false), I have not broken my promise. Thus, the implication cannot be false, so the statement must be true. This case is no longer a simple logical conjuction, but we can use the negation to help us out with the idea that If A is false it is not-A, when A would otherwise be true. The conjunction $\overline{A}B = 0 \times 1 = 0 = FALSE$. 
+
+Now we use @Aristotle _Prior_ and _Posterior Analytics_ as our starting point. But insteadof the logically guaranteed _modus ponens_ we weaken the guarantee in a syllogism called _epagoge_[^epagoge]
+
+[^epagoge]: This syllogism is a logical induction from the particular to the general. The conclusion may be generally true or not. The modal _may_ embeds a notion of plausibility that itself has degrees of measure. Opposed to _epagoge_ is logical deduction called _apodeixis_.[See this definition  for _epagoge_.](https://www.merriam-webster.com/dictionary/epagoge)
+
+```{r}
+library(kableExtra)
+caption <- "modus ponens plausibility"
+major <- "if A is true, then B is true"
+minor <- "B is true"
+conclusion <- "therefore, A becomes more plausible"
+argument <- rbind(major, minor, conclusion)
+knitr::kable(argument, align = "c", caption = caption) %>% 
+  kable_styling(full_width = F) %>%
+  row_spec(2, hline_after = T)
+```
+
+This is a variation on the classical _modus ponens_ consistent argument from finding positive evidence. Here the evidence is that $B$ is true. This evidence does not guarantee that $A$ is also true, but does lend credence, plausibility, to the existence of $A$. So this morning it is true that the sky is cloudy. It is also true that when the sky was cloudy we can expect it to rain. It still might not rain if a strong wind dissipates the clouds; but it is plausible.
+
+Let's try a variation on the theme of _modus ponens_, the consistent argument from the absence of evidence aptly named _modus tollens_ .The full name is **modus tollendo tollens** which is Latin for _the way that, by denying, denies_ , also known as _denying the consequent_. 
+
+```{r}
+library(kableExtra)
+caption <- "modus tollens deduction"
+major <- "if A is true, then B is true"
+minor <- "A is false"
+conclusion <- "therefore, B is false"
+argument <- rbind(major, minor, conclusion)
+knitr::kable(argument, align = "c", caption = caption) %>% 
+  kable_styling(full_width = F) %>% 
+  row_spec(2, extra_latex_after = "\\cline(2)")
+#%>% row_spec(1, hline_after = T)
+```
+
+Insert the word _plauaibility_ again. This maneuver will weaken the _modus tollens_ guarantee.[^not-mt]
+
+[^not-mt]: It is invalid to deny the antecedent, that is use not A as a minor premise, another frequent and very misleading argument on talk shows, especially when the subject is political. This happens when we say if A then B, but not A, so not B. Grade promises and lollipops, clouds and rain, notwithstanding.
+
+```{r}
+library(kableExtra)
+caption <- "modus tollens plausibility"
+major <- "if A is true, then B is true"
+minor <- "A is false"
+conclusion <- "therefore, B becomes less plausible"
+argument <- rbind(major, minor, conclusion)
+knitr::kable(argument, align = "c", caption = caption) %>% 
+  kable_styling(full_width = F) %>% 
+  row_spec(2, extra_latex_after = "\\cline(2)")
+#%>% row_spec(1, hline_after = T)
+```
+
+The evidence that $A$ is false does not prove that $B$ is also false. In this case we eliminated a piece of evidence and thus are even less confident in our hypothesis that $B$ might be true. 
+
+In our everyday life we confront situations like this. Suppose that I stand on a poorly lit street and observe a masked very fit looking person of combat age is running, almost tripping, down the steps of the 6 train elevated (open-air) subway station at Middletown Road carrying a large tote bag. At the same time I hear the train platform announcement to beware of pickpockets. I conclude that the person is very plausibly a pickpocket. I am about to reach for my phone to call the police. I believed in that moment that my plausible argument had the power of the strongest of deductive reasoning, namely that the conclusion was beyond the shadow of any doubt.[^later]
+
+[^later]: As the alleged pickpocket ran by me, she bumped into me and stopped briefly to apologize. She said she was in a hurry to get antibiotics to her son. If this was a deductive argument, did I not affirm the consequent, thus invalidating my claim?
+
+The use of _modus tollens_ will allow us to think through how to find probabilities of conditional events using _Bayes Theorem_ and the ability to update our assessment with the rule for _total probability_ all logically consistent.
+
+## How many ways?
+
+Let's use a simple example. We have four voters in an upcoming election. They may be red or blue voters. Three of us go out and talk to three voters at random, that is, indiscriminately. One of us happens to come upon a blue voter, another of us, independently, happens to find a red voter, and the other separately finds a blue voter. This is the very definition of a random sample. Each of the finders does not know what the other is doing, all three do know that there are four voters out there and they happened to have independently talked to two blue and one red voter. How many red voters and how many blue voters are there?
+
+Here are all of the possible conjectures we can make for $blue = B$ and $red = R$ voters.
+
+```{r conjectures}
+library(kableExtra)
+library(knitr)
+
+caption <- "voter conjectures"
+  
+conjectures <- data.frame(
+  c1 = c("R", "B", "B", "B", "B"),
+  c2 = c("R", "R", "B", "B", "B"),
+  c3 = c("R", "R", "R", "B", "B"),
+  c4 = c("R", "R", "R", "R", "B")
+)
+
+colnames(conjectures) <- c("1", "2", "3", "4")
+
+kable(conjectures, align = "c", caption = caption, escape = FALSE) %>% 
+  kable_styling(full_width = F)
+```
+
+Reading this we see that there are 4 voters and 5 different voter compositions ranging from all red to all blue. Our sample is 2 blue and 1 red voter, so we can very safely eliminate the first and fifth conjectures from our analysis, but for the moment just keep them for completeness sake.
+
+For each of the three remaining conjectures we may ask how many ways is the  conjecture _consistent_ with the collected data. For this task a tree is very helpful. Let's take the first realistic conjecture the \{B, R, R, R \} hypothesis and check if, when we sample all of the four voters, what are all of the ways this conjecture fans out. So here we go.
+
+1. We sampled a B first. How B's in this version of the composition of voters? only 1.
+
+2. We then sampled independently a R. How many R's are in this conjecture? Quite a few, 3.
+
+3. Finally we sampled a B at random. We know there is only one B in this version of the truth.
+
+So, it is just counting the ways: 1 blue way x 3 red ways x 1 blue way = $1 \times 3 \times 1 = 3$ ways altogether.
+
+When asked, many surmise that the 2 blue and 3 red conjecture is the right one. Are they right? Here is a table of the ways each conjecture pans out. We then in a separate column compute the contribution of each conjecture to the total number of ways across the conjectures, which is 3 + 8 + 9 = 20 ways.
+
+```{r ways-conjecture}
+library(kableExtra)
+library(knitr)
+
+caption <- "ways voter conjectures turn out"
+  
+conjectures <- data.frame(
+  c1 = c("R", "B", "B", "B", "B"),
+  c2 = c("R", "R", "B", "B", "B"),
+  c3 = c("R", "R", "R", "B", "B"),
+  c4 = c("R", "R", "R", "R", "B"),
+  ways = c("0 x 4 x 0 = 0", "1 x 3 x 1 = 3", "2 x 2 x 2 = 8", "3 x 1 x 3 = 9 ", "4 x 0 x 4 = 0" ),
+  relative = c( 0, 0.15, 0.40, 0.45, 0)
+)
+
+colnames(conjectures) <- c("1", "2", "3", "4")
+
+kable(conjectures, align = "c", caption = caption, escape = FALSE) %>% 
+  kable_styling(full_width = F)
+```
+
+We cannot help but note that the proportion of ways for each conjecture can range from 0, perhaps to 1, since the proportions add up to 1. The number of ways also expresses the number of true consistencies of the data with the conjecture, an enumeration of the quality of the logical compatibility of conjectures with what we observe.
+
+We might now revise our common sensical surmise that 2 blue and 2 red is the better conjecture. However, if we use the criterion that the conjecture with the most ways consistent with the data is the best choice for a conjecture, then clearly here we would say that there are 3 blues and 1 red. Perhaps we have a better criterion that would choose our equinanimous choice of 2 blues and 2 reds? It does not appear to be so.
+
+Ways are the count, the frequencies of logical occurrence of a hypothesis _given_ the data. The data includes the knowledge that there are possibly blues and reds, that there are 4 voters, and that we sampled 2 blues and 1 red. The relative frequency of the ways in which our conjectures are consistent with the data is what we will finally call _probability_. We have just quantified the _plausibility_ of logical truth values. We have also found a very compelling criterion for the choice of a conjective given the data and circumstances surrounding our inquiry.
+
+## How informative?
+
+Now the piece de resistance we have been waiting for is at hand. We have the tools: information measurement, logic of plausible inference, probability as plausibility, a criterion for making a decision? If we were to say, pick the most plausible, now also the most probable inference, is this not really to say that it is the most informative and thus the most surprising inference?
+
+We have $i=5$ conjectures $c_i$,  each with an assignment of the probability of finding the inference in data, thus 5 probabilities $p_i$. We also agree that each conjecture $c_i$ is independent of the other, that is mutually exclusive, and also mutually exhaustive. In this way the probabilities indeed will add up to 1.
+
+Each conjecture has $N=4$ symbols in it. There are only 2 symbols to work with, $B=blue$ and $R=red$ in these messages.  There are $N!=4 x 3 x 2 x 1 = 24$ ways to arrange symbols. But these are constrained by two symbols in this pile so we have on average this many combinations:
+
+$\frac{(N + s - 1)!}{N!(s-1)!} = \frac{5!}{4!1!} = \frac{120}{24}=5\,\,conjectures$
+
+In the numerator are the four voters, two kinds of voters, less one. This gives us $5!=120$ total ways to arrange this set of conjectures. But there are $4!(2-1)!=$ ways to pick 2 kinds of voters from a population of 4 voters. That comes from the notion that there are $4!$ ways to choose 4 voters and having chosen the first voter from the voter urn, there are $(2-1)!$ more ways to choose voters, either blue or red, each and every time we randomly go out to the voting population, all with replacement. Phew!
+
+Now that we have our sea legs in combinatorics, each conjecture of length $N=4$ has two symbols $s_1=blue$ and $s_2=red$ with probabilities of occurrence in the message $p_1=p(blue)$ and $p_2=p(red)$ here $0.50$ each. The portion of the messages that are blue are $Np_1=4 \times 0.5=2$ and red are $Np_2=4 \times 0.5=2$ as well. The ratio
+
+$\frac{N!}{(Np_1)!(Np_2)!} = \frac{4!}{2!2!}=\frac{24}{(2)(2)}=6$
+
+in turn gives us the number of combinations of symbols and messages. This is the average number of ways a message can be formed. The expected amount of information in these messages, as conjectures, is 
+
+$<I> = log_2\left(\frac{N!}{(Np_1)!(Np_2)!}right)$
+
+For large enough $N$ we can use Stirling's Approximation[^stirling]
+
+$<I> = N \sum_{i=1}^2 (-p_i\,log_2 \,p_i)$
+
+[^stirling]: Named after James Stirling, this was first stated by Abraham de Moivre: $ln(n!) = n\,\,ln (n) - n + error$, very accurate even for small $n$.
+
+So the amount of informativeness in each voter conjectures is 
+
+$<I> = 4 \sum_{i=1}^2 (-0.5 \,log_2 \,0.5) = 4$
+
+This is intuitively correct: 4 bits of information in a population of 4 with 2 equally likely choices.
+
+What about the 5 conjecture? Now $N=5$ and we only need $p_2=0.15, p_3=0.40, p_4=0.45$ since the other probabilities are 0.
+
+$<I> = 4 \sum_{i=1}^3 (-p_i \,log_2 \,p_i) = 4(1.5)=5.8$
+
+This is nearly 2 bits more informative than any single conjecture. The best conjecture contributes 2.1 bits of information on its own or 36\% of the informativeness of the total distribution of conjectures we reviewed.
+
+```{r eval = FALSE}
+comb_with_replacement <- function(n, r){
+  return( factorial(n + r - 1) / (factorial(r) * factorial(n - 1)) )
+}
+
+#have 2 elements, choosing 4
+comb_with_replacement(2,4)
+```
+
+
+
+```{r brrr, eval = FALSE}
+library(visNetwork)
+library(rpart)
+# MAYBE some day!
+# 
+nodes <- data.frame(
+  id = 1:15,
+  level = c(1,2,2,3,3,3,3,4,4,4,4,4,4,4,4),
+  color = c( "blue", "blue", "red", "blue", "red", "blue", "red", "blue", "red", "blue", "red", "blue", "red", "blue", "red"  )
+)
+
+edges <- data.frame(
+  from = c( 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 ),
+  to = 2:15
+)
+
+visNetwork(nodes, edges, width = "100%") %>% 
+  visEdges(arrows = "to") %>% 
+  visHierarchicalLayout(direction = "DU")
+
+nodes <- data.frame(
+  id = 1:21,
+  level = c( 1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3 ),
+  color = c( "blue", 
+             "blue", "red", "red", "red", 
+             "blue", "red", "red", "red", "blue", "red", "red", "red", "blue", "red", "red", "red", "blue", "red", "red" )
+)
+
+edges <- data.frame(
+  from = c( 1,1,1,1, 2,2,2,2, 5,5, 6,6, 7,7 ),
+  to = 2:15
+)
+
+visNetwork(nodes, edges, width = "100%") %>% 
+  visEdges(arrows = "to") %>% 
+  visHierarchicalLayout(direction = "DU")
+```
+
+
+
+## Nota Bene
+
+1. The location and scale parameters $\mu$ and $\sigma$ we often calculate are not the mean and standard deviation of data $x$. They are not properties of the physical representation of events called data. These parameters do carry information about the probability distribution of the representation of physical reality in data. To say $\mu$ is the mean of the data is to ascribe a mind's eye idea to the physical reality, to invest in physical, objective reality, a property that only exists in the mind. This is an example of the _mind projection_ or _reification_ fallacy much in vogue in the circles of _fake_, or better yet, _chop logic_. In the same way, probabilities only exist in our minds: there is no physical reality that is a probability, just a mental construct that helps us think through potential outcomes.
+
+2. So why is it that we so much so rely on the past to predict the future? Perhaps this is a fool's errand. I
+
+2. When we say _A implies B_ we mean that $A$ and $AB$ have the same truth value. In logic every true statement _implies_ every other true statement. Just knowing that $A$ and $B$ are true does not 
+
+
+<!--chapter:end:plausibility.Rmd-->
+
+---
+title: "Week 1 Skill Builders"
+author: "Your Names"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+```
+
+## The assignment
+
+In McElreath:
+
+1. Warm up with chapter 2's Martian-Earthling problem 2M3. Then try the alternate priors in 2M2.
+
+2. Continue to chapter 3: problems 3M1-M3, M5 (M is for medium difficulty).
+
+These will reinforce the basics of the inferential techniques we will use.
+
+## Chapter 2 -- Small worlds and large worlds
+
+### 2M3: My Favorite Martian
+
+Here's the data from the problem:
+
+$$
+\begin{align}
+Pr(land \mid Earth) &= 1 − 0.7 \\
+Pr(land \mid Mars) &= 1
+\end{align}
+$$
+
+Are there not equal prior expectations of each globe?
+
+$$
+\begin{align}
+Pr(Earth) &= 0.5 \\
+Pr(Mars) &= 0.5
+\end{align}
+$$
+
+Now the piece de resistance, Bayes,
+
+$$
+Pr(Earth \mid land) = \frac{Pr(land \mid Earth)Pr(Earth)}{Pr(land)}
+$$
+
+We code this in R as
+
+```{r martians}
+pr_earth_land <- 0.42 # It is not 42! Let R do the arithmetic
+```
+
+The answer is `r pr_earth_land`.
+
+
+### 2M2: We know a little something
+
+We start with this model and the improper prior (does not add to one like a good probability distribution should).
+
+```{r week-start}
+p_grid <- seq( from=0 , to=1 , length.out=100 )
+likelihood <- dbinom( 3 , size=3 , prob=p_grid )
+prior <- 1
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+plot( posterior ~ p_grid , type="l" )
+```
+
+In this code chunk we insert a new prior `prior <- ifelse( p_grid < 0.5 , 0 , 1 ) # new prior` in place of the improper `1` and rerun.
+
+```{r redo}
+
+```
+
+Next we try adding more land than water in this chunk with this data:
+
+$$
+L, W, W, L, W, W, W
+$$
+
+```{r more-land}
+# moreland
+```
+
+The upshot?
+
+- Point one
+
+- Point two
+
+- Kai toi loipa, usw, etc.
+
+## Chapter 3 -- Sampling the imaginary
+
+### Start up with 3M1-2
+
+Here we input the new number of tosses and results. We just change the data in this existing model.
+
+```{r 3M1}
+p_grid <- seq( from=0 , to=1 , length.out=1000 ) # hypptheses
+prior <- rep( 1 , 1000 )
+tosses <- 9 # data
+water <- 6 # data
+likelihood <- dbinom( water , size=tosses , prob=p_grid )
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior)
+plot( posterior ~ p_grid , type="l" )
+```
+
+### Next 3M2-3 and a predictive check
+
+Draw samples first, then check the results with a density plot and a 90\% HPDI (Highest Posterior Density Interval) from the `rethinking` package.
+
+```{r sampling-checking}
+library(rethinking)
+samples <- sample( p_grid , prob=posterior , size=1e4 , replace=TRUE )
+dens( samples )
+HPDI( samples , prob=0.9 ) #90% HPDI
+```
+
+Interpretation:
+
+- The HPDI indicates...
+
+- The density function shows that...
+
+We now run a predictive check on the posterior distribution. This routine ...
+
+1. Sample ...
+
+2. Simulate ...
+
+3. Compare simulation with the data that `w==8`. Calculate the proportions.
+
+```{r pp-check}
+samples <- sample( p_grid , prob=posterior , size=1e4 , replace=TRUE )
+w <- rbinom( 1e4 , size=tosses , prob=samples )
+# Look this sum() / 1e4 ratio in the chapter and calculate here. Use the simplehist() of w to plot the results
+
+```
+
+What does this mean?
+
+- A good model?
+
+- Compatibility?
+
+### Now to change up the priors 3M5
+
+Start with the alternate priors from 2M2.
+
+```{r 2M2-priors}
+# alternate priors
+```
+
+Run the `HPDI()` and simulate `w <- rbinom()` and show `simplehist()`. 
+
+```{r redo-new-prior}
+# check again
+```
+
+Some questions to ponder.
+
+1. We don't trust the data? Is that what the new prior is saying? 
+
+2. What about the observed value off 8. What happened to the predictive distribution?
+
+3. What does this mean for building models? Communicating with those who would consume your analysis?
+
+
+<!--chapter:end:week1-skill-builder.Rmd-->
+
