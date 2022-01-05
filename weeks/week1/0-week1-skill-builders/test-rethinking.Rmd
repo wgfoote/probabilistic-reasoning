@@ -1,0 +1,120 @@
+---
+title: "Fun with Rethinking"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rethinking)
+```
+
+## Quadratic approximation
+
+Simple standard normal model example
+
+```{r globe}
+f <- alist(
+    y ~ dnorm( mu , sigma ),
+    mu ~ dnorm( 0 , 10 ),
+    sigma ~ dexp( 1 )
+)
+#quadratic approximation
+fit <- quap( 
+    f , 
+    data=list(y=c(-1,1)) , 
+    start=list(mu=0,sigma=1)
+)
+
+summary( fit )
+
+```
+
+### Basic globe tossing
+
+```{r 3M1}
+p_grid <- seq( from=0 , to=1 , length.out=1000 ) # hypptheses
+prior <- rep( 1 , 1000 )
+tosses <- 9 # data
+water <- 6 # data
+likelihood <- dbinom( water , size=tosses , prob=p_grid )
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior)
+plot( posterior ~ p_grid , type="l" )
+```
+
+### Next 3M2-3 and a predictive check
+
+Draw samples first, then check the results with a density plot and a 90\% HPDI (Highest Posterior Density Interval) from the `rethinking` package.
+
+```{r sampling-checking}
+library(rethinking)
+library(tidybayes)
+samples <- sample( p_grid , prob=posterior , size=1e4 , replace=TRUE )
+dens( samples )
+HPDI( samples , prob=0.9 ) #90% HPDI
+mode_hdcih(samples)
+```
+
+## Hurricanes a la Ulam
+
+Two models
+
+```{r}
+data(Hurricanes)
+d <- Hurricanes
+d$fmnnty_std <- ( d$femininity - mean(d$femininity) )/sd(d$femininity)
+dat <- list( D=d$deaths , F=d$fmnnty_std )
+# model formula - no fitting yet
+f <- alist(
+D ~ dpois(lambda),
+log(lambda) <- a + bF*F,
+a ~ dnorm(1,1),
+bF ~ dnorm(0,1) )
+m1 <- ulam( f , data=dat , chains=4 , log_lik=TRUE )
+precis( m1 )
+```
+
+```{r}
+data(Hurricanes)
+d <- Hurricanes
+d$fmnnty_std <- ( d$femininity - mean(d$femininity) )/sd(d$femininity)
+dat <- list( D=d$deaths , F=d$fmnnty_std )
+#
+m2 <- ulam(
+alist(
+D ~ dgampois( lambda , scale ),
+log(lambda) <- a + bF*F,
+a ~ dnorm(1,1),
+bF ~ dnorm(0,1),
+scale ~ dexp(1)
+), data=dat , chains=4 , log_lik=TRUE )
+precis(m2)
+```
+
+Note that the 89% interval for bF now overlaps zero, because it has more than 5 times the standard deviation as the analogous parameter in model m1. For a head-to-head comparison, let's do a graphical table of coefficients.
+
+```{r}
+plot(coeftab(m1,m2))
+```
+
+Model m2 has nearly the same posterior means for the intercept and slope bF, but much more uncertainty. How does this translate into predictions? To find out, let's do the plotting from the previous problem over again, using model m3 now:
+
+```{r}
+# plot raw data
+plot( dat$F , dat$D , pch=16 , lwd=2 ,
+col=rangi2 , xlab="femininity (std)" , ylab="deaths" )
+# compute model-based trend
+pred_dat <- list( F=seq(from=-2,to=1.5,length.out=30) )
+lambda <- link(m2,data=pred_dat)
+lambda.mu <- apply(lambda,2,mean)
+lambda.PI <- apply(lambda,2,PI)
+# superimpose trend
+lines( pred_dat$F , lambda.mu )
+shade( lambda.PI , pred_dat$F )
+# compute sampling distribution
+deaths_sim <- sim(m2,data=pred_dat)
+deaths_sim.PI <- apply(deaths_sim,2,PI)
+# superimpose sampling interval as dashed lines
+lines( pred_dat$F , deaths_sim.PI[1,] , lty=2 )
+lines( pred_dat$F , deaths_sim.PI[2,] , lty=2 )
+```

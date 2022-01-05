@@ -1,0 +1,239 @@
+---
+title: "Week 1 Skill Builders"
+author: "Your Names"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+```
+
+## The assignment
+
+In McElreath:
+
+1. Warm up with chapter 2's Martian-Earthling problem 2M3. Then try the alternate priors in 2M2.
+
+2. Continue to chapter 3: problems 3M1-M3, M5 (M is for medium difficulty).
+
+These will reinforce the basics of the inferential techniques we will use.
+
+## Chapter 2 -- Small worlds and large worlds
+
+### 2M3: My Favorite Martian
+
+Here's the data from the problem:
+
+$$
+\begin{align}
+Pr(land \mid Earth) &= 1 − 0.7 \\
+Pr(land \mid Mars) &= 1
+\end{align}
+$$
+
+Are there not equal prior expectations of each globe?
+
+$$
+\begin{align}
+Pr(Earth) &= 0.5 \\
+Pr(Mars) &= 0.5
+\end{align}
+$$
+
+Now the piece de resistance, Bayes,
+
+$$
+Pr(Earth \mid land) = \frac{Pr(land \mid Earth)Pr(Earth)}{Pr(land)}
+$$
+We need to calculate the $Pr(land)$. If we set this up as a contingency table we might be able to see that this probability is the expected value of seeing land whether on Mars or on Earth. Those *ors* mean we need to add the probabilities of Earth and land along with the probability of Mars and land by the probabilities respectively of seeing Earth and Mars. Thus we have
+
+$$
+Pr(land) = Pr(Earth)Pr(land\,\,\mid\,\,Earth) + Pr(Mars)Pr(land\,\,\mid\,\,Mars )
+$$
+This thinking is the core of all of the rest of the course!
+
+We code this in R as
+
+```{r martians}
+( pr_land <- (0.50) * (0.30) + (0.50) * (1.0) )
+( pr_earth_land <-  (0.30) * (0.50) / pr_land )# It is not 42! Let R do the arithmetic
+```
+
+The answer is `r pr_earth_land`.
+
+### 2M2: We know a little something
+
+We start with this model and the improper prior (does not add to one like a good probability distribution should).
+
+```{r week-start}
+tosses <- 7 # this is data
+water <- 5  # this is data
+p_grid <- seq( from=0 , to=1 , length.out=100 )
+likelihood <- dbinom( water , size=tosses , prob=p_grid ) 
+prior <- 1 / 100
+posterior_unstd <- likelihood * prior
+posterior <- posterior_unstd / sum(posterior_unstd) # standardize
+# plot( posterior ~ p_grid , type="l")
+map <- max( posterior )
+fig <- df %>% 
+  ggplot( aes( x=p_grid, y=posterior)) + 
+  geom_point() + 
+  geom_line( color="blue") +
+  geom_vline( xintercept = map )
+ggplotly( fig )
+```
+
+In this code chunk we insert a new prior `prior <- ifelse( p_grid < 0.5 , 0 , 1 ) # new prior` in place of the improper `1` and rerun.
+
+```{r redo}
+tosses <- 7
+water <- 5
+p_grid <- seq( from=0 , to=1 , length.out=100 )
+likelihood <- dbinom( water , size=tosses , prob=p_grid ) 
+prior <- ifelse( p_grid < 0.5 , 0 , 1 ) # new prior
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+plot( posterior ~ p_grid , type="l" )
+df$posterior_new <- posterior
+max_row <- which(grepl(max(posterior), posterior))
+map <- p_grid[ max_row ]
+fig <- df %>% 
+  ggplot( aes( x=p_grid, y=posterior)) + 
+  geom_point() + 
+  geom_line( color="blue") +
+  geom_vline( xintercept = map ) +
+  geom_point( aes( x=p_grid, y=posterior_new)) +
+  geom_line( aes( x=p_grid, y=posterior_new))
+ggplotly( fig )
+quantile(posterior, 0.75 )
+
+post_samples <- replicate( 1e4, sample(posterior, replace = TRUE) )
+
+```
+
+Next we try adding more land than water in this chunk with this data:
+
+$$
+L, W, W, L, W, W, W
+$$
+
+```{r more-land}
+# more land
+tosses <- 7
+water <- 5
+p_grid <- seq( from=0 , to=1 , length.out=100 )
+likelihood <- dbinom( water , size=tosses , prob=p_grid ) 
+prior <- prior <- ifelse( p_grid < 0.5 , 0 , 1 ) # new prior
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+plot( posterior ~ p_grid , type="l" )
+quantile(posterior, 0.75 )
+max_row <- which(grepl(max(posterior), posterior))
+p_grid[ max_row ]
+post_samples <- sample(posterior, size=1e4, replace = TRUE) 
+dens( post_samples )
+```
+
+The upshot?
+
+- Point one
+
+- Point two
+
+- Kai toi loipa, usw, etc.
+
+## Chapter 3 -- Sampling the imaginary
+
+### Start up with 3M1-2
+
+Here we input the new number of tosses and results. We just change the data in this existing model.
+
+```{r 3M1}
+p_grid <- seq( from=0 , to=1 , length.out=1000 ) # hypptheses
+prior <- rep( 1 , 1000 )
+tosses <- 9 # data
+water <- 6 # data
+likelihood <- dbinom( water , size=tosses , prob=p_grid )
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior)
+plot( posterior ~ p_grid , type="l" )
+```
+
+### Next 3M2-3 and a predictive check
+
+Draw samples first, then check the results with a density plot and a 90\% HPDI (Highest Posterior Density Interval) from the `rethinking` package.
+
+```{r sampling-checking}
+library(rethinking)
+library(tidybayes)
+samples <- sample( p_grid , prob=posterior , size=1e4 , replace=TRUE )
+dens( samples )
+HPDI( samples , prob=0.9 ) #90% HPDI
+mode_hdci( samples )
+```
+
+Interpretation:
+
+- The HPDI indicates...
+
+- The density function shows that...
+
+We now run a predictive check on the posterior distribution. This routine ...
+
+1. Sample ...
+
+2. Simulate ...
+
+3. Compare simulation with the data that `w==8`. Calculate the proportions.
+
+```{r pp-check}
+samples <- sample( p_grid , prob=posterior , size=1e4 , replace=TRUE )
+w <- rbinom( 1e4 , size=tosses , prob=samples )
+# Look this sum() / 1e4 ratio in the chapter and calculate here. Use the simplehist() of w to plot the results
+simplehist( w )
+```
+
+What does this mean?
+
+- A good model?
+
+- Compatibility?
+
+### Now to change up the priors 3M5
+
+Start with the alternate priors from 2M2.
+
+```{r 2M2-priors}
+# alternate priors
+tosses <- 3
+water <- 3
+p_grid <- seq( from=0 , to=1 , length.out=100 )
+likelihood <- dbinom( water , size=tosses , prob=p_grid ) 
+prior <- prior <- ifelse( p_grid < 0.5 , 0 , 1 ) # new prior
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+plot( posterior ~ p_grid , type="l" )
+
+```
+
+Run the `HPDI()` and simulate `w <- rbinom()` and show `simplehist()`. 
+
+```{r redo-new-prior}
+# check again
+w <- rbinom(1e4, 3, prob = posterior)
+```
+
+Some questions to ponder.
+
+1. We don't trust the data? Is that what the new prior is saying? 
+
+2. What about the observed value off 8. What happened to the predictive distribution?
+
+3. What does this mean for building models? Communicating with those who would consume your analysis?
+

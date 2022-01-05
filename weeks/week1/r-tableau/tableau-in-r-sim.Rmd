@@ -1,0 +1,570 @@
+---
+title: "Gauss's Robots"
+author: "Bill Foote"
+date: "10/24/2020"
+output: html_document
+---
+
+```{r , include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+```
+
+# Gauss's Robots
+
+## While you wait ...
+
+While Collins @CollinsPinch1998  and McElreath @McelreathStatisticalRethinkingBayesian2020 use the parable of the Golem, E.T. Jaynes @Jaynes_2004 uses Josef Čapek's native Czech word [_roboti_](https://en.wikipedia.org/wiki/R.U.R.) to describe organic machines that end up annihilating humankind in his brother Karel's play _R.U.R (Rossum's Universal Machines)_ in 1921 @CapekRUR1921. I like this depiction since the word and the play intersect with R.A. Fisher's @FisherMethods1934 frequentist modification of the _inverse probability_ approach to statistical thinking first presented in 1925. After all we are doing is just building machines, some toy, some production, all not thinking, but sometimes acting like they are in our reverie that fantasizes a [reification](https://en.wikipedia.org/wiki/Reification_fallacy), a fallacy.  Whatever the golem or robot does it is because we tell it to do so, and it will inexoribly and logically. [Carl Friedrich Gauss's](https://en.wikipedia.org/wiki/Carl_Friedrich_Gausshttps://en.wikipedia.org/wiki/Carl_Friedrich_Gauss) _linear regression_ model is such a robot. It will do what we tell it to. But often we will interpret the robot's abstractions as a real thing, which it emphatically is not.
+
+## Gauss, Gauss, where is Gauss?
+
+Gauss did not have to really invent the normal distribution. We observe much physical, chemical, biological, psychological, social, economic, even financial behavior that appears on first glance to be Gaussian. Here are three examples from the business domain.
+
+1. Compound revenue growth.
+
+2. Any financial statement item.
+
+3. Continuous stock returns.
+### Full time equivalent
+
+This measure is often deployed to understand staffing against salary and benefits, among other issues. The calculation can be as simple as adding up all the employees, whether full or part-time, say a head count of 5 people, and the hours worked in a week by the 5 people, say 120 hours. If we assume a 40 hour week, then the full time equivalent number of employees per week in a 40 hour week would be 120 hours divided by a 40 hours/full-time work week to equal an FTE of 3. Is this Gaussian? 
+
+Suppose we sum up a week's worth of hours per day. Each day's hours is again uniformly distributed, this time from 100 to 200 hours summed over a 5 day period. This is not the same necessarily as multiplying one day's simulation times 5, or is it?
+
+```{r}
+hours <- replicate( 10000, sum(runif(1, 15, 30) + runif(1, 15, 30) + runif(1, 15, 30) + runif(1, 15, 30) + runif(1, 15, 30))) 
+
+summary(hours)
+
+fte <- hours / 40
+
+dens( fte , norm.comp=TRUE )
+```
+
+The average FTE is 2.75 people equivalent in this very symmetrical density. Again, why? Whatever the average value of the source distribution, here 113 hours, each sample from the source will be a deviation from this average. The summary shows a nearly equal quartile and minimum or maximum set of fluctuations from the mean. Adding up the deviations from the mean always equals zero algebraicly if we use the arithmetic mean. The range of the uniformly distributed hours is 75 hours per week while the simulation's range is smaller at about 65 hours. The deviations are whittled down as they sum up. Where did they go? They began to offset one another. Large deviations offset large negative ones. The more terms the more ways these large movements offset one another one for one or in sums of smaller deviations that add up to the same large movements. The mostly ways to realize sums are those that aggregate around the mean.
+
+### Compound growth
+
+Suppose we have 1 quarter of growth in revenue. The  quanterly rate of growth takes a \$1 of revenue at the beginning of month 1 of the quarter, which grows at the first month's rate $g_1$ into $1+g_1$. This amount grows into $(1+g_1) + (1+g_1)g_2 = (1+g_1)(1+g_2)$. This end of second month accumulated growth becomes $(1+g_1)(1+g_2) + (1+g_1)(1+g_2)g_3 = (1+g_1)(1+g_2)(1+g_3)$ by the end of the quarter and month 3. Is this Gaussian? 
+
+Let's suppose that growth rates are uniformly distributed from -0.1 to 0.1. Then one path for quarterly (1 plus) might be $(1+0.08)(1+(-0.02))(1+0.05)=$  `r (1+0.08)*(1-0.02)*(1+0.05)`. Simulating growth 10000 times and viewing our work in the density plot shows the approximation to a theoretical normal distribution.
+
+```{r}
+growth <- replicate( 10000 , prod( 1 + runif(12,-0.1,0.1) ) )
+dens( growth , norm.comp=TRUE )
+```
+
+Not bad, but look at those tails! Yes, if we are willing to accept no wild swings on average in growth, then this model might help us understand patterns in revenue growth. Why Gaussian? It appears that growth will grow and decline, sometimes adding a lot or deducting a lot, but the cumulative impact will tail off as the month to month changes may even wipe each other out. As long as growth changes impact each successive month in ever smaller ways relative to the accumulative of previous months, then the impact will be Gaussian distributed. Isn't multiplication a shill for summation?
+
+### Animadversions
+
+Here is some code to show the variation in parameters that are possible in the Gaussian world view.
+
+```{r}
+library(tidyverse)
+library(rayshader)
+data(volcano)
+
+library(reshape2)
+#Contours and other lines will automatically be ignored. Here is the volcano dataset:
+xy
+ggvolcano = volcano %>% 
+  melt() %>%
+  ggplot() +
+  geom_tile(aes(x = Var1, y = Var2, fill = value)) +
+  geom_contour(aes(x = Var1, y = Var2, z = value), color = "black") +
+  scale_x_continuous("X", expand = c(0, 0)) +
+  scale_y_continuous("Y", expand = c(0, 0)) +
+  scale_fill_gradientn("Z", colours = terrain.colors(10)) +
+  coord_fixed()
+
+par(mfrow = c(1, 2))
+plot_gg(ggvolcano, width = 7, height = 4, raytrace = FALSE, preview = TRUE)
+
+```
+
+## Log products
+
+... are 2x4 boards. Yes, and no. Our log products again turn into sums. Let's see how. The logarithm can be defined in terms of growth.
+
+$$
+g = log(e^g)
+$$
+
+Logarithms to a base $b$ just return the exponents $x$ of the exponential $b^x$. Also since 
+
+$$
+e^{g_1}e^{g_2}e^{g_3} = e^{g_1+g_2+g_3}
+$$
+
+Then
+
+$$
+g_1+g_2+g_3 = log(e^{g_1+g_2+g_3})=log(e^{g_1} e^{g_2} e^{g_3})
+$$
+
+Products become sums with logarithms. And so it is with compound growth.
+
+$$
+log[(1+g_1)(1+g_2)(1+g_3)] = log(1+g_1)+log(1+g_2)+log(1+g_3)
+$$
+
+Just another sum and also Gaussian? Let's see.
+
+```{r}
+growth <- replicate( 10000 , log(prod( 1 + runif(12,-0.1,0.1)) ) )
+dens( growth , norm.comp=TRUE )
+
+```
+Again large divations from the mean of 0 will offset large negative deviations. Sums of small large deviations will offset large negative deviations and vice-versa. What's left is an accumulation of the rest which become the most likely deviations large negatives with small positives and large positives with small negatives. If our data looks like that kind of a process, then a Gaussian distribution might be useful to approximate behavior.
+
+## Assume
+
+We will build our first Gaussian model here and now. Our first assumption is
+
+> Draws of variates are indeependent of one another, and identically distributed too.
+
+We take a deep breath and sigh, that can't be true! It is not, only in our mind and in the programming of our Gaussian robot. IID does not really exist, it is an artificial mind's version of a can-opener that allows us to sort sytematic from unsystematic movements in variables. If systematic, then we have the job of describing how unsystematic deviations from the systematic might occur, how large they might be, how frequent they might occur, how lop-sided they make the distribution of our dreams. That is the face of data we imagine and program into our robot.
+
+Our second assumption is that
+
+> If all you know is the mean and standard deviation, use Gaussian.
+
+Less of an assumption than an implication of how we know or don't know about anything. That's epistemology for you! This branch of philosophy asks the profound question, whose answer is well beyond what we are considering here, but which we use anyway, 
+
+
+> A variate will depend on another variate(s) only in a straight, so-called linear, way.
+
+From a distance, a twenty-one sided polygon, each side of which is a straight line, can look almost like a circle. It's an approximation, and if it's close enough, it may work for our purposes. We usually start with intercept and slope. Later on in school we learned that slopes can change, and, voila a quadratic, a cubic, a whatever, is fomenting by our fervid imaginations. We trade off these shapes with the need to explain more about that dependent variable.
+
+> There shalt be only one standard deviation of residuals.
+
+For otherwise we have the disease of heterskedasticity where residuals, the unsystematic side of the relationship and why we need to reason probabilistically. A prominent reason why there might be a multiplicity of different Gaussian distributions hidden, latent, otherwise obfuscating the view.
+
+> There shalt not be any meaningful relationships among explanatory variables.
+
+For otherwise we shall have confusion and be confounded. Independent sources mean clear results, usually. The contrary condition is called multicollinearity. This is another source of obfuscation that often arises in inflammatory oratory where the orator lists ten reasons why we should vote for his or her cause, and they all wind up being just one reason, and often not a good one either.
+
+Regarding the reasons for or against at least an initial use of a simple Gaussian model, we can say these three things though about cognition, epistemology, ontology, all implications for a fourth consideration: an analytical methodology. When we confuse what we dreamt up, imagined, and programmed our probalistic robit with reality, that's when error, fallacy, and obfuscation occurs. This will get deep, but raises the questions in an order familiar to those who diagnose then prognosticate for a living.
+
+1. A cognitional theory asks, “What do I do when I know?” It encompasses the operations that give rise
+to judgments of fact and value. These operations include all of the techniques in Heuer and Pherson
+(2011). But we must also include the integrating notion that “operators” are intending to know in the
+first place. When that intention is unbiased, then horizons become less limiting. Less limited horizons
+then play to strengths of an analyst’s use of a particular analytical technique applied to a growing base
+of data.
+
+2. An epistemology asks, “Why is doing that (cognition) knowing?” It demonstrates how these occurrences may
+appropriately be called “objective.” This is where dialectic certainly resides. We have subjects and
+objects (analysts and the objects of analysis; insurgents and other subjects who are the objects of
+their insurgency). What is objective is found in the widest possible horizon where there are no further
+relevant questions to be asked, and answered.
+
+3. An ontology (also known as metaphysics) asks “What do I know when I do it (cognition)?” It lines up decision maker’s priorities because it identifies corresponding structures of the realities we know and value, what is possible, what is not. It provides objective criteria for determining what is, as opposed to what is not, and what is valuable, as opposed to what is worthless.
+
+4. A methodology asks, “What therefore should we do?” It lays out a framework for collaboration among
+collectors, analysts, policy makers, assets, and others, based on the answers to the first three questions.
+It is this framework that analysts use as reference, and guide. Importantly it gives analysts employed
+at various levels in various organizations a common vocabulary, road map, and expectations from the
+analytic function.
+
+Thus we build golems and robots to aid our discovery (heuristic) of reality. What happens when our cognitional operations come up with zilch (a technical term for we don't know yet)? We fall back to a Gaussian position. At least we know some trends (means) that we can't be sure of (standard deviations). Various trends and their standard deviations themselve might even be correlated, relative, not independent of one another. If they are unsystematic, then we tell the golem / robot they are independently distributed. If we only have one set of means and standard deviations to work from, then they are also identically distributed.
+
+But we must, in our methodology, be acutely awarea of the limitations of these assumptions. THey are but an approximation, a starting point, a stalking something against which we might benchmark a better, wider angle view of the behaviors we model. Setting the expectations  of peers and consumers of our analytical products is paramount.
+
+
+## Load 'em up
+
+Okay, now let's use the Gaussian version of our perception of truth, as a first stab at understanding our data and its many possible relationships. We will
+
+1. Pose crisp, crunchy, questions about surprising situations
+
+2. Hypothesize at least trends and deviations from trends
+
+4. Collect, wrangle, and explore data relevant to the hypotheses
+
+5. Condition the data in the presence of hypotheses
+
+6. Derive a schedule of plausibililties of hypotheses compatible with the data
+
+7. Solve for hypotheses that most plausibly compatible with the data, including intervals that are most credible
+
+Quite a full-employment program! Our crunchy question:
+
+> I've got a lot of education, and experience. Will I command a higher wage?
+
+Folklore sometimes does, sometimes does not bear this out. [_Grit, passion, perseverance_](https://angeladuckworth.com/grit-book/#:~:text=About%20the%20Book%20In%20this%20instant%20New%20York,blend%20of%20passion%20and%20persistence%20she%20calls%20%E2%80%9Cgrit.%E2%80%9D), also known as work ethic, might be other factors we can explore later. Our data is from  We will explore data from the Population Survey from the U.S. Census Bureau found in the `AER` package. There is an extensive literature that attempts to model labor supply and demand decisions, all of which include wages, education, and experience.
+
+```{r}
+#install.packages("AER")
+library(GGally)
+library(AER)
+data(CPS1988)
+head(CPS1988)
+summary(CPS1988)
+precis( CPS1988 )
+wage_all <- as_tibble(CPS1988)
+ggpairs(wage_all)
+```
+
+Way too much! But this can be reduced or zoomed into. Lots of relationships to think about relative to our question. Let's just look at two variables relevant to our question, wages ($/hr) and education (years), and a two factor categorical variable ethnicity (caucasion or african american).
+
+```{r}
+wage <- wage_all$wage
+education <- wage_all$education
+ethnicity <- wage_all$ethnicity
+wage_educ <- tibble(wage = wage, education = education, ethnicity = ethnicity)
+ggpairs(wage_educ)
+```
+
+A bit more revealing. Nothing is Gaussian here! There are probably several Gaussians or other distributions at work in each of the wage and education densities. The ethnicity variate is binary. The wage-education scatterplots is amazingly opaque as well. We can explore a bit more by looking at the two histograms in teh bottom left pane: African Americans in the survey have significantly lower wages and education, and tightly dispersed, relative to caucasian americans. We don't need any further diagnosis about what to estimate here. Our plan of action will be to build two statistical relationships, one each for the ethnicity category.
+
+```{r}
+wage_educ %>% 
+  group_by( ethnicity ) %>% 
+  summarise( `mean wage` = mean(wage), `mean education` = mean(education) )
+
+
+```
+
+Let's filter only `afam` observations with years of education less than or equala to 8 into our wage model.
+
+```{r}
+wage_educ_afam <- wage_educ %>%
+  filter( ethnicity == "afam", education <= 8)
+wage_educ_afam %>% 
+  summarize( mean_wage = mean(wage), sd_wage = sd(wage))
+precis(wage_educ_afam)
+```
+
+### A model emerges
+
+The likelihood for our model will be for wages $w_i$
+
+$$w_i \sim \operatorname{Normal}(\mu, \sigma),$$
+our $\mu$ prior will be
+
+$$\mu \sim \operatorname{Normal}(178, 20),$$
+
+and our prior for $\sigma$ will be
+
+$$\sigma \sim \operatorname{Uniform}(0, 400).$$
+
+Here's the shape of the prior for $\mu$ in $N(347, 218)$, using the statistics from the `precis()`.
+
+```{r, fig.width = 3, fig.height = 2.5}
+ggplot(data = tibble(x = seq(from = 300, to = 600, by = .1)), 
+       aes(x = x, y = dnorm(x, mean = 446, sd = 12))) +
+  geom_line() +
+  ylab("density")
+```
+
+Let's also view a prior for $\sigma$, a uniform distribution with a minimum value of 0 and a maximum value of 50. We don't really need the y axis when looking at the shapes of a density, so we'll just remove it with `scale_y_continuous()`.
+
+```{r, fig.width = 3, fig.height = 2.5}
+tibble(x = seq(from = 0, to = 400, by = .1)) %>%
+  
+  ggplot(aes(x = x, y = dunif(x, min = 0, max = 400))) +
+  geom_line() +
+  scale_y_continuous(NULL, breaks = NULL) +
+  theme(panel.grid = element_blank())
+```
+
+We can simulate from both priors at once to get a prior probability distribution of `wage`. The `mutate()` function does the hard work of convolving the two priors into one prior predictive distribution. 
+
+```{r, fig.width = 3, fig.height = 2.5}
+n <- 1e4
+set.seed(4)
+tibble(sample_mu    = rnorm(n, mean = 446,       sd  = 218),
+       sample_sigma = runif(n, min  = 0,         max = 400)) %>% 
+  mutate(x = rnorm(n, mean = sample_mu, sd  = sample_sigma)) %>% 
+  
+  ggplot(aes(x = x)) +
+  geom_density(fill = "blue", size = 0, alpha = 0.3) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(subtitle = expression(Prior~predictive~distribution~"for"~italic(w[i])),
+       x = NULL) +
+  theme(panel.grid = element_blank())
+```
+### Grid approximation of the posterior distribution.
+
+As McElreath explained, we will very likely never use the grid approximation approach for practical data analysis. But this example is simple enough to use and also provides some insight into the procedures that we will deploy under the cover of quadratic approximation and Markov Chain Monte Carlo techniques. They all will converge in the neighborhood of the same solution.
+
+```{r}
+n <- 100
+wage_grid <-
+  # we'll accomplish with `tidyr::crossing()` what McElreath did with base R `expand.grid()`
+  crossing(mu    = seq(from = 300, to = 400, length.out = n),
+           sigma = seq(from = 100,   to = 300,   length.out = n))
+glimpse(wage_grid)
+```
+We are literally combining a list of hypothetical $\mu$s with hypothetical $\sigma$s: 100 $\mu$s each fanning across 100 $\sigma$s yields $100 \times 100= $ the 10,000 rows. Let's write a function to calculate the likelihood of each $\mu, \sigma$ hypothesis. We notice that we are in `log()` world now to prevent under- and over-flow (really small, really large) numbers. This is where data finally gets into the picture.
+
+```{r}
+grid_function <- function(mu, sigma) {
+  
+  dnorm(wage_educ_afam$wage, mean = mu, sd = sigma, log = T) %>% 
+    sum()
+  
+}
+```
+
+We calculate the log likelihood with the function and then mutate priors, sums of logs (same as products), and finally the posterior probabilities into the tibble
+
+```{r}
+wage_grid <-
+  wage_grid %>% 
+  mutate(log_likelihood = map2(mu, sigma, grid_function)) %>%
+  unnest(log_likelihood) %>% 
+  mutate(prior_mu    = dnorm(mu,    mean = 446, sd  = 218, log = T),
+         prior_sigma = dunif(sigma, min  = 0,   max = 300, log = T)) %>% 
+  mutate(product = log_likelihood + prior_mu + prior_sigma) %>% 
+  mutate(probability = exp(product - max(product)))
+  
+head(wage_grid)
+```
+
+In the final `wage_grid`, the `probability` vector contains the posterior probabilities across values of `mu` and `sigma`. We can make a contour plot with `geom_contour()`.
+
+```{r, fig.width = 4, fig.height = 3.5}
+wage_grid %>% 
+  ggplot(aes(x = mu, y = sigma, z = probability)) + 
+  geom_contour() +
+  labs(x = expression(mu),
+       y = expression(sigma)) +
+  coord_cartesian(xlim = range(wage_grid$mu),
+                  ylim = range(wage_grid$sigma)) +
+  theme(panel.grid = element_blank())
+```
+
+We'll make our heat map with `geom_raster(aes(fill = probability))`.
+
+```{r, fig.width = 5, fig.height = 3.5}
+wage_grid %>% 
+  ggplot(aes(x = mu, y = sigma)) + 
+  geom_raster(aes(fill = probability),
+              interpolate = T) +
+  scale_fill_viridis_c(option = "A") +
+  labs(x = expression(mu),
+       y = expression(sigma)) +
+  theme(panel.grid = element_blank())
+```
+
+Thank you Solomon Kurz for the tidyverse recoding of McElreath's base R work.
+
+### Sampling from the posterior.
+
+Let's continue, we are not finished. Our next step is to use the posterior probability distributoin to generate samples. We will use the `dplyr::sample_n()`funtion to sample rows, with replacement, from `wage_grid`.
+
+```{r, fig.width = 4, fig.height = 3.5}
+set.seed(4)
+wage_grid_samples <- 
+  wage_grid %>% 
+  sample_n(size = 1e4, replace = T, weight = probability)
+wage_grid_samples %>% 
+  ggplot(aes(x = mu, y = sigma)) + 
+  geom_point(size = .9, alpha = 1/15, color = "blue") +
+  scale_fill_viridis_c() +
+  labs(x = expression(mu[samples]),
+       y = expression(sigma[samples])) +
+  theme(panel.grid = element_blank())
+```
+
+This sample of posteriors looks (phenomenology at work) a lot like the ellipses and volcanic (super-nebula?) heat map we just produced. The purpose of the sampling is to provide us with many more implicit interpolations of the original grid. We will use `gather()` and then `facet_wrap()` to plot the densities for both $\mu$ and $\sigma$ facets into one plot.
+
+```{r, fig.width = 6, fig.height = 2.5}
+wage_grid_samples %>% 
+  select(mu, sigma) %>% 
+  gather() %>% 
+  ggplot(aes(x = value)) + 
+  geom_density(fill = "blue", size = 0, alpha = 0.3) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  xlab(NULL) +
+  theme(panel.grid = element_blank()) +
+  facet_wrap(~key, scales = "free")
+```
+
+Next We use the tidybayes package to compute their posterior modes and 95% HPDIs (a move from mere phenomena to episteme or knowledge). We impose a probability to the areas under the posterior densities. THere is not a single statistical reason for this. But if we miden our horizons and think a little about how important our study is for hiring, firing, the competitive search to talent, the policies we have systemically, then that informs our choice imposed on the statistics. 
+
+This is also where the long format table generated by `gather()` earns its keep. The `key` allows us to `group()` the two estimates in `value` with all of the grid probabilities matched to the two parameters.
+
+```{r, warning = F, message = F}
+library(tidybayes)
+wage_grid_samples %>% 
+  select(mu, sigma) %>% 
+  gather() %>% 
+  group_by(key) %>% 
+  mode_hdi(value)
+```
+
+Let's say you wanted their posterior medians and 50% quantile-based intervals, instead. Just switch out the last line for `median_qi(value, .width = .5)`. It is not a surprise that we get back the prior estimates of mu and sigma. What we are after with inference is the range of estimates that are compatible with prior beliefs and the data, here with 95\% credibility.
+
+
+## Regressing away
+
+Once again we travelled through the entire work flow for a two parameter model. This model is a subset of a regression model with intercept only. Onward to the simple linear regression. While it is possible to use the `crossing()` function for the three parameters (intercept, slope, sigma) of the simple linear regression, we will not do that. FOr that exercise entails a $100^3 = $ 1 million row grid. There are more efficient ways to estimate the posterior probabilities. Instead we will use the `quap()` quadratic approximation routine to generate Maximum A Posteriori (MAP) point estimates, which we then use to generate samples of the posterior distribution.
+
+For the simple two parameter model of wages we have
+
+$$
+\begin{align}
+w_i &\sim \operatorname{Normal}(\mu, \sigma) \\
+\mu &\sim \operatorname{Normal}(347, 218) \\
+\sigma &\sim \operatorname{Uniform}(0, 400)
+\end{align}
+$$
+We write this model into R this way, as a list. If we try the uniform distribution for `sigma` with this data, we will run into non-finite numerical derivatives in the `quap()` routine. That means we cannot climb the posterior probability hill from the `sigma` direction. No solution is available for us. Much experience with the probability distribution of volatility might direct us to use an exponential function. The following will render results compatible with a simplistic view of the data as mean and standard deviation. 
+
+What if we concentrate the prior of the mean to a nearly certain outcome?
+
+```{r}
+model <- alist(
+wage ~ dnorm( mu , sigma ) ,
+mu ~ dnorm( 400 , .2 ),
+sigma ~ dexp(100)
+)
+data <- list(
+  data=wage_educ_afam$wage
+  )
+start <- list(
+  mu = mean(data$data),
+  sigma = sd(data$data)
+)
+
+wage_afam_fit <- quap( model , data = data, start = start )
+summary(wage_afam_fit)
+```
+
+Using a very concentrated prior for $\mu$ will allow our robot to compute a maximized posterior probability very quickly. With that in hand the robot then computes the conditional $\sigma$. More importantly we get a compatibility interval that starkly illustrates the tight range we see computed.
+
+Now for the samples.
+
+```{r}
+library(rethinking)
+library(MASS)
+var_cov <- vcov(wage_afam_fit)
+post <- mvrnorm( n=1e4 , mu=coef(wage_afam_fit) , Sigma=var_cov )
+summary( post )
+post <- extract.samples(wage_afam_fit)
+head( post )
+precis( post )
+post %>% as_tibble() %>% 
+  gather() %>% 
+  ggplot(aes(x = value)) + 
+  geom_density(fill = "blue", size = 0, alpha = 0.3) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  xlab(NULL) +
+  theme(panel.grid = element_blank()) +
+  facet_wrap(~key, scales = "free")
+
+```
+
+### Adding some education
+
+Let's get to explaining variations in wage with years of education, $x_i$. We now explore the one factor regression model
+
+$$
+\begin{align}
+w_i &\sim \operatorname{Normal}(\mu_i, \sigma) \\
+\mu_i &\sim \alpha + \beta (x_i - \overline{x}) \\
+\alpha &\sim \operatorname{Normal}(300, 20) \\
+\beta &\sim \operatorname{Log-Normal}(0, 1) \\
+\sigma &\sim \operatorname{Uniform}(0, 400)
+\end{align}
+$$
+Things are a little different now. The mu s are legion. The $\mu_i$
+are a pass-through for the two free parameters $\alpha$ and $\beta$, conditional on $x_i$ into the normality of wages.There is still one $\sigma$ a requirement of this style of regressions. When we center the education variable $x_i$ about its mean $\overline{x}$, and at the possible junction of $x_i = \overline{x}$, then we are back to $\mu = \alpha$,
+
+Let's code this up.
+
+```{r}
+# define the average years of education, x-bar
+xbar <- mean(wage_educ_afam$education)
+# fit model
+fit_wage_educ <- quap(
+alist(
+wage ~ dnorm( mu , sigma ) ,
+mu <- a + b*( education - xbar ) ,
+a ~ dnorm( 300 , 20 ) ,
+b ~ dlnorm( 0 , 2) ,
+sigma ~ dexp(100)
+) , data=wage_educ_afam )
+precis( fit_wage_educ)
+```
+
+Now we extract and examine some samples.
+
+```{r}
+var_cov <- vcov(fit_wage_educ)
+#
+post_samples <- extract.samples(fit_wage_educ)
+head( post_samples )
+precis( post_samples )
+post %>% as_tibble() %>% 
+  gather() %>% 
+  ggplot(aes(x = value)) + 
+  geom_density(fill = "blue", size = 0, alpha = 0.3) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  xlab(NULL) +
+  theme(panel.grid = element_blank()) +
+  facet_wrap(~key, scales = "free")
+```
+
+
+
+```
+Next We use the tidybayes package to compute their posterior modes and 95% HPDIs (a move from mere phenomena to episteme or knowledge). We impose a probability to the areas under the posterior densities. THere is not a single statistical reason for this. But if we miden our horizons and think a little about how important our study is for hiring, firing, the competitive search to talent, the policies we have systemically, then that informs our choice imposed on the statistics. 
+
+Again this is also where the long format table generated by `gather()` earns its keep. The `key` allows us to `group()` the two estimates in `value` with all of the grid probabilities matched to the two parameters. Reusing the code from the mean -  standard deviation model of wages, let's see if this works again.
+
+```{r, warning = F, message = F}
+library(tidybayes)
+post_samples %>% tibble() %>% 
+  gather(key = key, value = value) %>% 
+  group_by(key) %>% 
+  mode_hdi(value)
+```
+
+Even the volatility of our statistical relationship has a credible range. Whether we have a good model or bad still remains to be seen, and thought through, for implications for decision makers. Our rubric here is the _seeing (touching, feeling, smelling, etc.) is not knowing_ . 
+
+## Adding some depth
+
+### Linear, really?
+
+Any additive model is linear according to the algebraists. Let's add a quadratic term, and another possible explanatory variable to the model. But is is really an explanatory variable? What a quadratic term really does is help express the shape of the relationship, here between wages and education. We make a parabola. There is not necessarily anything causative in the decision maker's mind. An economist might echo that sentiment, and add, of course, that there might be decreasing returns to wages by adding more years of education. Adding more years also can mean a person trades off income production for more education. For those who work full-time and pursue education part-time, partial years of education are accumulated over several years.
+
+Let's first pull in a quadratic term. Let's first look at the scatter of wage versus both a nomial of order 1, $X_i = (x_i - \overline{x})^1$, and another nomial of order 2 $X_i^2 = (x_i - \overline{x})^2$
+
+```{r}
+
+
+```
+
+$$
+\begin{align}
+w_i &\sim \operatorname{Normal}(\mu_i, \sigma) \\
+\mu_i &\sim \beta_0 + \beta_1 X_i + \beta_2 X_i^2 \\
+\beta_0 &\sim \operatorname{Normal}(300, 20) \\
+\beta_1 &\sim \operatorname{Log-Normal}(0, 1) \\
+\beta_1 &\sim \operatorname{Log-Normal}(0, 1) \\
+\sigma &\sim \operatorname{Uniform}(0, 400)
+\end{align}
+$$
+
+
+
+## Enough is never enough
+
+We now pull `experience` into the mix to view, phenomenologically, and maybe epistemically if we have an idea of the relationship in mind, the impacts on wages.
+
+Was that enough? For now at least. We accomplished a lot. But perhaps the biggest takeaway is our new found ability to deploy simulation with probability with compatibility of hypotheses with data to arrive at learning about the data. We learned because we inferred.
+
+Up next, we gather our wits together to rebuild the workhorse model, the linear regression, in the image and likeness of a probabilistic simulator.
+
+## Session Information {-}
+
+```{r}
+sessionInfo()
+```
+

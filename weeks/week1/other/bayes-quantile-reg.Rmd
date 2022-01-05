@@ -1,0 +1,121 @@
+title: "Quantile Regression with `quanteg::qr()`/`BayesQR / Stan`"
+output: html_document
+---
+
+```{r, echo=FALSE, message=FALSE, error=FALSE}
+library(knitr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  cache = TRUE 
+)
+```
+
+
+### Data
+
+A quick data generating mechanism. Roughly speaking, the $95^{th}$ percentile of `beta` will be about 2.9, and will remain about 1 for `alpha`.
+
+```{r}
+# Set-up the data generating mechainsm
+set.seed(666)
+N     <- 500
+x     <- runif(N, max=10)
+alpha <- 1
+beta  <- 2
+y     <- alpha + beta * x + rnorm(N, sd = .6 * x)
+p     <- 0.95
+# The dataset to be used for estiamtion
+data_set   <- list(y = y, x = x, p = p)
+data_frame <- as.data.frame(data_set)[-3]
+```
+
+
+### Quantile Regression with the `quantreg` package in `R`
+
+This fits pretty much instantaneously, and gets answers that look about right (alpha of about 1, beta of about 2.9).
+
+```{r}
+library(quantreg)
+qreg_fit <- rq(y ~ x, data = data_frame, tau = p)
+# (setting ci = TRUE seems to choke it for some reason)
+ 
+# See results
+summary(qreg_fit)
+```
+
+
+### Quantile Regression with the `bayesQR` package in `R`
+
+This fits pretty much instantaneously, and seems to get sensible answers too.
+
+```{r}
+library(bayesQR)
+sink(file="/dev/null") # Supress calls to cat(), for now
+bqr_fit <- bayesQR(y ~ x, data = data_frame, quantile = p, ndraw = 10000)
+sink()
+# See results
+(bqr_summary <- summary(bqr_fit))
+```
+
+### Quantile Regression in `Stan`
+
+The model below converged with 5k iterations in less than 30 seconds.
+
+```{r}
+library(rstan)
+options(mc.cores = parallel::detectCores())
+scode <- "
+data {
+  int<lower=0> N;
+  real<lower=0, upper=1> p;
+  vector[N] x;
+  vector[N] y;
+}
+parameters {
+  real alpha;
+  real beta;
+  real<lower=0> sigma;
+  vector<lower=0>[N] w;
+}
+transformed parameters {
+  real<lower=0> tau;
+  vector[N] mu;
+  vector[N] me;
+  vector[N] pe;
+  vector[N] pe2;
+  tau <- pow(sigma, -2);
+  mu  <- alpha + beta * x;
+  me  <- (1 - 2 * p) / (p * (1 - p)) * w + mu;
+  pe  <- (p * (1 - p) * tau) ./ (2 * w);
+  
+  for(n in 1:N)
+    pe2[n] <- inv_sqrt(pe[n]);
+}
+model {
+  # Priors
+  alpha ~ normal(0, 2);
+  beta  ~ normal(0, 2);
+  sigma ~ cauchy(0, 2.5);
+  # Data Augmentation
+  w     ~ exponential(tau);
+  
+  # The model
+  y     ~ normal(me, pe2);
+}
+"
+init_fun <- function(){
+  list(alpha = 1 + rnorm(1, 0, 0.2), beta = 2.88 + rnorm(1, 0, 0.2), 
+       sigma = runif(1, 0, 5), w = rexp(N, runif(N, 0, 4)))
+}
+params <- c("alpha", "beta", "sigma")
+stan_fit <- stan(model_code = scode, data = within(data_set, N <- N), 
+                 iter = 5000, verbose = FALSE,
+                 pars = params)
+print(stan_fit)
+```
+
+
+# Session Info
+
+```{r}
+sessionInfo()
