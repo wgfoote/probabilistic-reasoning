@@ -1,0 +1,375 @@
+---
+title: "Multi-level Story-telling"
+author: "Bill Foote"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+library(dagitty)
+library(GGally)
+library(plotly)
+# rstan
+extrafont::loadfonts(device="win")
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+Sys.setenv(LOCAL_CPPFLAGS = '-march=corei7 -mtune=corei7')
+# set seed
+set.seed(42)
+# set theme: https://hrbrmstr.github.io/hrbrthemes/
+theme_set(hrbrthemes::theme_ipsum_tw()) # using tidyverse::ggplot2
+```
+
+## Once upon a time ...
+
+There was a forest full of forked roads, trees, hedges, and people too. Thus a story begins with the situation, a context. That's the place where data resides. But life gets complicated as the hedges are cut down, people must make decisions with trade-offs about the roads and trees, and the weather turns bad. Questions arise, the environment and people respond. We have a very (generalized!) story brewing here.
+
+Multi-level models are story-telling devices in their own right and every story keeps the flow, the data, the characters, what the characters do to one another, all as simple as possible. We pool data and shrink the number of parameters to build models both amnesic and a little agnostic. We will provide the extra memory and causal cautionary tales. One of the most important characteristics of any story is that one aspect of the story leaves  you panting for another segment. 
+
+Pooling of information across aspects, features, segments of a story will help us understand and participate in the whole story. No pooling often leaves us wondering what our names are after hearing a story, let alone what the story is about. Full pooling leaves nothing to the imagination. Partial pooling allows story components to share enough information to bring all of the story together into a unity.
+
+Imagine a cluster of customer observations from different markets. In this context _*pooling*_ means using the information from other markets to inform our estimates for each market. A model with no pooling means that each market is the first market that we have ever seen, as other markets have no effect on our estimates. **Models _without pooling_ have amnesia, if they ever remembered at all.**
+
+As a consequence pooling produces **shrinkage** of parameter estimates as each market's ensemble of estimates will gravitate with a centripetal force of attraction to the inertial center of the global mean across markets. Nice concepts, but how do multilevel models do this? Do small market sample sizes share more or less information than large sample size markets? We have much to ponder.
+
+## Parameters from a common distribution
+
+Simulations allow us to know the true, so-called population, parameters of variates simply because we set it up that way. Because we are in charge of the data, we can check whether our design actually gets estimated correctly in a model. 
+
+In a multilevel model, the parameters for each market derive from the same (pool) of a common statistical population parameters. For example, the family of varying intercepts for each market in the market. As the model samples hypotheses for each paramter for each market in the market, the parameter learns about the sampling of other parameters in other segements of the same market pool. 
+
+The sampling of each parameter complements the sampling, and cross-market learning as a result, of all other parameters in the other markets. We thus have an _*adaptively regularized*_ family of parameters. It is adaptive in that each parameter learns from the sampling, the learning, that happens in the other parameters. It is regularized in that the parameters effectively shrink in number and in size to the pool from which they are sampled. The amount of shrinkage is directly proportional to the estimated variation estimated and compatible with the data for the distribution of the family of parameters. The more influenced parameters are going to be those that come from markets with small sample sizes.
+
+However, it is one thing to have some intuition and another one is to really *understand* something. When it comes to statistics, I am a big fan of simulation. Thankfully, Richard does precisely this in chapter 12. Let's simulate a model to visualize both **pooling and shrinking**.
+
+## The model: A multilevel binomial
+
+We simulate the number of students who passed some exam at different markets at one market. That is, each market has $S_i$ students who passed the test, from a maximum of $N_i$. The model then is the following:
+
+$$
+\begin{align}
+S_i &\sim Binomial(N_i, p_i), \\
+logit(p_i) &= \alpha_{market_{[i]}}, \\
+\alpha_j &\sim Normal(\overline{\alpha}, \sigma), \\
+\overline{\alpha} &\sim Normal(0, 1.5), \\
+\sigma &\sim Exponential(1)
+\end{align}
+$$
+
+And, we know that we could also have a volatility model involved here as well. We also know that such a specification should also thicken or thin the posterior distribution tails. But we leave that for another simulation.
+
+We have customers in markets. What do customers do? They visit the market and they sometimes transact for goods and services. We assume a distribution for the average log-odds of actually transacting for each market.
+
+$$
+\alpha_j \sim Normal(\bar{\alpha}, \sigma). 
+$$
+
+In this simulation the prior for each intercept will be a distribution that we will simultaneously learn as we learn the individual parameters. We have _*hyper-priors*_: priors for the parameters of the distribution of intercepts 
+($\overline{\alpha}, \sigma$).
+
+Quite a lot to pull into the analysis. So an analyst must:
+
+- Not only state assumptions in priors
+
+- But also, state further, layered or multi-level, assumptions about a distribution-reverting mechanism
+
+Is this too much for an analyst to do? We think not.
+
+## The simulation
+
+To simulate this model, we define the parameters of the distribution of intercepts. For each market, we will simulate an average log-odds of transacting. Using the average log-odds of transacting we will simulate the number of customers in each market who transacted using the binomial bag of beans.
+
+Epistemology answers the question, what is it to know? Our answer is some sort of probable inference. Ontology answers the question, given we know, what is it that we know? Neither hyper-parameters or parameters are in this schema? In a sense only that which is experienced, observed, sensed, is in the simulation of variates. Hyper-parameters, parameters and so on are considered by some to be the figments of furtive imaginations in analysts that make decisions about the relationship of parameters, otherwise known as a model. The model has a purpose, materials, a design, and an agency. It also possesses something of an objectivity, which in our case is the setting up of the data to test the model that emanates from the furtive analytical imagination.
+
+In this way we begin by setting the parameters of the population of intercepts.
+
+```{r}
+a_bar <- 1.5
+sigma <- 1.5
+n_markets <- 50
+# customers per market
+N_i <- as.integer(rep(c(5, 10, 25, 35, 40), each = 10))
+```
+
+With these parameters we can now simulate the average log-odds of transacting for the good (or service) for each of the markets by using, for example, a univariate normal random number.
+
+```{r}
+avg_log_odds_per_market <- rnorm(n_markets, mean = a_bar, sd = sigma)
+```
+
+Very Gaussian of us indeed. Perhaps we should try a Pareto power distributon with thresholds against which customers might transact, or not. But again we leave this idea, this thought experiment, for another time. 
+
+We now have the following simulation of data about the markets and customers within markets. Their only claim to fame is their transactions.
+
+```{r}
+data_simulation <- data.frame(
+  market = 1:n_markets, 
+  N_i = N_i, 
+  true_log_odds = avg_log_odds_per_market)
+glimpse(data_simulation)
+```
+
+The nomer `true_` refers to the data we have, in all of our proportionate ability, to name the actual, true data, the imposed objectivity of this simulation.
+
+## Simulate the tranactors
+
+We transform the log odds of the logistic into the binomial distribution. With this prestidigitation we can generate the number of customers who transacted, by market.
+
+In modeling parlance, we know that the _logistic_ is the inverse of the _logit_. We thus transform log-odds into probability.
+
+```{r}
+data_simulation <- data_simulation %>% 
+  mutate(
+    number_transacted = rbinom(n_markets, 
+                          prob = logistic(true_log_odds), 
+                          size = N_i)
+    )
+glimpse(data_simulation)
+```
+
+```{r message=FALSE, warning=FALSE}
+plt <- data_simulation %>% 
+  ggplot( aes(market, number_transacted, color = N_i) ) +
+  geom_point() +
+  scale_color_viridis_c() +
+  labs( title = "Simulated customers who transacted per market",
+       color = "Initial #" )
+ggplotly( plt )
+```
+
+Does this look reasonable? Yes as we eyeball the various market groupings of transacting customers. This is why we performed the simulation in thr first place. More customers transact in the upper markets than in the lower markets. We will be able to answer one of our questions about pooling and shrinkage: does market sample size matter?
+
+## To pool, or not to pool, that is the question
+
+We have three possibilities.
+
+1. Do not pool at all. This is a model that has complete amnesia. It will not convey information across parameters.
+
+2. Partially pool. Allow some pooling up to a point of perhaps overloading the model's fragile memory. We will allow some fuzziness to occur. After all don't our simulated transactors wander in and out of each other's markets?
+
+3. Pool everything. Hold on, we will know everything about everything? Does data, thinking about data with a purpose, acting on data to achieve a result live in this storied environment? 
+
+### No-pooling estimates
+
+Pooling means using the information from other markets to inform our predictions of estimated probabilities of customers transacting in different markets. **Therefore, no-pooling means treating each market completely unrelated to other markets**. This is equivalent to estimating an infinite value of the variance of the population of parameters. 
+
+Therefore, our estimate of the probability of transacting in each market will just be the raw sample proportion of customers transacting in each market.
+
+```{r}
+data_simulation <- data_simulation %>% 
+  mutate(estimated_probability_no_pooling = number_transacted / N_i)
+glimpse(data_simulation)
+```
+
+The lines are clear and drawn and uninformative about market relationships.
+
+### Partial pooling estimates
+
+Partial pooling means to model explicitly the population of parameters. With the estimation of a mean and a standard deviation, we can regularize adaptively, and this action will skrink the parameters into our predictions. Thus we fit a multilevel binomial model of transacting customers in markets.
+
+```{r}
+# trimmed data for estimation in ulam() and stan
+data_model <- list(
+  S_i = data_simulation$number_transacted, 
+  N_i = data_simulation$N_i, 
+  market = data_simulation$market
+  )
+#
+multilevel_model <- alist(
+  S_i ~ dbinom(N_i, p),
+  logit(p) <- a_market[market], # each market will have its own average log odds of transacting
+  a_market[market] ~ dnorm(a_bar, sigma),
+  a_bar ~ dnorm(0, 1.5),
+  sigma ~ dexp(1)
+)
+```
+
+Then, we use `ulam()` and stan to derive the posterior distribution using the Hamilton Monte Carlo approach with the no-u-turns-sampler (NUTS).
+
+```{r cache=TRUE}
+multilevel_fit <- ulam(
+  multilevel_model, 
+  data = data_model, 
+  chains = 1, log_lik = TRUE
+  )
+precis( multilevel_fit, depth = 2 )
+```
+
+For one chain, this estimation pulls the parameter values together fairly closely, within a standard deviation of the simulations, to the `1.5` values we chose for the data. The model so far seems somewhat compatible with the data. We might go so far to say that the model produces parameter estimates for the mean `a_bar` between 0.98` and `1.77` about 89\% of the ways, that is, with 89\% probability, that these parameters are compatible with our simulated data.
+
+We can evaluate the validity of our Markov Chains using the following traceplots. If we were to run these plots against more than one chain we would likely conclude that the chains mix well across the two parameters, that they are fairly stable, and that the chains converged to nearly the same estimates.
+
+```{r, eval = FALSE}
+traceplot_ulam(multilevel_fit)
+```
+
+Now, let's find out how well the Markov Chain Monte Carlo estimates converged with `Rhat`4, a measure of convergence. A value of 1 means the MCMC estimates converged.
+
+```{r}
+precis(multilevel_fit, depth = 2) %>% 
+  data.frame() %>% 
+  select(Rhat4) %>% 
+  summary()
+```
+
+The Rhat values indidate that we sampled correctly from our posterior distributons: they are 1.00 or so. Let's use these samples from the posterior distribution to calculate our estimated log-odds of survival for each market.
+
+```{r}
+posterior_samples <- extract.samples( multilevel_fit )
+glimpse( posterior_samples )
+summary( posterior_samples$a_market )
+```
+Yes, 50 markets. We asked for that!
+
+```{r}
+summary( posterior_samples$a_bar)
+summary( posterior_samples$sigma)
+```
+Before we calculate our estimated log-odds, let's check our estimates for the population of parameters from which each intercept comes:
+
+```{r}
+plt <- data.frame(alpha_bar = posterior_samples$a_bar) %>% 
+  ggplot(aes(alpha_bar)) +
+  geom_histogram(binwidth = 0.01, color = "darkblue", fill = "dodgerblue4", alpha = 0.7) +
+  geom_vline(aes(xintercept = 1.5), linetype = 2, color = "red") +
+  labs(title = "Posterior samples for population intercepts (alpha)")
+ggplotly( plt )
+```
+
+It seems that we've correctly captured the mean of the population. The MAP is about 1.38. What about the standard deviation of the distribution?
+
+```{r}
+plt <- data.frame(sigma = posterior_samples$sigma) %>% 
+  ggplot(aes(sigma)) +
+  geom_histogram(binwidth = 0.01, color = "darkblue", fill = "blue", alpha = 0.7) +
+  geom_vline(aes(xintercept = 1.5), linetype = 2, color = "red") +
+  labs(title = "Posterior samples for population standard deviation")
+ggplotly( plt )
+```
+
+Our estimates for the variation in the population could be better. The MAP can be either 1.62 or 1.67, the vagaries of MCMC. Let's check our estimated probability of transacting for each market.
+
+```{r}
+# first our logistic function to convert scores into probabilities
+logistic_ours <- function(z) {
+  1/(1+exp(-z))
+}
+# yes, a matrix of estimated intercepts by market
+matrix_estimated_probs <- logistic_ours(posterior_samples$a_market)
+glimpse(matrix_estimated_probs)
+```
+
+We have a matrix of 500 rows (500 simulations) and 50 columns (50 different markets). The column average across samples will estimate the probability of transacting in each market.
+
+```{r}
+partial_pooling_estimates <- apply(matrix_estimated_probs, 2, mean)
+data_simulation <- data.frame(
+  estimated_probability_partial_pooling = partial_pooling_estimates) %>% 
+  cbind(data_simulation)
+glimpse(data_simulation)
+```
+
+Then we transform our true log-odds into true probabilities:
+
+```{r}
+data_simulation <- data_simulation %>% 
+  mutate(true_probabilities = inv_logit(true_log_odds)
+         )
+glimpse(data_simulation)
+```
+
+We are now ready to answer further questions about the efficacy of pooling and the resulting shrinkage.
+
+## Pooling and shrinkage made manifest
+
+Pooling means sharing information across, in this simulation, markets. This is done by explicitly modeling the distribution of the average log-odds ratios of transacting across markets. In this way our estimated mean for the distribution of intercepts for each market will inform each of our predictions. Let's calculate this estimated global mean across markets.
+
+```{r}
+estimated_global_mean <- data.frame(
+  alpha_bar = posterior_samples$a_bar) %>% 
+  mutate(alpha_bar = inv_logit(alpha_bar)) %>% 
+  summarise(mean(alpha_bar))
+estimated_global_mean <- estimated_global_mean[1,1]
+glue::glue("The estimated global mean is: {round(estimated_global_mean, 2)}")
+```
+
+We should view our handiwork to understand how market estimates relate to the estimated global mean.
+
+```{r }
+levels_market <- c("Sample size in markets: 5",
+                   "Sample size in markets: 10",
+                   "Sample size in markets: 25",
+                   "Sample size in markets: 35",
+                   "Sample size in markets: 40"
+                   ) 
+plt_data <- data_simulation %>% 
+  select(market, estimated_probability_partial_pooling, estimated_probability_no_pooling, N_i) %>% 
+  pivot_longer(-c(market, N_i), names_to = "method", values_to = "estimated_probability") %>% 
+  mutate(N_i = glue::glue("Sample size in markets: {N_i}"),
+         N_i = factor(N_i, levels = levels_market))
+plt <- plt_data %>% 
+  ggplot(aes(market, estimated_probability, color = method)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(aes(yintercept = estimated_global_mean), linetype = 2, color = "red") +
+  facet_wrap(~N_i, scales = "free") +
+  scale_color_viridis_d() +
+  scale_y_continuous(labels = scales::percent) +
+  theme(legend.position = "bottom") +
+  labs(title = "Pooling and Shrinking in a Multilevel Model",
+       subtitle = "Global estimated mean informs predictions for each market: shrinking estimates to the global estimated mean",
+       caption = "Global estimated mean shown in red.")
+ggplotly( plt )
+```
+
+Now we can see that, **with partial pooling, our estimates are informed by the estimated global mean. We shrink whatever proportion we calculate for the specific market towards this overall mean.** We can be seen by zooming in on the yellow points, the estimates from partial pooling, and noticing that they are always closer to the red line than the purple points, the sample market proportion. Pooling results in more aggressive shrinkage for the markets where we have fewer data. Will these market predictions be the ones that need to be shrunk the most?
+
+## The Benefits of Pooling and Shrinkage
+
+To answer that last question we can compare how well the different models performed.
+
+```{r fig.height=8}
+# let's recall the levels and their sample sizes h
+levels_market <- c("Sample size in markets: 5",
+            "Sample size in markets: 10",
+            "Sample size in markets: 25",
+            "Sample size in markets: 35",
+            "Sample size in markets: 40")
+# we could use a paste0() across the sample sizes
+plt_data <- data_simulation %>% 
+  mutate(no_pooling_error = abs(estimated_probability_no_pooling - true_probabilities),
+         partial_pooling_error = abs(estimated_probability_partial_pooling - true_probabilities)) %>% 
+  select(market, no_pooling_error, partial_pooling_error, N_i) %>% 
+  pivot_longer(-c(market, N_i), names_to = "method", values_to = "error") %>% 
+  mutate(N_i = glue::glue("Sample size in markets: {N_i}"),
+         N_i = factor(N_i, levels = levels_market)) 
+plt <- plt_data %>% 
+  ggplot(aes(error, factor(market), color = method)) +
+    geom_point(alpha = 0.6) +
+    scale_color_viridis_d() +
+    facet_wrap(~N_i, scales = "free_y") +
+    hrbrthemes::theme_ipsum_tw(grid = "Y") +
+    theme(legend.position = "bottom") +
+    labs(title = "Partial pooling vs. no-pooling: benefits of shrinkage",
+         subtitle = "Low sample sizes and outliers benefit",
+         y = "market")
+ggplotly( plt )
+```
+
+This plot compares our estimated probability to the true probability we simulated across markets.
+
+Some reflections are in order.
+
+1. Partial pooling will shrink the number of effective variables and yield less complex models.  **This is most helpful for the markets where we have relatively fewer data** (i.e., markets with sample size of 5 and 10). For these markets, we complement the little data that we have with the information pooled from larger markets. In this way we shrink our estimates to the population mean that we've estimated across all markets. The model with no pooling just uses the information in the low sample markets, resulting in overfitting that shows itself in the plot in the form of large prediction errors. The comparison between the two methods shows us how shrinkage can reduce overfitting and thus predict more reliably out of sample. 
+
+2. The amount of shrinkage depends on the amount of data available. When we have fewer data, we shrink a lot. **When we have lots of data, we do shrink, but a lot less**. For markets that have lots of data ( _e.g._, sample size of 35), partial pooling results in an almost identical prediction as the method with no pooling.  
+
+3. The model with no pooling can sometimes beat the model with partial pooling. However, on average, the model **with partial pooling will often perform much better**.
+
+4. A poorly _mixing_ Markov chain moves slowly between regions of the parameter space or barely moves at all. This might happen when the distribution of proposals is much narrower or much wider than the target (posterior) distribution. In the former case most proposals will be accepted but the Markov chain will not explore the full parameter space whereas in the latter case most proposals will be rejected and the chain will stall. This aberrent condition also happens in quadratic approximation techniques through a similar optimizing process. By running several Markov chains from different starting values we can see if each chain mixes well and if the chains are converging on a common distribution. If the chains don’t mix well then it’s unlikely we sample from a well specified posterior. The most common reason for this error is a poorly specified model. Partial pooling can help alleviate this condition.
+

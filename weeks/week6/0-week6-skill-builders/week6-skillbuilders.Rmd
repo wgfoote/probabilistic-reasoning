@@ -1,0 +1,500 @@
+---
+title: "Week 6 Skill Builders -- Hurricanes and Tracks"
+author: "Bill Foote"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+```
+
+
+## Huricanes
+
+### 12H1 -- Deadly hurricanes
+
+In 2014, a paper was published that was entitled “Female hurricanes are deadlier than male hurricanes.” As the title suggests, the paper claimed that hurricanes with female names have caused greater loss of life, and the explanation given is that people unconsciously rate female hurricanes as less dangerous and so are less likely to evacuate. Statisticians severely criticized the paper after publication. Here, you’ll explore the complete data used in the paper and consider the hypothesis that hurricanes with female names are deadlier. 
+
+Load the data with,
+
+```{r}
+library(rethinking)
+data(Hurricanes)
+```
+
+Acquaint yourself with the columns by inspecting the help ?Hurricanes. In this problem, you’ll focus on predicting deaths using femininity of each hurricane’s name. Fit and interpret the simplest possible model, a Poisson model of deaths using femininity as a predictor. You can use quap or ulam. Compare the model to an intercept-only Poisson model of deaths. How strong is the association between femininity of name and deaths? Which storms does the model fit (that is, in the parlance of statistical technique, retrodict) well? Which storms does it fit poorly?
+
+**12H1.** The problem left us free to specify our own priors. We’ll need to do some prior simulations again, of course. This means thinking about typical ranges of hurricane deaths (the intercept) and how much of an effect the name could possibly have (the slope).
+
+Let’s start with a very simple Poisson model predicting deaths using only femininity as a predictor. I’m going to standardize femininity, for the usual reasons. Then we’ll simulate from the priors and see how not to make the prior predictions silly.
+
+```{r}
+library(rethinking)
+data(Hurricanes)
+d <- Hurricanes
+d$fmnnty_std <- ( d$femininity - mean(d$femininity) )/sd(d$femininity)
+dat <- list( D=d$deaths , F=d$fmnnty_std )
+# model formula - no fitting yet
+f <- alist(
+      D ~ dpois(lambda),
+      log(lambda) <- a + bF*F,
+      a ~ dnorm(1,1),
+      bF ~ dnorm(0,1) )
+```
+
+Now if we aren’t experts on hurricanes, we won’t have a sense of what the plausible range of D should be. The most deadly hurricane in recorded history is the 1900 “Great Galveston hurricane,” which killed somewhere between 6000 and 10000 people. Note that this storm doesn’t have a personal name, and it doesn’t appear in the sample, because storms didn’t get names until after 1950.
+
+Most storms since 1950 are also much less deadly than this, killing fewer than a dozen people. But occasionally there are storms that kill a hundred or more. Hurricane mortality is a thick-tailed phenomenon. So We might have a hunch already that a simple Poisson model is not going to do a good job. But let’s do out best. What do the priors above produce?
+
+```{r}
+N <- 100
+a <- rnorm(N,1,1)
+bF <- rnorm(N,0,1)
+F_seq <- seq( from=-2 , to=2 , length.out=30 )
+plot( NULL , xlim=c(-2,2) , ylim=c(0,500) ,
+xlab="name femininity (std)" , ylab="deaths" )
+for ( i in 1:N ) lines( F_seq , exp( a[i] + bF[i]*F_seq ) , col=grau() , lwd=1.5 )
+```
+
+This allows for some rather implausible extreme trends. But the typical trend is very modest, only a very small increase (or decrease) in deaths as femininity of the name changes. I’d rather use a tighter prior on the slope, because it makes no sense to think that the femininity of a storm’s name could increase the deaths by an order of magnitude. But let’s proceed with these priors and see what happens.
+To fit the model:
+
+```{r}
+m1 <- ulam( 
+  f , 
+  data=dat , chains=1 , log_lik=TRUE 
+  )
+precis( m1 )
+```
+
+The model seems to think there is a reliable association between femininity of name and deaths. Now in order to see which hurricanes the model retrodicts well, we can plot the implied trend over the raw data points. Let's compute and plot the expected death count, 89\% interval of the expectation, and 89\% interval of the expected distribution of deaths (using Poisson sampling). Here is some code we will definitely find a reason to re-use below.
+
+```{r}
+# plot raw data
+plot( dat$F , dat$D , pch=16 , lwd=2 ,
+  col=rangi2 , xlab="femininity (std)" , ylab="deaths" )
+# compute model-based trend
+pred_dat <- list( F=seq(from=-2,to=1.5,length.out=30) )
+lambda <- link( m1 , data=pred_dat ) # Again the link() from data to model
+lambda.mu <- apply(lambda,2,mean)
+lambda.PI <- apply(lambda,2,PI)
+# superimpose trend
+lines( pred_dat$F , lambda.mu )
+shade( lambda.PI , pred_dat$F )
+# compute sampling distribution
+deaths_sim <- sim(m1,data=pred_dat)
+deaths_sim.PI <- apply(deaths_sim,2,PI)
+# superimpose sampling interval as dashed lines
+lines( pred_dat$F , deaths_sim.PI[1,] , lty=2 )
+lines( pred_dat$F , deaths_sim.PI[2,] , lty=2 )
+```
+
+We can’t even see the 89% interval of the expected value, because it is so narrow. The sampling distribution isn’t much wider itself. What we can see here is that femininity accounts for very little of the variation in deaths, especially at the high end. There’s a lot of **over-dispersion**, which is very common in pure Poisson models. As a consequence, this homogeneous Poisson model does a poor job for most of the hurricanes in the sample, as most of them lie outside the prediction envelop (the dashed boundaries). Any trend also seems to be driven by a small number of extreme storms with feminine names. 
+
+As We might expect, the PSIS does not like this. Here is a very nice use of the `stem()` plot.
+
+```{r}
+stem( PSISk( m1 ) )
+```
+
+As we should expect, some Pareto k values are very high, even greater than 1. 
+
+- How many storms are above 1? 
+
+- Can we find them?
+
+### Handling over-dispersion
+
+12H2. Counts are nearly always over-dispersed relative to Poisson. So fit a gamma-Poisson (aka negative-binomial) model to predict deaths using femininity. Show that the over-dispersed model no longer shows as precise a positive association between femininity and deaths, with an 89% interval that overlaps zero. Can you explain why the association diminished in strength?
+
+**12H2**. To deal with the over-dispersion seen in the previous problem, now we’ll fit a Poisson model with varying rates, a gamma-Poisson model. This code will set up the data (just as in the previous problem) and fit the gamma-Poisson model. (Ignore -E error)
+
+```{r}
+library(rethinking)
+data(Hurricanes)
+d <- Hurricanes
+d$fmnnty_std <- ( d$femininity - mean(d$femininity) )/sd(d$femininity)
+dat <- list( D=d$deaths , F=d$fmnnty_std )
+m2 <- ulam(
+  alist(
+    D ~ dgampois( lambda , scale ),
+    log(lambda) <- a + bF*F,
+    a ~ dnorm(1,1),
+    bF ~ dnorm(0,1),
+    scale ~ dexp(1)
+  ), data=dat , chains=1 , log_lik=TRUE )
+```
+
+We should inspect the marginal posterior distributions of the parameters.
+
+```{r}
+precis(m2)
+```
+
+The `scale` parameter in a gamma distribution is a generalized view of the `sigma` parameter. Note that the 89% interval for bF now overlaps zero, because it has more than 5 times the standard deviation as the analogous parameter in model m1. For a head-to-head comparison, let’s do a graphical
+`coeftab()` next.
+
+```{r}
+plot(coeftab(m1,m2))
+```
+
+Model m2 has nearly the same posterior means for the intercept and slope bF, but with much more uncertainty.
+
+How does this translate into predictions? To find out, let’s do the plotting from the previous problem over again, using model m2 now.
+
+```{r}
+# plot raw data
+plot( dat$F , dat$D , pch=16 , lwd=2 ,
+  col=rangi2 , xlab="femininity (std)" , ylab="deaths" )
+# compute model-based trend
+pred_dat <- list( F=seq(from=-2,to=1.5,length.out=30) )
+lambda <- link(m2,data=pred_dat)
+lambda.mu <- apply(lambda,2,mean)
+lambda.PI <- apply(lambda,2,PI)
+# superimpose trend
+lines( pred_dat$F , lambda.mu )
+shade( lambda.PI , pred_dat$F )
+# compute sampling distribution
+deaths_sim <- sim(m2,data=pred_dat)
+deaths_sim.PI <- apply(deaths_sim,2,PI)
+# superimpose sampling interval as dashed lines
+lines( pred_dat$F , deaths_sim.PI[1,] , lty=2 )
+lines( pred_dat$F , deaths_sim.PI[2,] , lty=2 )
+```
+
+There is more uncertainty now about the relationship, and the prediction interval is wider. But the predictions are still terrible.
+
+Now we enter the conceptual part of this problem: Why does including varying rates, via the gamma distribution, result in greater uncertainty in the relationship? 
+
+The gamma-Poisson model allows each hurricane to have its own unique expected death rate, sampled from a common distribution that is a function of the femininity of hurricane names. We can actually plot this distribution from the posterior distribution, for any given femininity value. 
+
+Here are three examples, where we plot 100 randomly sampled gamma distributions of the rate of deaths for three different femininity values.
+
+```{r}
+post <- extract.samples(m2)
+fem <- (-1) # 1 stddev below mean
+for ( i in 1:100 )
+curve( dgamma2(x,exp(post$a[i]+post$bF[i]*fem),post$scale[i]) ,
+from=0 , to=70 , xlab="mean deaths" , ylab="Density" ,
+ylim=c(0,0.19) , col=col.alpha("black",0.2) ,
+add=ifelse(i==1,FALSE,TRUE) )
+mtext( concat("femininity = ",fem) )
+```
+We only need to change the value assigned to fem above to make the other plots. Here are the plots for `fem = 0` and then `fem = +1`.
+
+```{r}
+post <- extract.samples(m2)
+fem <- ( 0 ) # 1 stddev at the mean
+for ( i in 1:100 )
+curve( dgamma2(x,exp(post$a[i]+post$bF[i]*fem),post$scale[i]) ,
+from=0 , to=70 , xlab="mean deaths" , ylab="Density" ,
+ylim=c(0,0.19) , col=col.alpha("black",0.2) ,
+add=ifelse(i==1,FALSE,TRUE) )
+mtext( concat("femininity = ",fem) )
+```
+
+```{r}
+post <- extract.samples(m2)
+fem <- ( 1 ) # 1 stddev above the mean
+for ( i in 1:100 )
+curve( dgamma2(x,exp(post$a[i]+post$bF[i]*fem),post$scale[i]) ,
+from=0 , to=70 , xlab="mean deaths" , ylab="Density" ,
+ylim=c(0,0.19) , col=col.alpha("black",0.2) ,
+add=ifelse(i==1,FALSE,TRUE) )
+mtext( concat("femininity = ",fem) )
+```
+
+Each gray curve above is a gamma distribution of mean death rates, sampled from the posterior distribution of the model. This is an inherently confusing thing: a distribution sampled from a distribution. So let’s take it again, slowly. 
+
+- A gamma distribution is defined by two parameters: a mean and a scale. The mean in this model is controlled by the linear model and its two parameters, `a` and `bf`. 
+
+- The code above takes single values of `a` and `bf` from the posterior distribution and builds a single linear model. It’s exponentiated in the code, because this model uses a log link. And the parameter scale is the scale, so We can see that in the code as well. 100 gamma distributions are drawn for each given value of femininity. 
+
+- This visualizes the uncertainty in the posterior about the variation in death rates.  It makes plenty of sense when we think of the volatility of the volatility of a distribution, a kurtotic thing to think about. 
+
+- Just like a simple parameter like an intercept has uncertainty, and the posterior distribution measures it (given a model and data), a function of parameters like a gamma distribution will also have uncertainty. Essentially there are an infinite number of gamma distributions that are possible, the the Bayesian model has considered all of them and ranked them by their plausibility. 
+
+Each plot above shows 100 such gamma distributions, sampled from the posterior distribution in proportion to their plausibilities. So now back to the explanation of why the parameters a and bF have wider posterior distributions.
+
+Once we allow any given values of a and bF to produce many different death rates, because they feed into a gamma distribution that produces variation, then many more distinct values of a and bF can be consistent with the data. This results in wider posterior distributions. The same phenomenon will reappear when we arrive at multilevel models in Chapter 13. We might be curious how `m2` compares to `m1`, in terms of `PSIS`/`WAIC`. If so, we should definitely take a look. We will find that the effective number of parameters for m1 is very very large. Adding a parameter to m2 actually makes the model less prone to overfitting. 
+
+Why might this be? Thoughts would be much appreciated!
+
+## Trolley morality
+
+12H5. One hypothesis from developmental psychology, often attributed to [Carol Gilligan](https://en.wikipedia.org/wiki/In_a_Different_Voice), proposes that women and men have different average tendencies in moral reasoning. Like most hypotheses in social psychology, it is descriptive, not causal. The notion is that women are more concerned with care (for example, avoiding harm), while men are more concerned with justice and rights. Evaluate this hypothesis, using the Trolley data, supposing that contact provides a proxy for physical harm. Are women more or less bothered by contact than are men, in these data? Figure out the model(s) that is needed to address this question.
+
+### A first look
+
+**12H5.** To examine whether females in these data are more _bothered_ , measured as a rate as _less permissible_ ) scenarios involving the contact principle (contact==1), we need an interaction effect. The reason is that just including a main effect of male only addresses whether men are likely to rate any scenario as more or less permissible. It doesn’t address a gender difference in any particular principle.
+
+Here is a DAG for further discussion.
+
+```{r}
+library(dagitty)
+dag <- dagitty(" dag {
+              Age -> Education
+              Education -> Response
+              Age -> Response
+               }")
+drawdag(dag)
+```
+
+According to our assumptions, we cannot evaluate the causal effect of Education on response without first performing statistical adjustments on our models by including Age. Otherwise, Education will pick up some of the effect of Age on response, thereby biasing our estimates. That is, there is a backdoor leading back to Education. To close it, we must include Age in our estimates. Our computer can confirm our reasoning: 
+
+```{r}
+dagitty::adjustmentSets(dag, exposure = "Education", outcome = "Response")
+```
+So we need an interaction `male*contact`, at least, and across all of the model. We use an index variable, and then we can easily let each parameter have a different value for men and for women. This means everything interacts with gender.
+
+```{r}
+library(rethinking)
+data(Trolley)
+d <- Trolley
+dat <- list(
+  R = d$response,
+  A = d$action,
+  I = d$intention,
+  C = d$contact )
+dat$Gid <- ifelse( d$male==1 , 1L , 2L )
+```
+
+To fit the model, we should also want to let the cutpoints vary by gender. The best way to do this would be to let each gender have its own vector of cut-points (YIKES!). We could do that easily in pure Stan code. It’s awkward with the `ulam()` routine.
+
+```{r}
+dat$F <- 1L - d$male
+m12H5 <- ulam(
+ alist(
+   R ~ dordlogit( phi , cutpoints ),
+   phi <- a*F + bA[Gid]*A + bC[Gid]*C + BI*I ,
+   BI <- bI[Gid] + bIA[Gid]*A + bIC[Gid]*C ,
+   c(bA,bI,bC,bIA,bIC)[Gid] ~ dnorm( 0 , 0.5 ),
+   a ~ dnorm( 0 , 0.5 ),
+   cutpoints ~ dnorm( 0 , 1.5 )
+) , data=dat, chains = 1 )
+```
+
+Let’s take a gander at the resulting estimates.
+
+```{r}
+precis( m12H5, depth = 2 )
+```
+
+This was well worth the wait! We inspect the estimates for a (the main effect of being female on cumulative log-odds) and bC[2] (the interaction effect of being both female and in a contact scenario). 
+
+- The main effect is _______ but bC[2] is what?
+
+- So in terms of the pure contact effect, women in the sample were What?  
+
+- What about the The other effects, like bIC? 
+
+- Is this a causal inference? Why or why not?
+
+### A bit deeper
+
+We now travel into the way a model can avoid amnesia. Varying intercepts adaptively estimate the diversity of individuals, stories, whatever category the data holds. Without this variation, the model assumes that data does not learn from other data. Each individual, country, gender, story, continent, you name it, is allowed to sample from any other category. In this way varying intercepts, and next week, varying slopes, will provide more more accurate estimates and possibly more efficient (the standard errors) of the individual category intercepts.
+
+13H2. Return to data(Trolley) from Chapter 12. Define and fit a varying intercepts model for these data. Cluster intercepts on individual participants, as indicated by the unique values in the `id` variable. Include action, intention, and contact as ordinary terms. Compare the varying intercepts model and a model that ignores individuals, using both WAIC and posterior predictions. What is the impact of individual variation in these data?
+
+**13H2.** First, let’s load the data and re-run the Chapter 12 model. The `phi` is the tendency of the model toward some notion of the center of average Likert-scale responses. But what is interesting indeed is the variation of the sensitivity of `I` to movements across both `A` and `C`: lots of interaction. 
+
+These models will indeed take some time. On my Lenovo Ideapad the following run took over 500 seconds, 8 minutes! 
+
+```{r}
+data(Trolley)
+d <- Trolley
+dat <- list(
+R = d$response,
+A = d$action,
+I = d$intention,
+C = d$contact )
+m13H2.1 <- ulam(
+  alist(
+    R ~ dordlogit( phi , cutpoints ),
+    phi <- bA*A + bC*C + BI*I ,
+    BI <- bI + bIA*A + bIC*C ,
+    c(bA,bI,bC,bIA,bIC) ~ dnorm( 0 , 0.5 ),
+    cutpoints ~ dnorm( 0 , 1.5 )
+) , data=dat , chains=1, log_lik=TRUE )
+```
+
+Now we run varying intercept model. To do so we need to build a valid individual ID variable. The IDs in the data are long tags, so we can coerce them to integers in many ways. What is important is that the
+index values go from 1 to the number of individuals.
+
+```{r}
+(dat$id <- coerce_index( d$id ))
+```
+
+Yes they are. Now we can run the model. The only additions here are the a[id] in the linear model and the adaptive prior for it. But I’ll show the code for both the centered and non-centered parameterizations. The non-centered version should sample better. But both work.
+
+```{r}
+# Here's the non-centered version
+m13H2.2 <- ulam(
+  alist(
+    R ~ dordlogit( phi , cutpoints ),
+    phi <- a[id] + bA*A + bC*C + BI*I ,
+    BI <- bI + bIA*A + bIC*C ,
+    a[id] ~ normal( 0 , sigma ),
+    c(bA,bI,bC,bIA,bIC) ~ dnorm( 0 , 0.5 ),
+    cutpoints ~ dnorm( 0 , 1.5 ),
+    sigma ~ exponential(1)
+  ) , data=dat , chains=1, log_lik=TRUE )
+```
+
+We can run the following model as an extra view into how these hypotheses are compatible with the contours and texture of this data. The model will not be run here for the skillbuilders.
+
+```{r, eval = FALSE}
+# and this is the centered version which we won't run today
+m13H2.2z <- ulam(
+  alist(
+    R ~ dordlogit( phi , cutpoints ),
+    phi <- z[id]*sigma + bA*A + bC*C + BI*I ,
+    BI <- bI + bIA*A + bIC*C ,
+    z[id] ~ normal( 0 , 1 ),
+    c(bA,bI,bC,bIA,bIC) ~ dnorm( 0 , 0.5 ),
+    cutpoints ~ dnorm( 0 , 1.5 ),
+    sigma ~ exponential(1)
+  ) , data=dat , chains=1, log_lik=TRUE )
+
+precis(m13H2.1)
+```
+
+These are the original coefficients and the new ones, having added the individual IDs.
+
+```{r}
+precis(m13H2.2)
+```
+
+What just happened?
+
+- Everything got ....
+
+How much difference in individual variation is there?
+
+- Variation ...
+
+Remember we are on the logit scale, so why might that matter?
+
+What might the variation in average rating hide?
+
+- It hides ....
+
+- We get more precision by ....
+
+The WAIC comparison can also help show how much variation comes from individual differences in average rating:
+
+```{r}
+compare( m13H2.1 , m13H2.2 )
+```
+
+How much WAIC difference?
+
+- It is ....
+
+- This is consistent with ...
+
+Everything we see here is very typical of likert-scale data. I have seen the variation in groups of respondents and in individuals. Often we would seen bimodal distributions of average response, which makes for lively conversations in feedback sessions with respondents. Imagine if the respondents are 40 direct reports to the CFO of an orgqnization. Opinions may, or might not, vary.
+
+Consider how individuals anchor onto different cut-points in the scale, and how much extra noise this might add to the estimation of parameters. This bias can arise from bad scale design, bad structured interviews or survey instruments, or simply differences of opinion. Open-ended responses help to clear up some of this debris.
+
+How might we condition away some of this noise? 
+
+- We might consider ...
+
+Thus we might consider the next part of our trolley saga.
+
+### More multi-level trolleys
+
+13H3. The Trolley data are also clustered by story, which indicates a unique narrative for each vignette. Define and fit a cross-classified varying intercepts model with both id and story. Use the same ordinary terms as in the previous problem. Compare this model to the previous models. What do you infer about the impact of different stories on responses?
+
+**13H3.** This is extra to help enhance your modeling capability. Try it some time. Again the model will not be evaluated in this skillbuilder.  
+
+Here the cross-classified model will add additional varying intercepts for each story in the data. There are 12 different stories, which are repeated across individuals. So we have repeat measures on story just as we have repeat measures on individual `id`.
+
+Let’s load the data again and build the index variable for story.
+
+```{r, }
+library(rethinking)
+data(Trolley)
+d <- Trolley
+dat <- list(
+  R = d$response,
+  A = d$action,
+  I = d$intention,
+  C = d$contact,
+  Sid = coerce_index(d$story),
+  id = coerce_index(d$id) 
+  )
+```
+
+The cross-classified model just needs another set of varying intercepts clustered on story. Let’s try these with a centered parameterization first with the story intercepts `s[Sid]` and their standard deviation `tau`. Here is the model for a non-centered version, which actually samples more efficiently. Here’s the code:
+
+```{r}
+m_13H3 <- ulam(
+  alist(
+    R ~ dordlogit( phi , cutpoints ),
+    phi <- z[id]*sigma + s[Sid] + bA*A + bC*C + BI*I ,
+    BI <- bI + bIA*A + bIC*C ,
+    z[id] ~ normal( 0 , 1 ),
+    s[Sid] ~ normal( 0 , tau ), # here's the multi-level again
+    c(bA,bI,bC,bIA,bIC) ~ dnorm( 0 , 0.5 ),
+    cutpoints ~ dnorm( 0 , 1.5 ),
+    sigma ~ exponential(1),
+    tau ~ exponential(1)
+) , data=dat , chains=1, log_lik=TRUE )
+```
+
+Here is a different version.
+
+```{r, eval = FALSE}
+m_13H3z <- ulam(
+  alist(
+    R ~ dordlogit( phi , cutpoints ),
+    phi <- z[id]*sigma + sz[Sid]*tau + bA*A + bC*C + BI*I ,
+    BI <- bI + bIA*A + bIC*C ,
+    z[id] ~ normal( 0 , 1 ),
+    sz[Sid] ~ normal( 0 , 1 ),
+    c(bA,bI,bC,bIA,bIC) ~ dnorm( 0 , 0.5 ),
+    cutpoints ~ dnorm( 0 , 1.5 ),
+    sigma ~ exponential(1),
+    tau ~ exponential(1)
+) , data=dat , chains=1 , log_lik=TRUE )
+```
+
+We won't run this model as it will lessen our viewing and re-run pleasure. What does this model do differently from the one above it?
+
+- This model....
+
+Let’s look first at the marginal posterior distribution for `m13H3z`.
+
+```{r}
+precis(m_13H3)
+```
+
+How is the standard deviation among individuals, `sigma` changing from the Chapter 12 model?
+
+- The difference is ...
+
+What about across stories (that's `tau` is it not?)?
+
+- The difference is ...
+
+Including varying intercepts on stories will typical have a noticeable impact on estimates for the treatment variables. So again, variation across clusters in the presence of repeat measures plausibly biased the treatment estimate. But the qualitative story stays the same. This model improves precision, but it does not tell a different causal story.
+
+```{r}
+ggplot(mtcars, aes(mpg, wt)) +
+  geom_point(color = ft_cols$yellow) +
+  labs(x="Fuel efficiency (mpg)", y="Weight (tons)",
+       title="Seminal ggplot2 scatterplot example",
+       subtitle="A plot that is only useful for demonstration purposes",
+       caption="Brought to you by the letter 'g'") + 
+  theme_ft_rc()
+
+```
+

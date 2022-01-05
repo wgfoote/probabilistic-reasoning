@@ -1,0 +1,151 @@
+---
+title: "Practices in Intelligibility"
+author: "Bill Foote"
+date: "11/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Parameters
+
+# Set seed for random number generation
+set.seed(42)
+
+# General options
+options(
+  digits = 3,
+  dplyr.print_max = 10,
+  dplyr.print_min = 10,
+  dplyr.summarise.inform = FALSE
+)
+
+# knitr options
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = FALSE,
+  fig.asp = 0.618,  # 1 / phi
+  fig.show = "hold",
+  out.width = "100%"
+)
+
+#===============================================================================
+# Libraries
+library( tidyverse )
+library( rstan )
+library( rethinking )
+library( ggdag )
+library( GGally )
+library( ggraph)
+library( tidygraph )
+library( tidybayes )
+library( tidybayes.rethinking )
+
+# Get samples from stanfit object
+as_tibble.stanfit <- function(x, ...) {
+  as_tibble(as.data.frame(x, ...))
+}
+
+# Predictive intervals for fit model
+predictive_intervals <- function(.data, fit, probs = c(0.5, 0.9)) {
+  .data %>%
+    mutate(.pred = predict(fit, newdata = .)) %>%
+    bind_cols(
+      map_dfc(
+        probs, 
+        ~ predictive_interval(fit, prob = ., newdata = .data) %>%
+          as_tibble()
+      )
+    )
+}
+
+# Sequence of evenly spaced points spanning the range of x
+seq_range <- function(x, n = 201) {
+  seq(from = min(x, na.rm = TRUE), to = max(x, na.rm = TRUE), length.out = n)
+}
+```
+
+# Compendium of 10 Practices
+
+1. It's all about variation
+
+2. Forget about statistical significance
+
+3. Be relevant
+
+4. It's all about comparisons
+
+5. Waste simulations
+
+6. Keep it simple, then waste models
+
+7. Facet the data, and  the models
+
+8. Transform and standardize
+
+9. Deploy target-centric inference
+
+10. Build on life
+
+## 1. It's all about variation
+
+When we model the impact of a set of potential causes on an effect, what we are really doing is asking how, and by how much, can a change in a cause produce a change in an effect. This is our causal story using associations of variations of data to help us understand the ebb and flow of information throughout the story. 
+
+It turns out that the only room for trends is to help us, perhaps, calculate deviations from trends. It is the deviations we are really interesting. On a regression line through a scatter of data, yes, we want that line! But what we are really hankering for is an understanding of how close or how far the data experience (the points in the scatterplot) are from from the voice of understanding our experience (the regression line itself). 
+
+## 2. Forget about statistical significance
+
+Orthodox inference divides the world into two regions: acceptance of the null (business as usual) hypothesis, and non-acceptance of the null hypothesis. If this sounds like a binomial experiment, it is. We compute the notorious $p$-value, an index of inclusion or exclusion, acceptance or rejection of the null hypothesis. Forget this procedure, or at the very least simulate willing disbelief in this procedure, for the time being. This index is noisy at best since it necessarily throws away scads of information about the unobserved data we are analyzing, as known as parameters, because it only uses two pieces of information: acceptance or rejection. 
+
+The same thinking goes for so-called confidence intervals whose range passes through the magick of zero. For example, we might compute $5 \pm 10$ for a parameter that can only have positive values. It appears that a lower bound of $-5$ is meaningless. Also think about any parameter that  can take on a zero value like correlation. A zero correlation is relevant information, as is an interval like $0.4 \pm 0.5$. The interval simply reports that there are some data scenarios when a zero and when a negative correlation are compatible logically. This result least signals a mixture of behaviors in the data. This is useful, and sometime crucial, information not to be lost, but should be reported.
+
+## 3. Be relevant
+
+We use tables usually to build graphs. Graph estimated models against one another and within the structure of the model itself. Stick to two cases: obvious results as well as unusual outcomes. Find the outliers and attempt to visualize them, label them, make them apparent. They carry more information than most would want to admit. Make more graphs than tables. They will spark discussion, yours and your readers. Don't include graphs (or tables) you do not understand enough to even talk about in your commentary. Typical statistics packages spew much highly derived plots like quantile-quantile graphs. Keep it simple, as self-explantory as possible, completely labeled: axes, titles, figure captions.
+
+## 4. It's all about comparisons
+
+Some of the best visualizations are comparisons. There are two to ever display: parameters (which are really only interpretable as comparisons) and predictive measures among models. What are we comparing among parameters? A regression parameter is an average variability of the outcome against a single causative factor, _holding all other factors equal_ or _ceteris paribus_ . It is thus a comparison of one amidst the many other factors. If it is about comparisons, it is also about relativity: that all aspects of the model are lined up with one another from assumptions and caveats through the choice of causative factors and the overall change in predictability across models.
+
+## 5. Waste simulations
+
+We can never simulate priors, posteriors, models enough. Take the time to plot variations in these fundamental logical units of the model. Use generative models to play with the concepts, visualize the relationships, find holes and overlaps. All will be useful to tell the story we are proposing.
+
+## 6. Keep it simple, then waste models
+
+We start with the simplest case of an intercept and then corrupt this naive view of the cause and effect relationship with factors, including those that sort one behavior from another, such as stratifying indices.
+
+## 7. Facet the data, and  the models
+
+We try as many moods in our model as we can. We use an analytical (this means to break up in Greek) vegematic to slice and dice the data we are challenging our causal model and assumptions with. Each slice, each dice can be viewed as a heterogenous facet of the larger homogenized picture. Using multi-level models helps with this process as well.
+
+## 8. Transform and standardize
+
+We make the data as easy as possible to consume, to compute, ro interpret. Levels of outcomes and influences become logarithms to interpret regression parameters as non-dimensional sensitivities of percentage change outcome impact of a percentage change influence. Log relatives are growth rates, and interest rates and returns on asset values. Standardized outcomes and influences put the cause and effect on an equal footing: the number of standard deviations from trend. We transform everything.
+
+## 9. Deploy target-centric inference
+
+It is just not appropriate to put all 100 features into a model and then attempt to eliminate them one by one against a perceived causal framework. Start with the simplest explanation and then gradually associate other features that also fit the causal story. Target the story you hypothesize is the right story. Put that stake in the ground, defend it until a better story can be told. We do not assume that all features are causal features. Sometimes only one is and all other features are merely attributes and convenient proxies for information flow throughout the causal story.
+
+## 10. Build on life
+
+The stories from life are the most important. There are so many stories, arcs from one end of a story to another. Data inhabits this real world. We make judgments based on an informed grasp of evidence from this world using models in our mind to abstract, conceive, analyze, synthesize, compare and contrast what we observe. Our job is make intelligible, understandable that which is seemingly chaotic. Analytical life is also intelligible, as evidenced in small part by this compendium of practices.
+
+# Data resources
+
+Here are some more data resources beyond the AER package. You can also type `data()` in the Rstudio R console to see a very long list of data sets. You have everything from the Michelson Morley speed of  light experiments to EU stock prices to fertility in 1888. If you load `rethinking` or `AER` you can see with `data()` the datasets in those packages as well. Frozen orange juice and weather as well as credit cards is always favorites.
+
+You can also surf these github sites for more data.
+
+- [Ake Vehtari's many data examples with Andy Gelman and Jennifer Hill.](https://github.com/avehtari/ROS-Examples)
+
+- [More detail by topic of the data examples from Ake et alia.](https://avehtari.github.io/ROS-Examples/examples.html)
+
+- Marketing data (airbnb) in the Tidyverse package
+
+- Quantitative financial risk management data in qrmdata package.
+
+- [Google public data sets directory.](https://www.google.com/publicdata/directory)
+
+- [FRED economic data base.](https://fred.stlouisfed.org/)
+
+- [Our World in Data.](https://ourworldindata.org/)
